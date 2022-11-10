@@ -1,2 +1,0 @@
-from FileHeader import FileHeader
-
