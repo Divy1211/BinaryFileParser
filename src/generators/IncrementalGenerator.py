@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from src.errors.EndOfFileError import EndOfFileError
-
 
 class IncrementalGenerator:
     """Similar to an actual generator and is used to return the bytes of a file sequentially"""
@@ -52,7 +50,7 @@ class IncrementalGenerator:
         result = self.file_content[self.progress:self.progress + n]
         if not result:
             remaining = len(self.get_remaining_bytes())
-            raise EndOfFileError(f"End of file reached. (Requested: {n} bytes, only {remaining} left.")
+            raise EOFError(f"End of file reached. (Requested: {n} bytes, only {remaining} left.)")
         if update_progress:
             self.progress += n
         return result

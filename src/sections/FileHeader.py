@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 
 class FileHeader(BaseSection):
-    file_version_str: str = Retriever(FixedLenStr(4), default = "1.47", validators = [partial(chk_len, 4, "file_version_str")])
+    file_version_str: str = Retriever(FixedLenStr(4), default = "1.47", validators = [partial(chk_len, 4)])
     header_len: int = Retriever(UInt32, default = 0)
     savable: int = Retriever(Int32, default = 6)
     timestamp_of_last_save: int = Retriever(UInt32, default = 1610675127)
@@ -26,7 +26,5 @@ class FileHeader(BaseSection):
 
     def __init__(self, igen: IncrementalGenerator):
         ver_str = igen.get_bytes(4, update_progress = False).decode("ASCII")
-        major, minor = map(int, ver_str.split("."))
-        self.file_version: tuple[int, int] = major, minor
-
-        super().__init__(igen, self.file_version)
+        version = tuple(map(int, ver_str.split(".")))
+        super().__init__(igen, version)

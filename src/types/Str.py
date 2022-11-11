@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import Literal
+from typing import Literal, Sized, Iterable, Callable
 
 from src.generators.IncrementalGenerator import IncrementalGenerator
 from src.types.ParserType import ParserType
@@ -55,9 +55,17 @@ class FixedLenStr(BaseStr):
         return self.from_bytes(igen.get_bytes(self.length))
 
 
-def chk_len(length: int, varname: str, bytes_: bytes) -> tuple[bool, str]:
-    valid = len(bytes_) == length
+def chk_len(length: int, iter_: Sized) -> tuple[bool, str]:
+    valid = len(iter_) == length
     msg = ""
     if not valid:
-        msg = f"'{varname}' must have a fixed length of {length}"
+        msg = f"%s must have a fixed length of {length}"
     return valid, msg
+
+def each_len(cmp: Callable[[int, int], bool], length: int, iter_: Iterable[Sized]) -> tuple[bool, str]:
+    for sizable in iter_:
+        if cmp(len(sizable)) >= length:
+            break
+    else:
+        return True, ""
+    return False, f"each element of %s must have a fixed length {cmp.__name__} {length}"

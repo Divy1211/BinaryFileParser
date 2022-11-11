@@ -5,13 +5,8 @@ class MapValidate:
     __slots__ = "p_name", "s_name", "mappers", "validators"
 
     def __init__(self, mappers: list[Callable[[Any], Any]] = None, validators: list[Callable[[Any], tuple[bool, str]]] = None):
-        if mappers is None:
-            mappers = []
-        if validators is None:
-            validators = []
-
-        self.validators = validators
-        self.mappers = mappers
+        self.validators = validators or []
+        self.mappers = mappers or []
 
     def __set_name__(self, owner: Type, name: str):
         self.p_name = name
@@ -28,6 +23,6 @@ class MapValidate:
         for validator in self.validators:
             valid, msg = validator(val)
             if not valid:
-                raise ValueError(msg)
+                raise ValueError(msg % repr(self.p_name))
 
         setattr(instance, self.s_name, val)
