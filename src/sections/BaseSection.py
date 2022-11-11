@@ -60,5 +60,10 @@ class BaseSection:
                     file.write(retriever.cls.to_bytes(getattr(self, retriever.s_name)))
                     continue
 
-                for value in getattr(self, retriever.s_name):
+                ls: list = getattr(self, retriever.s_name)
+
+                if not len(ls) == retriever.repeat:
+                    raise ValueError(f"length of {retriever.p_name!r} is not the same as {retriever.repeat = }")
+
+                for value in ls:
                     file.write(retriever.cls.to_bytes(value))
