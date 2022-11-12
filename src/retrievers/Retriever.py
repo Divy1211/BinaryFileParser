@@ -9,7 +9,7 @@ from src.types.ParserType import ParserType
 from src.types.Str import chk_len
 
 if TYPE_CHECKING:
-    from src.sections.BaseSection import BaseSection
+    from src.types.BaseStruct import BaseStruct
 
 
 def ver_str(ver: tuple[int]) -> str:
@@ -43,18 +43,18 @@ class Retriever(MapValidate):
     def supported(self, ver: tuple[int]) -> bool:
         return self.min_ver < ver < self.max_ver
 
-    def __set_name__(self, owner: Type[BaseSection], name: str) -> None:
+    def __set_name__(self, owner: Type[BaseStruct], name: str) -> None:
         super().__set_name__(owner, name)
         owner.add_retriever(self)
 
-    def __set__(self, instance: BaseSection, value: Any) -> None:
+    def __set__(self, instance: BaseStruct, value: Any) -> None:
         if not self.supported(instance.file_version):
             raise VersionError(
                 f"{self.p_name!r} is not supported in your scenario version {ver_str(instance.file_version)!r}"
             )
         super().__set__(instance, value)
 
-    def __get__(self, instance: BaseSection, owner: Type[BaseSection]):
+    def __get__(self, instance: BaseStruct, owner: Type[BaseStruct]):
         if not self.supported(instance.file_version):
             raise VersionError(
                 f"{self.p_name!r} is not supported in your scenario version {ver_str(instance.file_version)!r}"
@@ -62,6 +62,9 @@ class Retriever(MapValidate):
         try:
             return super().__get__(instance, owner)
         except AttributeError:
+            if self.default is None:
+                raise ValueError(f"No default value specified for retriever {self.p_name!r}")
+
             if self.repeat == 1:
                 super().__set__(instance, self.default)
                 return self.default

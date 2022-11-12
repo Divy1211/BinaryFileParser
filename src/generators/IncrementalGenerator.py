@@ -29,6 +29,19 @@ class IncrementalGenerator:
             file_content = f.read()
         return cls(filepath, file_content)
 
+    @classmethod
+    def from_bytes(cls, bytes_: bytes) -> IncrementalGenerator:
+        """
+        Creates and returns an instance of the IncrementalGenerator class from the given file
+
+        Args:
+            bytes_: The bytes to create the object from
+
+        Returns:
+            An instance of the IncrementalGenerator class
+        """
+        return cls("_bytes", bytes_)
+
     def get_bytes(self, n: int, update_progress: bool = True) -> bytes:
         """
         Get the specified amount of next bytes
