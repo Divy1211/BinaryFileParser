@@ -41,13 +41,17 @@ class BaseStruct(ParserType):
             if not retriever.supported(instance.file_version):
                 continue
 
-            if retriever.repeat == 1:
-                setattr(instance, retriever.p_name, retriever.cls.from_generator(igen))
+            if retriever.repeat(instance) == 0:
+                setattr(instance, retriever.p_name, None)
                 continue
 
-            ls: list = [None] * retriever.repeat
-            for i in range(retriever.repeat):
-                ls[i] = retriever.cls.from_generator(igen)
+            if retriever.repeat(instance) == 1:
+                setattr(instance, retriever.p_name, retriever.cls_or_obj.from_generator(igen))
+                continue
+
+            ls: list = [None] * retriever.repeat(instance)
+            for i in range(retriever.repeat(instance)):
+                ls[i] = retriever.cls_or_obj.from_generator(igen)
             setattr(instance, retriever.p_name, ls)
 
         return instance
@@ -67,34 +71,11 @@ class BaseStruct(ParserType):
         bytes_ = [b""]*len(instance._retrievers)
 
         for i, retriever in enumerate(instance._retrievers):
-            if not retriever.supported(instance.file_version):
-                continue
-
-            if retriever.repeat == 1:
-                bytes_[i] = retriever.cls.to_bytes(getattr(instance, retriever.p_name))
-                continue
-
-            ls: list[bytes] = [b""]*retriever.repeat
-            for j, value in enumerate(getattr(instance, retriever.p_name)):
-                ls[j] = retriever.cls.to_bytes(value)
-            bytes_[i] = b"".join(ls)
+            bytes_[i] = retriever.to_bytes(instance)
 
         return b"".join(bytes_)
 
     def to_file(self, filename: str):
         with open(filename, "wb") as file:
             for retriever in self._retrievers:
-                if not retriever.supported(self.file_version):
-                    continue
-
-                if retriever.repeat == 1:
-                    file.write(retriever.cls.to_bytes(getattr(self, retriever.p_name)))
-                    continue
-
-                ls: list = getattr(self, retriever.p_name)
-
-                if not len(ls) == retriever.repeat:
-                    raise ValueError(f"length of {retriever.p_name!r} is not the same as {retriever.repeat = }")
-
-                for value in ls:
-                    file.write(retriever.cls.to_bytes(value))
+                retriever.to_file(self, file)

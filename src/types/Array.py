@@ -5,6 +5,8 @@ from src.types.ParserType import ParserType
 
 
 class Array(ParserType):
+    __slots__ = "cls"
+
     def __init__(self, cls: Type[ParserType]):
         self.cls = cls
 
@@ -16,7 +18,7 @@ class Array(ParserType):
         return ls
 
     def from_bytes(self, bytes_: bytes, byteorder: Literal["big", "little"] = "little") -> list:
-        return self.from_generator(IncrementalGenerator("", bytes_))
+        return self.from_generator(IncrementalGenerator.from_bytes(bytes_))
 
     def to_bytes(self, value: list, byteorder: Literal["big", "little"] = "little") -> bytes:
         length = len(value)

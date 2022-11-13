@@ -5,6 +5,11 @@ from src.generators.IncrementalGenerator import IncrementalGenerator
 
 
 class ParserType(ABC):
+
+    @classmethod
+    def is_valid(cls, value: Any) -> tuple[bool, str]:
+        return True, ""
+
     @classmethod
     @abstractmethod
     def from_generator(cls, igen: IncrementalGenerator, byteorder: Literal["big", "little"] = "little") -> Any:
