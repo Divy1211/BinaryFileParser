@@ -26,11 +26,11 @@ class BaseStruct(ParserType):
         BaseStruct._retrievers = []
         cls._retrievers = cls_retrievers
 
-    def __init__(self, file_version: tuple[int, ...] = (0,)):
-        self.file_version = file_version
+    def __init__(self, version: tuple[int, ...] = (0,)):
+        self.file_version = version
 
     @classmethod
-    def get_file_version(cls, igen: IncrementalGenerator) -> tuple[int, ...]:
+    def get_version(cls, igen: IncrementalGenerator) -> tuple[int, ...]:
         raise VersionError("Un-versioned File")
 
     @classmethod
@@ -48,9 +48,9 @@ class BaseStruct(ParserType):
         )
 
     @classmethod
-    def from_generator(cls, igen: IncrementalGenerator, *, byteorder: Literal["big", "little"] = "little", file_version: tuple[int, ...] = (0, ), strict = False) -> BaseStruct:
+    def from_generator(cls, igen: IncrementalGenerator, *, byteorder: Literal["big", "little"] = "little", file_version: tuple[int, ...] = (0, ), strict: bool = False) -> BaseStruct:
         with ignored(VersionError):
-            file_version = cls.get_file_version(igen)
+            file_version = cls.get_version(igen)
 
         instance = cls(file_version)
         for retriever in cls._retrievers:
@@ -95,3 +95,9 @@ class BaseStruct(ParserType):
     def to_file(self, filename: str):
         with open(filename, "wb") as file:
             file.write(self.to_bytes(self))
+
+    # todo: write val <-> data (names) to file
+    # todo: write hex (decompressed) to file
+    # todo: repr
+    # todo: compare
+    # todo: file/header/decompressed in both hex/val <-> data

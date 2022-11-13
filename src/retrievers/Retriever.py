@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Type, TYPE_CHECKING, Any, Callable, IO
+from typing import Type, TYPE_CHECKING, Any, Callable
 
 from src.generators.IncrementalGenerator import IncrementalGenerator
 from src.retrievers.MapValidate import MapValidate
@@ -42,7 +42,10 @@ class Retriever(MapValidate):
 
         # if class/object overrides the is_valid method
         if 'is_valid' in cls_or_obj.__dict__:
-            self.validators.append(cls_or_obj.is_valid)
+            if self._repeat == 1:
+                self.validators.append(cls_or_obj.is_valid)
+            else:
+                self.validators.append(lambda iterable: all(map(cls_or_obj.is_valid, iterable)))
 
     def supported(self, ver: tuple[int]) -> bool:
         return self.min_ver < ver < self.max_ver
@@ -96,7 +99,7 @@ class Retriever(MapValidate):
         if not self.supported(instance.file_version):
             return
 
-        if self.repeat(instance) == 0:
+        if self.repeat(instance) == -1:
             setattr(instance, self.p_name, None)
             return
 
@@ -113,7 +116,7 @@ class Retriever(MapValidate):
         if not self.supported(instance.file_version):
             return b""
 
-        if self.repeat(instance) == 0:
+        if self.repeat(instance) == -1:
             return b""
 
         if self.repeat(instance) == 1:

@@ -1,12 +1,14 @@
 import zlib
 
-from src.generators.IncrementalGenerator import IncrementalGenerator
 from src.sections.AoE2Scenario import AoE2Scenario
 from src.sections.BackgroundImage import BackgroundImage
 from src.sections.Cinematics import Cinematics
 from src.sections.DataHeader import DataHeader
+from src.sections.Diplomacy import Diplomacy
 from src.sections.FileHeader import FileHeader
+from src.sections.GlobalVictory import GlobalVictory
 from src.sections.Messages import Messages
+from src.sections.PlayerData2 import PlayerData2
 
 
 def manual_create_test():
@@ -40,6 +42,7 @@ def main():
     print(scx.file_header.unknowns)
     print(scx.file_header.creator)
     print(scx.file_header.num_triggers)
+    print(scx.file_header.file_version)
 
     print("DATA HEADER")
 
@@ -92,28 +95,96 @@ def main():
     print(scx.background_image.image)
     print(scx.background_image.file_version)
 
+    print("PLAYER DATA 2")
 
-    fhb = FileHeader.to_bytes(scx.file_header)
-    bytes_ = b""
-    bytes_ += DataHeader.to_bytes(scx.data_header)
-    bytes_ += Messages.to_bytes(scx.messages)
-    bytes_ += Cinematics.to_bytes(scx.cinematics)
-    bytes_ += BackgroundImage.to_bytes(scx.background_image)
+    print(scx.player_data_2.strings)
+    print(scx.player_data_2.ai_names)
+    print(scx.player_data_2.ai_files[15].unknown)
+    print(scx.player_data_2.ai_files[15].per_content)
+    print(scx.player_data_2.ai_files[15].file_version)
+    print(scx.player_data_2.ai_types)
+    print(scx.player_data_2.separator)
+    print('pd2')
+    for i in range(16):
+        print(scx.player_data_2.resources[i].gold)
+        print(scx.player_data_2.resources[i].wood)
+        print(scx.player_data_2.resources[i].food)
+        print(scx.player_data_2.resources[i].stone)
+        print(scx.player_data_2.resources[i].ore_x)
+        print(scx.player_data_2.resources[i].trade_goods)
+        print(scx.player_data_2.resources[i].player_color)
+    print(scx.player_data_2.file_version)
+
+    print("GLOBAL VICTORY")
+
+    print(scx.global_victory.separator)
+    print(scx.global_victory.conquest)
+    print(scx.global_victory.ruins)
+    print(scx.global_victory.num_relics)
+    print(scx.global_victory.discovery)
+    print(scx.global_victory.exploration_percentage)
+    print(scx.global_victory.gold)
+    print(scx.global_victory.all_custom_conditions)
+    print(scx.global_victory.mode)
+    print(scx.global_victory.score)
+    print(scx.global_victory.time_limit)
+    print(scx.global_victory.file_version)
+
+    print("DIPLOMACY")
+
+    print(scx.diplomacy.player_stances)
+    print(scx.diplomacy.unused)
+    print(scx.diplomacy.separator)
+    print(scx.diplomacy.allied_victory)
+    print(scx.diplomacy.lock_teams_in_game)
+    print(scx.diplomacy.lock_teams_in_lobby)
+    print(scx.diplomacy.random_start_points)
+    print(scx.diplomacy.max_num_teams)
 
     with open("default0.aoe2scenario", "rb") as file:
         bts = iter(file.read())
 
-    for fhbyte, byte in zip(fhb, bts):
-        if fhbyte != byte:
-            print(fhbyte, byte)
-
-    rbytes = zlib.decompress(bytes(bts), -zlib.MAX_WBITS)
-
-    for cbyte, byte in zip(bytes_, rbytes):
+    print("file header")
+    for cbyte, byte in zip(FileHeader.to_bytes(scx.file_header), bts):
         if cbyte != byte:
             print(cbyte, byte)
 
-    print("woo")
+    bts = iter(zlib.decompress(bytes(bts), -zlib.MAX_WBITS))
+
+    print("data header")
+    for cbyte, byte in zip(DataHeader.to_bytes(scx.data_header), bts):
+        if cbyte != byte:
+            print(cbyte, byte)
+
+    print("messages")
+    for cbyte, byte in zip(Messages.to_bytes(scx.messages), bts):
+        if cbyte != byte:
+            print(cbyte, byte)
+
+    print("cinematics")
+    for cbyte, byte in zip(Cinematics.to_bytes(scx.cinematics), bts):
+        if cbyte != byte:
+            print(cbyte, byte)
+
+    print("bkg img")
+    for cbyte, byte in zip(BackgroundImage.to_bytes(scx.background_image), bts):
+        if cbyte != byte:
+            print(cbyte, byte)
+
+    print("player data 2")
+    for cbyte, byte in zip(PlayerData2.to_bytes(scx.player_data_2), bts):
+        if cbyte != byte:
+            print(cbyte, byte)
+
+    print("global victory")
+    for cbyte, byte in zip(GlobalVictory.to_bytes(scx.global_victory), bts):
+        if cbyte != byte:
+            print(cbyte, byte)
+
+    print("diplo struct")
+    for cbyte, byte in zip(Diplomacy.to_bytes(scx.diplomacy), bts):
+        if cbyte != byte:
+            print(cbyte, byte)
 
 if __name__ == "__main__":
     main()

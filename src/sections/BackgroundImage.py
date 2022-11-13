@@ -25,7 +25,7 @@ def le(a: int, b: int) -> tuple[bool, str]:
 class BitMapInfoHeader(BaseStruct):
     @staticmethod
     def set_colours_repeat(retriever: Retriever, instance: BitMapInfoHeader):
-        BackgroundImage.bitmap_info_header.set_repeat(instance, instance.num_colours) # type: ignore
+        BitMapInfoHeader.colours.set_repeat(instance, instance.num_colours) # type: ignore
 
     size: int = Retriever(Int32, default = 0)
     width: int = Retriever(UInt32, default = 0)
@@ -50,16 +50,16 @@ class BackgroundImage(BaseStruct):
         BackgroundImage.image.set_repeat(instance, instance.width*instance.height) # type: ignore
 
     @staticmethod
-    def set_info_repeat(retriever: Retriever, instance: BackgroundImage):
-        BackgroundImage.bitmap_info_header.set_repeat(instance, 1 if instance.width != 0 != instance.height else 0) # type: ignore
+    def set_bmp_header_repeat(retriever: Retriever, instance: BackgroundImage):
+        BackgroundImage.bitmap_info_header.set_repeat(instance, 1 if instance.width != 0 != instance.height else -1) # type: ignore
 
     filename: str = Retriever(Str16, default = "")
     version: int = Retriever(UInt32, default = 3)
-    width: int = Retriever(UInt32, default = 0, on_set = [set_info_repeat, set_img_repeat]) # type: ignore
-    height: int = Retriever(Int32, default = 0, on_set = [set_info_repeat, set_img_repeat]) # type: ignore
+    width: int = Retriever(UInt32, default = 0, on_set = [set_bmp_header_repeat, set_img_repeat]) # type: ignore
+    height: int = Retriever(Int32, default = 0, on_set = [set_bmp_header_repeat, set_img_repeat]) # type: ignore
     orientation: int = Retriever(Int16, default = 1)
     bitmap_info_header: BitMapInfoHeader = Retriever(BitMapInfoHeader, default = BitMapInfoHeader())
-    image: list[bytes] = Retriever(Bytes(1), default = 0)
+    image: list[bytes] = Retriever(Bytes(1), default = b"\x00")
 
-    def __init__(self, file_version: tuple[int, ...] = (1, 47)):
-        super().__init__(file_version)
+    def __init__(self, version: tuple[int, ...] = (1, 47)):
+        super().__init__(version)
