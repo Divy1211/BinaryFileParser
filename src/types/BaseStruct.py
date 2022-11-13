@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Literal
 
+from src.errors.CompressionError import CompressionError
 from src.errors.VersionError import VersionError
 from src.generators.IncrementalGenerator import IncrementalGenerator
 from src.types.ParserType import ParserType
@@ -32,27 +33,29 @@ class BaseStruct(ParserType):
         raise VersionError("Un-versioned File")
 
     @classmethod
+    def decompress(cls, bytes_: bytes) -> bytes:
+        raise CompressionError(
+            "Unable to read object from file. "
+            "A Structure with compressed section needs to implement 'decompress' classmethod."
+        )
+
+    @classmethod
+    def compress(cls, bytes_: bytes) -> bytes:
+        raise CompressionError(
+            "Unable to write object to file. "
+            "A Structure with compressed section needs to implement 'compress' classmethod."
+        )
+
+    @classmethod
     def from_generator(cls, igen: IncrementalGenerator, *, byteorder: Literal["big", "little"] = "little", file_version: tuple[int, ...] = (0, )) -> BaseStruct:
         with ignored(VersionError):
             file_version = cls.get_file_version(igen)
 
         instance = cls(file_version)
         for retriever in cls._retrievers:
-            if not retriever.supported(instance.file_version):
-                continue
-
-            if retriever.repeat(instance) == 0:
-                setattr(instance, retriever.p_name, None)
-                continue
-
-            if retriever.repeat(instance) == 1:
-                setattr(instance, retriever.p_name, retriever.cls_or_obj.from_generator(igen))
-                continue
-
-            ls: list = [None] * retriever.repeat(instance)
-            for i in range(retriever.repeat(instance)):
-                ls[i] = retriever.cls_or_obj.from_generator(igen)
-            setattr(instance, retriever.p_name, ls)
+            if retriever.remaining_compressed:
+                igen = IncrementalGenerator.from_bytes(cls.decompress(igen.get_remaining_bytes()))
+            retriever.from_generator(instance, igen)
 
         return instance
 
@@ -68,14 +71,21 @@ class BaseStruct(ParserType):
 
     @classmethod
     def to_bytes(cls, instance: BaseStruct, *, byteorder: Literal["big", "little"] = "little") -> bytes:
-        bytes_ = [b""]*len(instance._retrievers)
+        length = len(instance._retrievers)
 
+        bytes_ = [b""]*length
+        compress_idx = length
         for i, retriever in enumerate(instance._retrievers):
+            if retriever.remaining_compressed:
+                compress_idx = i
             bytes_[i] = retriever.to_bytes(instance)
 
-        return b"".join(bytes_)
+        compressed = b""
+        if compress_idx != length:
+            compressed = cls.compress(b"".join(bytes_[compress_idx:]))
+
+        return b"".join(bytes_[:compress_idx])+compressed
 
     def to_file(self, filename: str):
         with open(filename, "wb") as file:
-            for retriever in self._retrievers:
-                retriever.to_file(self, file)
+            file.write(self.to_bytes(self))

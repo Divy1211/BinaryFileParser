@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-from functools import partial
 from typing import Type, TYPE_CHECKING, Any, Callable, IO
 
+from src.generators.IncrementalGenerator import IncrementalGenerator
 from src.retrievers.MapValidate import MapValidate
 from src.errors.VersionError import VersionError
 from src.types.ParserType import ParserType
-from src.types.Str import chk_len
 
 if TYPE_CHECKING:
     from src.types.BaseStruct import BaseStruct
@@ -17,7 +16,7 @@ def ver_str(ver: tuple[int]) -> str:
 
 
 class Retriever(MapValidate):
-    __slots__ = "cls_or_obj", "min_ver", "max_ver", "default", "_repeat"
+    __slots__ = "cls_or_obj", "min_ver", "max_ver", "default", "_repeat", "remaining_compressed"
 
     def __init__(
         self,
@@ -26,6 +25,7 @@ class Retriever(MapValidate):
         max_ver: tuple[int] = (1000,),
         *,
         default: Any = None,
+        remaining_compressed = False,
         repeat: int = 1,
         mappers: list[Callable[[Any], Any]] = None,
         validators: list[Callable[[Any], tuple[bool, str]]] = None,
@@ -38,6 +38,7 @@ class Retriever(MapValidate):
         self.max_ver = max_ver
         self.default = default
         self._repeat = repeat
+        self.remaining_compressed = remaining_compressed
 
         # if class/object overrides the is_valid method
         if 'is_valid' in cls_or_obj.__dict__:
@@ -91,6 +92,23 @@ class Retriever(MapValidate):
             return repeat
         return self._repeat
 
+    def from_generator(self, instance: BaseStruct, igen: IncrementalGenerator):
+        if not self.supported(instance.file_version):
+            return
+
+        if self.repeat(instance) == 0:
+            setattr(instance, self.p_name, None)
+            return
+
+        if self.repeat(instance) == 1:
+            setattr(instance, self.p_name, self.cls_or_obj.from_generator(igen))
+            return
+
+        ls: list = [None] * self.repeat(instance)
+        for i in range(self.repeat(instance)):
+            ls[i] = self.cls_or_obj.from_generator(igen)
+        setattr(instance, self.p_name, ls)
+
     def to_bytes(self, instance: BaseStruct) -> bytes:
         if not self.supported(instance.file_version):
             return b""
@@ -110,6 +128,3 @@ class Retriever(MapValidate):
             ls[j] = self.cls_or_obj.to_bytes(value)
 
         return b"".join(ls)
-
-    def to_file(self, instance: BaseStruct, file: IO):
-        file.write(self.to_bytes(instance))

@@ -1,6 +1,7 @@
 import zlib
 
 from src.generators.IncrementalGenerator import IncrementalGenerator
+from src.sections.AoE2Scenario import AoE2Scenario
 from src.sections.BackgroundImage import BackgroundImage
 from src.sections.Cinematics import Cinematics
 from src.sections.DataHeader import DataHeader
@@ -24,84 +25,86 @@ def manual_create_test():
         file.write(int.to_bytes(420, length = 4, byteorder = "little", signed = False))
 
 def main():
-    igen = IncrementalGenerator.from_file("default0.aoe2scenario")
+    scx = AoE2Scenario.from_file("default0.aoe2scenario")
 
-    fh = FileHeader.from_generator(igen)
+    # igen = IncrementalGenerator.from_file("default0.aoe2scenario")
+    #
+    # fh = FileHeader.from_generator(igen)
     print("FILE HEADER")
 
-    print(fh.file_version_str)
-    print(fh.header_len)
-    print(fh.savable)
-    print(fh.timestamp_of_last_save)
-    print(fh.scenario_instructions)
-    print(fh.num_players)
-    print(fh.unknown1)
-    print(fh.unknown2)
-    print(fh.unknowns)
-    print(fh.creator)
-    print(fh.num_triggers)
+    print(scx.file_header.file_version_str)
+    print(scx.file_header.header_len)
+    print(scx.file_header.savable)
+    print(scx.file_header.timestamp_of_last_save)
+    print(scx.file_header.scenario_instructions)
+    print(scx.file_header.num_players)
+    print(scx.file_header.unknown1)
+    print(scx.file_header.unknown2)
+    print(scx.file_header.unknowns)
+    print(scx.file_header.creator)
+    print(scx.file_header.num_triggers)
 
-    file_content = igen.get_remaining_bytes()
-
-    igen = IncrementalGenerator.from_bytes(zlib.decompress(file_content, -zlib.MAX_WBITS))
-
-    dh = DataHeader.from_generator(igen)
+    # file_content = igen.get_remaining_bytes()
+    #
+    # igen = IncrementalGenerator.from_bytes(zlib.decompress(file_content, -zlib.MAX_WBITS))
+    #
+    # dh = DataHeader.from_generator(igen)
     print("DATA HEADER")
 
-    print(dh.next_unit_id)
-    print(dh.version)
-    print(dh.tribe_names)
-    print(dh.string_table_player_names)
-    print(dh.player_data_1[0].active)
-    print(dh.player_data_1[0].human)
-    print(dh.player_data_1[0].civilization)
-    print(dh.player_data_1[0].architecture_set)
-    print(dh.player_data_1[0].cty_mode)
-    print(dh.lock_civs)
-    print(dh.unknown)
-    print(dh.filename)
+    print(scx.data_header.next_unit_id)
+    print(scx.data_header.version)
+    print(scx.data_header.tribe_names)
+    print(scx.data_header.string_table_player_names)
+    print(scx.data_header.player_data_1[0].active)
+    print(scx.data_header.player_data_1[0].human)
+    print(scx.data_header.player_data_1[0].civilization)
+    print(scx.data_header.player_data_1[0].architecture_set)
+    print(scx.data_header.player_data_1[0].cty_mode)
+    print(scx.data_header.lock_civs)
+    print(scx.data_header.unknown)
+    print(scx.data_header.filename)
 
-    msgs = Messages.from_generator(igen)
+    # msgs = Messages.from_generator(igen)
     print("MESSAGES")
 
-    print(msgs.instructions_str_id)
-    print(msgs.hints_str_id)
-    print(msgs.victory_str_id)
-    print(msgs.loss_str_id)
-    print(msgs.history_str_id)
-    print(msgs.scouts_str_id)
-    print(msgs.instructions)
-    print(msgs.hints)
-    print(msgs.victory)
-    print(msgs.loss)
-    print(msgs.history)
-    print(msgs.scouts)
+    print(scx.messages.instructions_str_id)
+    print(scx.messages.hints_str_id)
+    print(scx.messages.victory_str_id)
+    print(scx.messages.loss_str_id)
+    print(scx.messages.history_str_id)
+    print(scx.messages.scouts_str_id)
+    print(scx.messages.instructions)
+    print(scx.messages.hints)
+    print(scx.messages.victory)
+    print(scx.messages.loss)
+    print(scx.messages.history)
+    print(scx.messages.scouts)
 
-    c = Cinematics.from_generator(igen)
+    # c = Cinematics.from_generator(igen)
     print("CINEMATICS")
 
-    print(c.pregame)
-    print(c.victory)
-    print(c.loss)
+    print(scx.cinematics.pregame)
+    print(scx.cinematics.victory)
+    print(scx.cinematics.loss)
 
-    bkgimg = BackgroundImage.from_generator(igen)
+    # bkgimg = BackgroundImage.from_generator(igen)
     print("BACKGROUND IMG")
 
-    print(bkgimg.filename)
-    print(bkgimg.version)
-    print(bkgimg.width)
-    print(bkgimg.height)
-    print(bkgimg.orientation)
-    print(bkgimg.info)
-    print(bkgimg.image)
+    print(scx.background_image.filename)
+    print(scx.background_image.version)
+    print(scx.background_image.width)
+    print(scx.background_image.height)
+    print(scx.background_image.orientation)
+    print(scx.background_image.info)
+    print(scx.background_image.image)
 
 
-    fhb = fh.to_bytes(fh)
+    fhb = FileHeader.to_bytes(scx.file_header)
     bytes_ = b""
-    bytes_ += dh.to_bytes(dh)
-    bytes_ += msgs.to_bytes(msgs)
-    bytes_ += c.to_bytes(c)
-    bytes_ += bkgimg.to_bytes(bkgimg)
+    bytes_ += DataHeader.to_bytes(scx.data_header)
+    bytes_ += Messages.to_bytes(scx.messages)
+    bytes_ += Cinematics.to_bytes(scx.cinematics)
+    bytes_ += BackgroundImage.to_bytes(scx.background_image)
 
     with open("default0.aoe2scenario", "rb") as file:
         bts = iter(file.read())
@@ -116,7 +119,7 @@ def main():
         if cbyte != byte:
             print(cbyte, byte)
 
-    print('WO')
+    print("woo")
 
 if __name__ == "__main__":
     main()
