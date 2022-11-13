@@ -64,20 +64,15 @@ class Str64(Str):
 
 class NullTermStr(BaseStr):
     _len_len = 4
-    _no_null_when_empty = False
 
     @classmethod
     def from_generator(cls, igen: IncrementalGenerator, byteorder: Literal["big", "little"] = "little", file_version: tuple[int, ...] = (0, )) -> str:
         length = int.from_bytes(igen.get_bytes(cls._len_len), "little", signed = False)
-        if cls._no_null_when_empty and length == 0:
-            return ""
         return cls.from_bytes(igen.get_bytes(length)[:-1])
 
     @classmethod
     def to_bytes(cls, value: str, byteorder: Literal["big", "little"] = "little") -> bytes:
-        bytes_ = super().to_bytes(value)
-        if not cls._no_null_when_empty or len(bytes_) != 0:
-            bytes_ += b"\x00"
+        bytes_ = super().to_bytes(value)+b"\x00"
         length = int.to_bytes(len(bytes_), length = cls._len_len, byteorder = "little", signed = False)
         return length + bytes_
 
@@ -94,21 +89,35 @@ class NullTermStr32(NullTermStr):
 class NullTermStr64(NullTermStr):
     _len_len = 8
 
-class NullTermNonEmptyStr8(NullTermStr):
-    _len_len = 1
-    _no_null_when_empty = True
-
-class NullTermNonEmptyStr16(NullTermStr):
-    _len_len = 2
-    _no_null_when_empty = True
-
-class NullTermNonEmptyStr32(NullTermStr):
+class NullTermNonEmptyStr(BaseStr):
     _len_len = 4
-    _no_null_when_empty = True
 
-class NullTermNonEmptyStr64(NullTermStr):
+    @classmethod
+    def from_generator(cls, igen: IncrementalGenerator, byteorder: Literal["big", "little"] = "little", file_version: tuple[int, ...] = (0, )) -> str:
+        length = int.from_bytes(igen.get_bytes(cls._len_len), "little", signed = False)
+        if length == 0:
+            return ""
+        return cls.from_bytes(igen.get_bytes(length)[:-1])
+
+    @classmethod
+    def to_bytes(cls, value: str, byteorder: Literal["big", "little"] = "little") -> bytes:
+        bytes_ = super().to_bytes(value)
+        if len(bytes_) != 0:
+            bytes_ += b"\x00"
+        length = int.to_bytes(len(bytes_), length = cls._len_len, byteorder = "little", signed = False)
+        return length + bytes_
+
+class NullTermNonEmptyStr8(NullTermNonEmptyStr):
+    _len_len = 1
+
+class NullTermNonEmptyStr16(NullTermNonEmptyStr):
+    _len_len = 2
+
+class NullTermNonEmptyStr32(NullTermNonEmptyStr):
+    _len_len = 4
+
+class NullTermNonEmptyStr64(NullTermNonEmptyStr):
     _len_len = 8
-    _no_null_when_empty = True
 
 class FixedLenStr(BaseStr):
     __slots__ = "length",
