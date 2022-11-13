@@ -7,6 +7,7 @@ from src.sections.Cinematics import Cinematics
 from src.sections.DataHeader import DataHeader
 from src.sections.FileHeader import FileHeader
 from src.sections.Messages import Messages
+# from src.sections.PlayerData2 import PlayerData2
 from src.types.BaseStruct import BaseStruct
 
 
@@ -16,6 +17,7 @@ class AoE2Scenario(BaseStruct):
     messages: Messages = Retriever(Messages, default = Messages())
     cinematics: Cinematics = Retriever(Cinematics, default = Cinematics())
     background_image: BackgroundImage = Retriever(BackgroundImage, default = BackgroundImage())
+    # player_data_2: PlayerData2 = Retriever(PlayerData2, default = PlayerData2())
 
     @classmethod
     def decompress(cls, bytes_: bytes) -> bytes:

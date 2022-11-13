@@ -12,7 +12,7 @@ from src.types.Int import UInt32
 from src.types.Str import FixedLenStr, each_len, Str16
 
 
-class PlayerDataOne(BaseStruct):
+class PlayerData1(BaseStruct):
     active: int = Retriever(UInt32, default = 0)
     human: int = Retriever(UInt32, default = 0)
     civilization: int = Retriever(UInt32, default = 43)
@@ -25,7 +25,7 @@ class DataHeader(BaseStruct):
     version: float = Retriever(Float32, default = 1.42)
     tribe_names: list[str] = Retriever(FixedLenStr(256), default = "0"*256, repeat = 16, validators = [partial(each_len, operator.eq, 256)])
     string_table_player_names: list[int] = Retriever(UInt32, default = 4294967294, repeat = 16)
-    player_data_1: list[PlayerDataOne] = Retriever(PlayerDataOne, default = PlayerDataOne(), repeat = 16)
+    player_data_1: list[PlayerData1] = Retriever(PlayerData1, default = PlayerData1(), repeat = 16)
     lock_civs: list[int] = Retriever(Bool32, default = False, repeat = 16)
     unknown: bytes = Retriever(Bytes(9), default = b"\x01"+b"\x00"*7)
     filename: str = Retriever(Str16, default = "MadeWithAoE2SP.aoe2scenario")

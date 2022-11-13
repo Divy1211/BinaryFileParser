@@ -27,9 +27,6 @@ def manual_create_test():
 def main():
     scx = AoE2Scenario.from_file("default0.aoe2scenario")
 
-    # igen = IncrementalGenerator.from_file("default0.aoe2scenario")
-    #
-    # fh = FileHeader.from_generator(igen)
     print("FILE HEADER")
 
     print(scx.file_header.file_version_str)
@@ -44,11 +41,6 @@ def main():
     print(scx.file_header.creator)
     print(scx.file_header.num_triggers)
 
-    # file_content = igen.get_remaining_bytes()
-    #
-    # igen = IncrementalGenerator.from_bytes(zlib.decompress(file_content, -zlib.MAX_WBITS))
-    #
-    # dh = DataHeader.from_generator(igen)
     print("DATA HEADER")
 
     print(scx.data_header.next_unit_id)
@@ -60,11 +52,12 @@ def main():
     print(scx.data_header.player_data_1[0].civilization)
     print(scx.data_header.player_data_1[0].architecture_set)
     print(scx.data_header.player_data_1[0].cty_mode)
+    print(scx.data_header.player_data_1[0].file_version)
     print(scx.data_header.lock_civs)
     print(scx.data_header.unknown)
     print(scx.data_header.filename)
+    print(scx.data_header.file_version)
 
-    # msgs = Messages.from_generator(igen)
     print("MESSAGES")
 
     print(scx.messages.instructions_str_id)
@@ -79,15 +72,15 @@ def main():
     print(scx.messages.loss)
     print(scx.messages.history)
     print(scx.messages.scouts)
+    print(scx.messages.file_version)
 
-    # c = Cinematics.from_generator(igen)
     print("CINEMATICS")
 
     print(scx.cinematics.pregame)
     print(scx.cinematics.victory)
     print(scx.cinematics.loss)
+    print(scx.cinematics.file_version)
 
-    # bkgimg = BackgroundImage.from_generator(igen)
     print("BACKGROUND IMG")
 
     print(scx.background_image.filename)
@@ -95,8 +88,9 @@ def main():
     print(scx.background_image.width)
     print(scx.background_image.height)
     print(scx.background_image.orientation)
-    print(scx.background_image.info)
+    print(scx.background_image.bitmap_info_header)
     print(scx.background_image.image)
+    print(scx.background_image.file_version)
 
 
     fhb = FileHeader.to_bytes(scx.file_header)

@@ -5,6 +5,8 @@ from src.types.ParserType import ParserType
 
 
 class Bytes(ParserType):
+    __slots__ = "num_bytes",
+
     def __init__(self, num_bytes: int):
         self.num_bytes = num_bytes
 
@@ -13,10 +15,10 @@ class Bytes(ParserType):
             return True, ""
         return False, f"number of bytes in %s must equal {self.num_bytes}"
 
-    def from_generator(self, igen: IncrementalGenerator, byteorder: Literal["big", "little"] = "little") -> bytes:
+    def from_generator(self, igen: IncrementalGenerator, byteorder: Literal["big", "little"] = "little", file_version: tuple[int, ...] = (0, )) -> bytes:
         return igen.get_bytes(self.num_bytes)
 
-    def from_bytes(self, bytes_: bytes, byteorder: Literal["big", "little"] = "little") -> bytes:
+    def from_bytes(self, bytes_: bytes, byteorder: Literal["big", "little"] = "little", file_version: tuple[int, ...] = (0, )) -> bytes:
         return bytes_[:self.num_bytes]
 
     def to_bytes(self, value: bytes, byteorder: Literal["big", "little"] = "little") -> bytes:

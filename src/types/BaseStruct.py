@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Literal
 
 from src.errors.CompressionError import CompressionError
+from src.errors.ParserError import ParserError
 from src.errors.VersionError import VersionError
 from src.generators.IncrementalGenerator import IncrementalGenerator
 from src.types.ParserType import ParserType
@@ -47,7 +48,7 @@ class BaseStruct(ParserType):
         )
 
     @classmethod
-    def from_generator(cls, igen: IncrementalGenerator, *, byteorder: Literal["big", "little"] = "little", file_version: tuple[int, ...] = (0, )) -> BaseStruct:
+    def from_generator(cls, igen: IncrementalGenerator, *, byteorder: Literal["big", "little"] = "little", file_version: tuple[int, ...] = (0, ), strict = False) -> BaseStruct:
         with ignored(VersionError):
             file_version = cls.get_file_version(igen)
 
@@ -57,17 +58,22 @@ class BaseStruct(ParserType):
                 igen = IncrementalGenerator.from_bytes(cls.decompress(igen.get_remaining_bytes()))
             retriever.from_generator(instance, igen)
 
+        file_len = len(igen.file_content)
+
+        if igen.progress != file_len and strict:
+            raise ParserError(f"{file_len-igen.progress} bytes are left after parsing all retrievers successfully")
+
         return instance
 
     @classmethod
-    def from_bytes(cls, bytes_: bytes, *, byteorder: Literal["big", "little"] = "little", file_version: tuple[int, ...] = (0, )) -> BaseStruct:
+    def from_bytes(cls, bytes_: bytes, *, byteorder: Literal["big", "little"] = "little", file_version: tuple[int, ...] = (0, ), strict = False) -> BaseStruct:
         igen = IncrementalGenerator.from_bytes(bytes_)
-        return cls.from_generator(igen, file_version=file_version)
+        return cls.from_generator(igen, file_version = file_version, strict = strict)
 
     @classmethod
-    def from_file(cls, filename: str, *, file_version: tuple[int, ...] = (0, )) -> BaseStruct:
+    def from_file(cls, filename: str, *, file_version: tuple[int, ...] = (0, ), strict = False) -> BaseStruct:
         igen = IncrementalGenerator.from_file(filename)
-        return cls.from_generator(igen, file_version=file_version)
+        return cls.from_generator(igen, file_version = file_version, strict = strict)
 
     @classmethod
     def to_bytes(cls, instance: BaseStruct, *, byteorder: Literal["big", "little"] = "little") -> bytes:

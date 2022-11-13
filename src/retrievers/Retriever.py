@@ -101,12 +101,12 @@ class Retriever(MapValidate):
             return
 
         if self.repeat(instance) == 1:
-            setattr(instance, self.p_name, self.cls_or_obj.from_generator(igen))
+            setattr(instance, self.p_name, self.cls_or_obj.from_generator(igen, file_version = instance.file_version))
             return
 
         ls: list = [None] * self.repeat(instance)
         for i in range(self.repeat(instance)):
-            ls[i] = self.cls_or_obj.from_generator(igen)
+            ls[i] = self.cls_or_obj.from_generator(igen, file_version = instance.file_version)
         setattr(instance, self.p_name, ls)
 
     def to_bytes(self, instance: BaseStruct) -> bytes:

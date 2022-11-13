@@ -1,3 +1,4 @@
+from __future__ import annotations
 from abc import ABC, abstractmethod
 from typing import Literal, Any
 
@@ -12,15 +13,15 @@ class ParserType(ABC):
 
     @classmethod
     @abstractmethod
-    def from_generator(cls, igen: IncrementalGenerator, byteorder: Literal["big", "little"] = "little") -> Any:
+    def from_generator(cls, igen: IncrementalGenerator, *, byteorder: Literal["big", "little"] = "little", file_version: tuple[int, ...] = (0, )) -> Any:
         ...
 
     @classmethod
     @abstractmethod
-    def from_bytes(cls, bytes_: bytes, byteorder: Literal["big", "little"] = "little") -> Any:
+    def from_bytes(cls, bytes_: bytes, *, byteorder: Literal["big", "little"] = "little", file_version: tuple[int, ...] = (0, )) -> Any:
         ...
 
     @classmethod
     @abstractmethod
-    def to_bytes(cls, value: Any, byteorder: Literal["big", "little"] = "little") -> bytes:
+    def to_bytes(cls, value: ParserType, *, byteorder: Literal["big", "little"] = "little") -> bytes:
         ...
