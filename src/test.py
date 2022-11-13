@@ -1,6 +1,6 @@
 import zlib
 
-from src.sections.AoE2Scenario import AoE2Scenario
+from src.sections.ScenarioSections import ScenarioSections
 from src.sections.BackgroundImage import BackgroundImage
 from src.sections.Cinematics import Cinematics
 from src.sections.DataHeader import DataHeader
@@ -10,24 +10,8 @@ from src.sections.GlobalVictory import GlobalVictory
 from src.sections.Messages import Messages
 from src.sections.PlayerData2 import PlayerData2
 
-
-def manual_create_test():
-    with open("test.aoe2scenario", "wb") as file:
-        file.write(b"1.47")
-        file.write(int.to_bytes(0, length = 4, byteorder = "little", signed = False))
-        file.write(int.to_bytes(6, length = 4, byteorder = "little", signed = True))
-        file.write(int.to_bytes(1610675127, length = 4, byteorder = "little", signed = False))
-        file.write(int.to_bytes(6, length = 4, byteorder = "little", signed = False)+b"funny\x00")
-        file.write(int.to_bytes(2, length = 4, byteorder = "little", signed = False))
-        n = 6
-        file.write(int.to_bytes(n, length = 4, byteorder = "little", signed = False))
-        for i in range(n):
-            file.write(int.to_bytes(i+2, length = 4, byteorder = "little", signed = False))
-        file.write(int.to_bytes(9, length = 4, byteorder = "little", signed = False)+b"Alian713\x00")
-        file.write(int.to_bytes(420, length = 4, byteorder = "little", signed = False))
-
 def main():
-    scx = AoE2Scenario.from_file("default0.aoe2scenario")
+    scx = ScenarioSections.from_file("default0.aoe2scenario")
 
     print("FILE HEADER")
 

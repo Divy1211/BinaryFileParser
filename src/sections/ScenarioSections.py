@@ -13,7 +13,7 @@ from src.sections.GlobalVictory import GlobalVictory
 from src.types.BaseStruct import BaseStruct
 
 
-class AoE2Scenario(BaseStruct):
+class ScenarioSections(BaseStruct):
     file_header: FileHeader = Retriever(FileHeader, default = FileHeader())
     data_header: DataHeader = Retriever(DataHeader, default = DataHeader(), remaining_compressed = True)
     messages: Messages = Retriever(Messages, default = Messages())
