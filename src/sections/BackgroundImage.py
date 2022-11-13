@@ -55,8 +55,8 @@ class BackgroundImage(BaseStruct):
 
     filename: str = Retriever(Str16, default = "")
     version: int = Retriever(UInt32, default = 3)
-    width: int = Retriever(UInt32, default = 0, on_set = [set_img_repeat, set_info_repeat]) # type: ignore
-    height: int = Retriever(Int32, default = 0, on_set = [set_img_repeat, set_info_repeat]) # type: ignore
+    width: int = Retriever(UInt32, default = 0, on_set = [set_info_repeat, set_img_repeat]) # type: ignore
+    height: int = Retriever(Int32, default = 0, on_set = [set_info_repeat, set_img_repeat]) # type: ignore
     orientation: int = Retriever(Int16, default = 1)
     info: BitMapInfoHeader = Retriever(BitMapInfoHeader, default = BitMapInfoHeader())
     image: list[bytes] = Retriever(Bytes(1), default = 0)
