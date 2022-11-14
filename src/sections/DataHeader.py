@@ -10,8 +10,8 @@ from src.types.Str import FixedLenStr, Str16
 
 
 class PlayerData1(BaseStruct):
-    active: int = Retriever(UInt32, default = 0)
-    human: int = Retriever(UInt32, default = 0)
+    active: bool = Retriever(Bool32, default = False)
+    human: bool = Retriever(Bool32, default = False)
     civilization: int = Retriever(UInt32, default = 43)
     architecture_set: int = Retriever(UInt32, default = 43)
     cty_mode: int = Retriever(UInt32, default = 4)
@@ -24,9 +24,9 @@ class DataHeader(BaseStruct):
     next_unit_id: int = Retriever(UInt32, default = 0)
     version: float = Retriever(Float32, default = 1.42)
     tribe_names: list[str] = Retriever(FixedLenStr[256], default = "0"*256, repeat = 16)
-    string_table_player_names: list[int] = Retriever(UInt32, default = 4294967294, repeat = 16)
-    player_data_1: list[PlayerData1] = Retriever(PlayerData1, default = PlayerData1(), repeat = 16)
-    lock_civs: list[int] = Retriever(Bool32, default = False, repeat = 16)
+    player_name_str_ids: list[int] = Retriever(UInt32, default = 4294967294, repeat = 16)
+    player_data1: list[PlayerData1] = Retriever(PlayerData1, default = PlayerData1(), repeat = 16)
+    lock_civilizations: list[bool] = Retriever(Bool32, default = False, repeat = 16)
     unknown: bytes = Retriever(Bytes[9], default = b"\x01"+b"\x00"*8)
     filename: str = Retriever(Str16, default = "MadeWithAoE2SP.aoe2scenario")
 

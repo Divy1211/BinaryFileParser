@@ -5,7 +5,7 @@ from typing import Type, TYPE_CHECKING, Any, Callable
 from src.generators.IncrementalGenerator import IncrementalGenerator
 from src.retrievers.MapValidate import MapValidate
 from src.errors.VersionError import VersionError
-from src.types.ParserType import ParserType
+from src.types.ParserType import ParserTypeObjCls
 
 if TYPE_CHECKING:
     from src.types.BaseStruct import BaseStruct
@@ -20,7 +20,7 @@ class Retriever(MapValidate):
 
     def __init__(
         self,
-        cls_or_obj: Type[ParserType] | ParserType,
+        cls_or_obj: ParserTypeObjCls,
         min_ver: tuple[int] = (-1,),
         max_ver: tuple[int] = (1000,),
         *,

@@ -8,7 +8,7 @@ from src.types.Str import FixedLenStr, NullTermStr32
 
 
 class FileHeader(BaseStruct):
-    file_version_str: str = Retriever(FixedLenStr[4], default = "1.47")
+    file_version: str = Retriever(FixedLenStr[4], default = "1.47")
     header_len: int = Retriever(UInt32, default = 0)
     savable: int = Retriever(Int32, default = 6)
     timestamp_of_last_save: int = Retriever(UInt32, default = 1610675127)
@@ -20,7 +20,7 @@ class FileHeader(BaseStruct):
     """always (?) 1"""
     unknowns: list[int] = Retriever(Array[UInt32], default = [2, 3, 4, 5, 6, 7])
     creator: str = Retriever(NullTermStr32, default = "Alian713")
-    num_triggers: int = Retriever(UInt32, default = 420)
+    num_triggers: int = Retriever(UInt32, default = 420) # todo: dep
 
     def __init__(self, struct_version: tuple[int, ...] = (1, 47)):
         super().__init__(struct_version)

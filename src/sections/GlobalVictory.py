@@ -7,17 +7,19 @@ class GlobalVictory(BaseStruct):
     separator: int = Retriever(UInt32, default = 4294967197)
     conquest: int = Retriever(UInt32, default = 1)
     """If conquest is checked in 'Custom' GlobalVictory menu"""
-    ruins: int = Retriever(UInt32, default = 0)
-    num_relics: int = Retriever(UInt32, default = 0)
-    """The value for number of relics that is set when 'relics' is checked in 'Custom' GlobalVictory menu"""
+    capture_num_monuments: int = Retriever(UInt32, default = 0)
+    """Ruins in aoe1"""
+    collect_num_relics: int = Retriever(UInt32, default = 0)
+    """Artifacts in aoe1. The value for number of relics that is set when 'relics' is checked in 'Custom' GlobalVictory menu"""
     discovery: int = Retriever(UInt32, default = 0)
-    exploration_percentage: int = Retriever(UInt32, default = 0)
+    """What does this do?"""
+    explore_map_percent: int = Retriever(UInt32, default = 0)
     """The percentage of the map that needs to be explored for winning in 'Custom' GlobalVictory menu"""
-    gold: int = Retriever(UInt32, default = 0)
-    all_custom_conditions: int = Retriever(UInt32, default = 0)
+    collect_gold: int = Retriever(UInt32, default = 0)
+    meet_all_conditions: int = Retriever(UInt32, default = 0)
     """When set to 1, all custom conditions must be satisfied to win"""
     mode: int = Retriever(UInt32, default = 0)
-    score: int = Retriever(UInt32, default = 900)
+    min_score: int = Retriever(UInt32, default = 900)
     time_limit: int = Retriever(UInt32, default = 9000)
     """in 10ths of a year"""
 
