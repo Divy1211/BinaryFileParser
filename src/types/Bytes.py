@@ -1,3 +1,4 @@
+from __future__ import annotations
 from typing import Literal
 
 from src.generators.IncrementalGenerator import IncrementalGenerator
@@ -15,11 +16,14 @@ class Bytes(ParserType):
             return True, ""
         return False, f"number of bytes in %s must equal {self.num_bytes}"
 
-    def from_generator(self, igen: IncrementalGenerator, byteorder: Literal["big", "little"] = "little", file_version: tuple[int, ...] = (0, )) -> bytes:
+    def from_generator(self, igen: IncrementalGenerator, byteorder: Literal["big", "little"] = "little", struct_version: tuple[int, ...] = (0,)) -> bytes:
         return igen.get_bytes(self.num_bytes)
 
-    def from_bytes(self, bytes_: bytes, byteorder: Literal["big", "little"] = "little", file_version: tuple[int, ...] = (0, )) -> bytes:
+    def from_bytes(self, bytes_: bytes, byteorder: Literal["big", "little"] = "little", struct_version: tuple[int, ...] = (0,)) -> bytes:
         return bytes_[:self.num_bytes]
 
     def to_bytes(self, value: bytes, byteorder: Literal["big", "little"] = "little") -> bytes:
         return value
+
+    def __class_getitem__(cls, item: int) -> Bytes:
+        return cls(item)

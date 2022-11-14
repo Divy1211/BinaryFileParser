@@ -8,6 +8,7 @@ from src.sections.DataHeader import DataHeader
 from src.sections.Diplomacy import Diplomacy
 from src.sections.FileHeader import FileHeader
 from src.sections.Messages import Messages
+# from src.sections.Options import Options
 from src.sections.PlayerData2 import PlayerData2
 from src.sections.GlobalVictory import GlobalVictory
 from src.types.BaseStruct import BaseStruct
@@ -22,6 +23,7 @@ class ScenarioSections(BaseStruct):
     player_data_2: PlayerData2 = Retriever(PlayerData2, default = PlayerData2())
     global_victory: GlobalVictory = Retriever(GlobalVictory, default = GlobalVictory())
     diplomacy: Diplomacy = Retriever(Diplomacy, default = Diplomacy())
+    # options: Options = Retriever(Options, default = Options())
 
     @classmethod
     def decompress(cls, bytes_: bytes) -> bytes:
@@ -38,5 +40,5 @@ class ScenarioSections(BaseStruct):
         ver_str = igen.get_bytes(4, update_progress = False).decode("ASCII")
         return tuple(map(int, ver_str.split(".")))
 
-    def __init__(self, version: tuple[int, ...]):
-        super().__init__(version)
+    def __init__(self, struct_version: tuple[int, ...]):
+        super().__init__(struct_version)

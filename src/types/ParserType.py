@@ -13,12 +13,12 @@ class ParserType(ABC):
 
     @classmethod
     @abstractmethod
-    def from_generator(cls, igen: IncrementalGenerator, *, byteorder: Literal["big", "little"] = "little", file_version: tuple[int, ...] = (0, )) -> Any:
+    def from_generator(cls, igen: IncrementalGenerator, *, byteorder: Literal["big", "little"] = "little", struct_version: tuple[int, ...] = (0,)) -> Any:
         ...
 
     @classmethod
     @abstractmethod
-    def from_bytes(cls, bytes_: bytes, *, byteorder: Literal["big", "little"] = "little", file_version: tuple[int, ...] = (0, )) -> Any:
+    def from_bytes(cls, bytes_: bytes, *, byteorder: Literal["big", "little"] = "little", struct_version: tuple[int, ...] = (0,)) -> Any:
         ...
 
     @classmethod

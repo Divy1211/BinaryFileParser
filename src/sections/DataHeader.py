@@ -16,19 +16,19 @@ class PlayerData1(BaseStruct):
     architecture_set: int = Retriever(UInt32, default = 43)
     cty_mode: int = Retriever(UInt32, default = 4)
 
-    def __init__(self, version: tuple[int, ...] = (1, 47)):
-        super().__init__(version)
+    def __init__(self, struct_version: tuple[int, ...] = (1, 47)):
+        super().__init__(struct_version)
 
 
 class DataHeader(BaseStruct):
     next_unit_id: int = Retriever(UInt32, default = 0)
     version: float = Retriever(Float32, default = 1.42)
-    tribe_names: list[str] = Retriever(FixedLenStr(256), default = "0"*256, repeat = 16)
+    tribe_names: list[str] = Retriever(FixedLenStr[256], default = "0"*256, repeat = 16)
     string_table_player_names: list[int] = Retriever(UInt32, default = 4294967294, repeat = 16)
     player_data_1: list[PlayerData1] = Retriever(PlayerData1, default = PlayerData1(), repeat = 16)
     lock_civs: list[int] = Retriever(Bool32, default = False, repeat = 16)
-    unknown: bytes = Retriever(Bytes(9), default = b"\x01"+b"\x00"*8)
+    unknown: bytes = Retriever(Bytes[9], default = b"\x01"+b"\x00"*8)
     filename: str = Retriever(Str16, default = "MadeWithAoE2SP.aoe2scenario")
 
-    def __init__(self, version: tuple[int, ...] = (1, 47)):
-        super().__init__(version)
+    def __init__(self, struct_version: tuple[int, ...] = (1, 47)):
+        super().__init__(struct_version)

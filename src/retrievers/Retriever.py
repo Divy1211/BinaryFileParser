@@ -55,9 +55,9 @@ class Retriever(MapValidate):
         owner.add_retriever(self)
 
     def __set__(self, instance: BaseStruct, value: Any) -> None:
-        if not self.supported(instance.file_version):
+        if not self.supported(instance.struct_version):
             raise VersionError(
-                f"{self.p_name!r} is not supported in your scenario version {ver_str(instance.file_version)!r}"
+                f"{self.p_name!r} is not supported in your scenario version {ver_str(instance.struct_version)!r}"
             )
         super().__set__(instance, value)
 
@@ -65,9 +65,9 @@ class Retriever(MapValidate):
         if instance is None:
             return self
 
-        if not self.supported(instance.file_version):
+        if not self.supported(instance.struct_version):
             raise VersionError(
-                f"{self.p_name!r} is not supported in your scenario version {ver_str(instance.file_version)!r}"
+                f"{self.p_name!r} is not supported in your scenario version {ver_str(instance.struct_version)!r}"
             )
         try:
             return super().__get__(instance, owner)
@@ -96,7 +96,7 @@ class Retriever(MapValidate):
         return self._repeat
 
     def from_generator(self, instance: BaseStruct, igen: IncrementalGenerator):
-        if not self.supported(instance.file_version):
+        if not self.supported(instance.struct_version):
             return
 
         if self.repeat(instance) == -1:
@@ -104,16 +104,16 @@ class Retriever(MapValidate):
             return
 
         if self.repeat(instance) == 1:
-            setattr(instance, self.p_name, self.cls_or_obj.from_generator(igen, file_version = instance.file_version))
+            setattr(instance, self.p_name, self.cls_or_obj.from_generator(igen, struct_version = instance.struct_version))
             return
 
         ls: list = [None] * self.repeat(instance)
         for i in range(self.repeat(instance)):
-            ls[i] = self.cls_or_obj.from_generator(igen, file_version = instance.file_version)
+            ls[i] = self.cls_or_obj.from_generator(igen, struct_version = instance.struct_version)
         setattr(instance, self.p_name, ls)
 
     def to_bytes(self, instance: BaseStruct) -> bytes:
-        if not self.supported(instance.file_version):
+        if not self.supported(instance.struct_version):
             return b""
 
         if self.repeat(instance) == -1:

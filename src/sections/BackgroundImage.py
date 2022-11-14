@@ -40,8 +40,8 @@ class BitMapInfoHeader(BaseStruct):
     num_important_colours: int = Retriever(UInt32, default = 0)
     colours: list[int] = Retriever(UInt32, default = 0)
 
-    def __init__(self, version: tuple[int, ...] = (1, 47)):
-        super().__init__(version)
+    def __init__(self, struct_version: tuple[int, ...] = (1, 47)):
+        super().__init__(struct_version)
 
 
 class BackgroundImage(BaseStruct):
@@ -59,7 +59,7 @@ class BackgroundImage(BaseStruct):
     height: int = Retriever(Int32, default = 0, on_set = [set_bmp_header_repeat, set_img_repeat]) # type: ignore
     orientation: int = Retriever(Int16, default = 1)
     bitmap_info_header: BitMapInfoHeader = Retriever(BitMapInfoHeader, default = BitMapInfoHeader())
-    image: list[bytes] = Retriever(Bytes(1), default = b"\x00")
+    image: list[bytes] = Retriever(Bytes[1], default = b"\x00")
 
-    def __init__(self, version: tuple[int, ...] = (1, 47)):
-        super().__init__(version)
+    def __init__(self, struct_version: tuple[int, ...] = (1, 47)):
+        super().__init__(struct_version)

@@ -1,3 +1,4 @@
+from __future__ import annotations
 from abc import ABC
 from typing import Literal
 
@@ -7,7 +8,7 @@ from src.types.ParserType import ParserType
 
 class BaseStr(ParserType, ABC):
     @classmethod
-    def from_bytes(cls, bytes_: bytes, byteorder: Literal["big", "little"] = "little", file_version: tuple[int, ...] = (0, )) -> str:
+    def from_bytes(cls, bytes_: bytes, byteorder: Literal["big", "little"] = "little", struct_version: tuple[int, ...] = (0,)) -> str:
         try:
             return bytes_.decode("utf-8")
         except UnicodeDecodeError:
@@ -26,7 +27,7 @@ class BaseStr(ParserType, ABC):
 
 class CStr(BaseStr):
     @classmethod
-    def from_generator(cls, igen: IncrementalGenerator, byteorder: Literal["big", "little"] = "little", file_version: tuple[int, ...] = (0, )) -> str:
+    def from_generator(cls, igen: IncrementalGenerator, byteorder: Literal["big", "little"] = "little", struct_version: tuple[int, ...] = (0,)) -> str:
         bytes_ = b""
         while (byte := igen.get_bytes(1)) != b"\x00":
             bytes_ += byte
@@ -40,7 +41,7 @@ class Str(BaseStr):
     _len_len = 4
 
     @classmethod
-    def from_generator(cls, igen: IncrementalGenerator, byteorder: Literal["big", "little"] = "little", file_version: tuple[int, ...] = (0, )) -> str:
+    def from_generator(cls, igen: IncrementalGenerator, byteorder: Literal["big", "little"] = "little", struct_version: tuple[int, ...] = (0,)) -> str:
         length = int.from_bytes(igen.get_bytes(cls._len_len), "little", signed = False)
         return cls.from_bytes(igen.get_bytes(length))
 
@@ -66,7 +67,7 @@ class NullTermStr(BaseStr):
     _len_len = 4
 
     @classmethod
-    def from_generator(cls, igen: IncrementalGenerator, byteorder: Literal["big", "little"] = "little", file_version: tuple[int, ...] = (0, )) -> str:
+    def from_generator(cls, igen: IncrementalGenerator, byteorder: Literal["big", "little"] = "little", struct_version: tuple[int, ...] = (0,)) -> str:
         length = int.from_bytes(igen.get_bytes(cls._len_len), "little", signed = False)
         return cls.from_bytes(igen.get_bytes(length)[:-1])
 
@@ -93,7 +94,7 @@ class NullTermNonEmptyStr(BaseStr):
     _len_len = 4
 
     @classmethod
-    def from_generator(cls, igen: IncrementalGenerator, byteorder: Literal["big", "little"] = "little", file_version: tuple[int, ...] = (0, )) -> str:
+    def from_generator(cls, igen: IncrementalGenerator, byteorder: Literal["big", "little"] = "little", struct_version: tuple[int, ...] = (0,)) -> str:
         length = int.from_bytes(igen.get_bytes(cls._len_len), "little", signed = False)
         if length == 0:
             return ""
@@ -130,5 +131,8 @@ class FixedLenStr(BaseStr):
     def __init__(self, length: int):
         self.length = length
 
-    def from_generator(self, igen: IncrementalGenerator, byteorder: Literal["big", "little"] = "little", file_version: tuple[int, ...] = (0, )) -> str:
+    def from_generator(self, igen: IncrementalGenerator, byteorder: Literal["big", "little"] = "little", struct_version: tuple[int, ...] = (0,)) -> str:
         return self.from_bytes(igen.get_bytes(self.length))
+
+    def __class_getitem__(cls, item: int) -> FixedLenStr:
+        return cls(item)

@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 
 class BaseStruct(ParserType):
-    __slots__ = "file_version",
+    __slots__ = "struct_version",
 
     _retrievers: list[Retriever] = []
 
@@ -26,8 +26,8 @@ class BaseStruct(ParserType):
         BaseStruct._retrievers = []
         cls._retrievers = cls_retrievers
 
-    def __init__(self, version: tuple[int, ...] = (0,)):
-        self.file_version = version
+    def __init__(self, struct_version: tuple[int, ...] = (0,)):
+        self.struct_version = struct_version
 
     @classmethod
     def get_version(cls, igen: IncrementalGenerator) -> tuple[int, ...]:
@@ -48,11 +48,11 @@ class BaseStruct(ParserType):
         )
 
     @classmethod
-    def from_generator(cls, igen: IncrementalGenerator, *, byteorder: Literal["big", "little"] = "little", file_version: tuple[int, ...] = (0, ), strict: bool = False) -> BaseStruct:
+    def from_generator(cls, igen: IncrementalGenerator, *, byteorder: Literal["big", "little"] = "little", struct_version: tuple[int, ...] = (0,), strict: bool = False) -> BaseStruct:
         with ignored(VersionError):
-            file_version = cls.get_version(igen)
+            struct_version = cls.get_version(igen)
 
-        instance = cls(file_version)
+        instance = cls(struct_version)
         for retriever in cls._retrievers:
             if retriever.remaining_compressed:
                 igen = IncrementalGenerator.from_bytes(cls.decompress(igen.get_remaining_bytes()))
@@ -66,14 +66,14 @@ class BaseStruct(ParserType):
         return instance
 
     @classmethod
-    def from_bytes(cls, bytes_: bytes, *, byteorder: Literal["big", "little"] = "little", file_version: tuple[int, ...] = (0, ), strict = False) -> BaseStruct:
+    def from_bytes(cls, bytes_: bytes, *, byteorder: Literal["big", "little"] = "little", struct_version: tuple[int, ...] = (0,), strict = False) -> BaseStruct:
         igen = IncrementalGenerator.from_bytes(bytes_)
-        return cls.from_generator(igen, file_version = file_version, strict = strict)
+        return cls.from_generator(igen, struct_version = struct_version, strict = strict)
 
     @classmethod
     def from_file(cls, filename: str, *, file_version: tuple[int, ...] = (0, ), strict = False) -> BaseStruct:
         igen = IncrementalGenerator.from_file(filename)
-        return cls.from_generator(igen, file_version = file_version, strict = strict)
+        return cls.from_generator(igen, struct_version = file_version, strict = strict)
 
     @classmethod
     def to_bytes(cls, instance: BaseStruct, *, byteorder: Literal["big", "little"] = "little") -> bytes:

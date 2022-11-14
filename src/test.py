@@ -26,7 +26,7 @@ def main():
     print(scx.file_header.unknowns)
     print(scx.file_header.creator)
     print(scx.file_header.num_triggers)
-    print(scx.file_header.file_version)
+    print(scx.file_header.struct_version)
 
     print("DATA HEADER")
 
@@ -39,11 +39,11 @@ def main():
     print(scx.data_header.player_data_1[0].civilization)
     print(scx.data_header.player_data_1[0].architecture_set)
     print(scx.data_header.player_data_1[0].cty_mode)
-    print(scx.data_header.player_data_1[0].file_version)
+    print(scx.data_header.player_data_1[0].struct_version)
     print(scx.data_header.lock_civs)
     print(scx.data_header.unknown)
     print(scx.data_header.filename)
-    print(scx.data_header.file_version)
+    print(scx.data_header.version)
 
     print("MESSAGES")
 
@@ -59,14 +59,14 @@ def main():
     print(scx.messages.loss)
     print(scx.messages.history)
     print(scx.messages.scouts)
-    print(scx.messages.file_version)
+    print(scx.messages.struct_version)
 
     print("CINEMATICS")
 
     print(scx.cinematics.pregame)
     print(scx.cinematics.victory)
     print(scx.cinematics.loss)
-    print(scx.cinematics.file_version)
+    print(scx.cinematics.struct_version)
 
     print("BACKGROUND IMG")
 
@@ -77,7 +77,7 @@ def main():
     print(scx.background_image.orientation)
     print(scx.background_image.bitmap_info_header)
     print(scx.background_image.image)
-    print(scx.background_image.file_version)
+    print(scx.background_image.version)
 
     print("PLAYER DATA 2")
 
@@ -85,7 +85,7 @@ def main():
     print(scx.player_data_2.ai_names)
     print(scx.player_data_2.ai_files[15].unknown)
     print(scx.player_data_2.ai_files[15].per_content)
-    print(scx.player_data_2.ai_files[15].file_version)
+    print(scx.player_data_2.ai_files[15].struct_version)
     print(scx.player_data_2.ai_types)
     print(scx.player_data_2.separator)
     print('pd2')
@@ -97,7 +97,7 @@ def main():
         print(scx.player_data_2.resources[i].ore_x)
         print(scx.player_data_2.resources[i].trade_goods)
         print(scx.player_data_2.resources[i].player_color)
-    print(scx.player_data_2.file_version)
+    print(scx.player_data_2.struct_version)
 
     print("GLOBAL VICTORY")
 
@@ -112,7 +112,7 @@ def main():
     print(scx.global_victory.mode)
     print(scx.global_victory.score)
     print(scx.global_victory.time_limit)
-    print(scx.global_victory.file_version)
+    print(scx.global_victory.struct_version)
 
     print("DIPLOMACY")
 

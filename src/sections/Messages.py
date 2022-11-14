@@ -21,5 +21,5 @@ class Messages(BaseStruct):
     history: str = Retriever(Str16, default = "")
     scouts: str = Retriever(Str16, default = "")
 
-    def __init__(self, version: tuple[int, ...] = (1, 47)):
-        super().__init__(version)
+    def __init__(self, struct_version: tuple[int, ...] = (1, 47)):
+        super().__init__(struct_version)

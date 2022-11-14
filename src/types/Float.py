@@ -10,11 +10,11 @@ class Float(ParserType):
     _struct_symbol = 'f'
 
     @classmethod
-    def from_generator(cls, igen: IncrementalGenerator, byteorder: Literal["big", "little"] = "little", file_version: tuple[int, ...] = (0, )) -> float:
+    def from_generator(cls, igen: IncrementalGenerator, byteorder: Literal["big", "little"] = "little", struct_version: tuple[int, ...] = (0,)) -> float:
         return cls.from_bytes(igen.get_bytes(cls._byte_len), byteorder)
 
     @classmethod
-    def from_bytes(cls, bytes_: bytes, byteorder: Literal["big", "little"] = "little", file_version: tuple[int, ...] = (0, )) -> float:
+    def from_bytes(cls, bytes_: bytes, byteorder: Literal["big", "little"] = "little", struct_version: tuple[int, ...] = (0,)) -> float:
         return struct.unpack(cls._struct_symbol, bytes_)[0]
 
     @classmethod

@@ -9,11 +9,11 @@ class Int(ParserType):
     _signed = True
 
     @classmethod
-    def from_generator(cls, igen: IncrementalGenerator, byteorder: Literal["big", "little"] = "little", file_version: tuple[int, ...] = (0, )) -> int:
+    def from_generator(cls, igen: IncrementalGenerator, byteorder: Literal["big", "little"] = "little", struct_version: tuple[int, ...] = (0,)) -> int:
         return cls.from_bytes(igen.get_bytes(cls._byte_len), byteorder)
 
     @classmethod
-    def from_bytes(cls, bytes_: bytes, byteorder: Literal["big", "little"] = "little", file_version: tuple[int, ...] = (0, )) -> int:
+    def from_bytes(cls, bytes_: bytes, byteorder: Literal["big", "little"] = "little", struct_version: tuple[int, ...] = (0,)) -> int:
         return int.from_bytes(bytes_, byteorder, signed = cls._signed)
 
     @classmethod
