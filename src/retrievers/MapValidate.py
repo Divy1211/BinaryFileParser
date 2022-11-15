@@ -12,7 +12,7 @@ class MapValidate:
         self,
         mappers: list[Callable[[MapValidate, Any, T], T]] = None,
         validators: list[Callable[[MapValidate, Any, Any], tuple[bool, str]]] = None,
-        on_get: list[Callable[[MapValidate, Any, Type], None]] = None,
+        on_get: list[Callable[[MapValidate, Any], None]] = None,
         on_set: list[Callable[[MapValidate, Any], None]] = None,
     ):
         self.mappers = mappers or []
@@ -27,7 +27,7 @@ class MapValidate:
     def __get__(self, instance: Any, owner: Type):
 
         for func in self.on_get:
-            func(self, instance, owner)
+            func(self, instance)
 
         return getattr(instance, self.s_name)
 

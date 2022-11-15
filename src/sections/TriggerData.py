@@ -19,7 +19,8 @@ attr_usage_ids = {
 class Effect(BaseStruct):
     @staticmethod
     def set_sel_obj_ids_repeat(retriever: Retriever, instance: Effect):
-        Effect.selected_object_ids.set_repeat(instance, instance.num_objects_selected)  # type: ignore
+        repeat = 0 if instance.num_objects_selected == -1 else instance.num_objects_selected
+        Effect.selected_object_ids.set_repeat(instance, repeat)
 
     @staticmethod
     def remove_null_term(retriever: Retriever, instance: Effect):
@@ -32,13 +33,17 @@ class Effect(BaseStruct):
             if val[-1] != "\x00":
                 setattr(instance, retriever.s_name, val+"\x00")
 
+    @staticmethod
+    def update_num_obj_sel(retreiver: Retriever, instance: Effect):
+        instance.num_objects_selected = len(instance.selected_object_ids)
+
     type: int = Retriever(Int32, default = -1)
     static_value: int = Retriever(Int32, default = 52)
     ai_script_goal: int = Retriever(Int32, default = -1)
     quantity: int = Retriever(Int32, default = -1)
     tribute_list: int = Retriever(Int32, default = -1)
     diplomacy: int = Retriever(Int32, default = -1)
-    num_objects_selected: int = Retriever(Int32, default = -1, on_set = [set_sel_obj_ids_repeat]) # type: ignore
+    num_objects_selected: int = Retriever(Int32, default = -1, on_set = [set_sel_obj_ids_repeat], on_write = [update_num_obj_sel])
     legacy_location_object_reference: int = Retriever(Int32, default = -1)
     object_list_unit_id: int = Retriever(Int32, default = -1)
     source_player: int = Retriever(Int32, default = -1)
@@ -86,10 +91,12 @@ class Effect(BaseStruct):
     reset_timer: int = Retriever(Int32, default = -1)
     object_state: int = Retriever(Int32, default = -1)
     action_type: int = Retriever(Int32, default = -1)
-    message: str = Retriever(Str32, default = "", on_read = [remove_null_term], on_write = [append_null_term_if_used])  # type: ignore
-    sound_name: str = Retriever(Str32, default = "", on_read = [remove_null_term], on_write = [append_null_term_if_used])  # type: ignore
+    message: str = Retriever(Str32, default = "", on_read = [remove_null_term], on_write = [append_null_term_if_used])
+    sound_name: str = Retriever(Str32, default = "", on_read = [remove_null_term], on_write = [append_null_term_if_used])
     selected_object_ids: list[int] = Retriever(Int32, default = -1)
 
+    def __init__(self, struct_version: tuple[int, ...] = (3, 2)):
+        super().__init__(struct_version)
 
 class Condition(BaseStruct):
     condition_type: int = Retriever(Int32, default = 0)
@@ -123,23 +130,46 @@ class Condition(BaseStruct):
     include_changeable_weapon_objects: int = Retriever(Int32, default = -1)
     xs_function: str = Retriever(Str32, default = "")
 
+    def __init__(self, struct_version: tuple[int, ...] = (3, 2)):
+        super().__init__(struct_version)
+
 
 class Trigger(BaseStruct):
     @staticmethod
     def set_effects_repeat(retriever: Retriever, instance: Trigger):
-        Trigger.effects.set_repeat(instance, instance.num_effects)  # type: ignore
+        Trigger.effects.set_repeat(instance, instance.num_effects)
 
     @staticmethod
     def set_effect_display_orders_repeat(retriever: Retriever, instance: Trigger):
-        Trigger.effect_display_orders.set_repeat(instance, instance.num_effects)  # type: ignore
+        Trigger.effect_display_orders.set_repeat(instance, instance.num_effects)
 
     @staticmethod
     def set_conditions_repeat(retriever: Retriever, instance: Trigger):
-        Trigger.conditions.set_repeat(instance, instance.num_conditions)  # type: ignore
+        Trigger.conditions.set_repeat(instance, instance.num_conditions)
 
     @staticmethod
     def set_condition_display_orders_repeat(retriever: Retriever, instance: Trigger):
-        Trigger.condition_display_orders.set_repeat(instance, instance.num_conditions)  # type: ignore
+        Trigger.condition_display_orders.set_repeat(instance, instance.num_conditions)
+
+    @staticmethod
+    def update_num_effects(retriever: Retriever, instance: Trigger):
+        instance.num_effects = len(instance.effects)
+
+        if len(instance.effect_display_orders) != instance.num_effects:
+            highest_display_order = max(instance.effect_display_orders)
+            if highest_display_order != instance.num_effects-1:
+                raise ValueError("effect display order array out of sync")
+            instance.effect_display_orders.extend(range(highest_display_order+1, instance.num_effects))
+
+    @staticmethod
+    def update_num_conditions(retriever: Retriever, instance: Trigger):
+        instance.num_conditions = len(instance.conditions)
+
+        if len(instance.condition_display_orders) != instance.num_conditions:
+            highest_display_order = max(instance.condition_display_orders)
+            if highest_display_order != instance.num_conditions-1:
+                raise ValueError("condition display order array out of sync")
+            instance.condition_display_orders.extend(range(highest_display_order+1, instance.num_conditions))
 
     enabled: bool = Retriever(Bool32, default = True)
     looping: bool = Retriever(Bool8, default = False)
@@ -154,30 +184,43 @@ class Trigger(BaseStruct):
     description: str = Retriever(NullTermStr32, default = "")
     name: str = Retriever(NullTermStr32, default = "Trigger 0")
     short_description: str = Retriever(NullTermStr32, default = "")
-    num_effects: int = Retriever(UInt32, default = 0, on_set = [set_effects_repeat, set_effect_display_orders_repeat])  # type: ignore
+    num_effects: int = Retriever(UInt32, default = 0, on_set = [set_effects_repeat, set_effect_display_orders_repeat], on_write = [update_num_effects])
     """originally int32"""
     effects: list[Effect] = Retriever(Effect, default = Effect())
-    effect_display_orders: int = Retriever(UInt32, default = 0)
+    effect_display_orders: list[int] = Retriever(UInt32, default = 0)
     """originally int32"""
-    num_conditions: int = Retriever(UInt32, default = 0, on_set = [set_conditions_repeat, set_condition_display_orders_repeat]) # type: ignore
+    num_conditions: int = Retriever(UInt32, default = 0, on_set = [set_conditions_repeat, set_condition_display_orders_repeat], on_write = [update_num_conditions])
     """originally int32"""
     conditions: list[Condition] = Retriever(Condition, default = Condition())
-    condition_display_orders: int = Retriever(UInt32, default = 0)
+    condition_display_orders: list[int] = Retriever(UInt32, default = 0)
     """originally int32"""
+
+    def __init__(self, struct_version: tuple[int, ...] = (3, 2)):
+        super().__init__(struct_version)
 
 
 class TriggerData(BaseStruct):
     @staticmethod
     def set_triggers_repeat(retriever: Retriever, instance: TriggerData):
-        TriggerData.triggers.set_repeat(instance, instance.num_triggers)  # type: ignore
+        TriggerData.triggers.set_repeat(instance, instance.num_triggers)
 
     @staticmethod
     def set_display_orders_repeat(retriever: Retriever, instance: TriggerData):
-        TriggerData.trigger_display_orders.set_repeat(instance, instance.num_triggers)  # type: ignore
+        TriggerData.trigger_display_orders.set_repeat(instance, instance.num_triggers)
+
+    @staticmethod
+    def update_num_triggers(retriever: Retriever, instance: TriggerData):
+        instance.num_triggers = len(instance.triggers)
+
+        if len(instance.trigger_display_orders) != instance.num_triggers:
+            highest_display_order = max(instance.trigger_display_orders)
+            if highest_display_order != instance.num_triggers-1:
+                raise ValueError("trigger display order array out of sync")
+            instance.trigger_display_orders.extend(range(highest_display_order+1, instance.num_triggers))
 
     trigger_version: float = Retriever(Float64, default = 2.6)
     trigger_instruction_start: int = Retriever(Int8, default = 0)
-    num_triggers: int = Retriever(UInt32, default = 0, on_set = [set_triggers_repeat, set_display_orders_repeat]) # type: ignore
+    num_triggers: int = Retriever(UInt32, default = 0, on_set = [set_triggers_repeat, set_display_orders_repeat], on_write = [update_num_triggers])
     """originally int32"""
     triggers: list[Trigger] = Retriever(Trigger, default = Trigger())
     trigger_display_orders: list[int] = Retriever(UInt32, default = 0)

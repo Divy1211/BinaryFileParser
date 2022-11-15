@@ -12,51 +12,13 @@ from src.sections.FileHeader import FileHeader
 from src.sections.GlobalVictory import GlobalVictory
 from src.sections.Messages import Messages
 from src.sections.PlayerData2 import PlayerData2
-from src.sections.TriggerData import TriggerData, Trigger
+from src.sections.TriggerData import TriggerData
 from src.sections.UnitData import UnitData
 from src.sections.VariableData import VariableData
-from src.types.Float import Float64
-from src.types.Int import Int32
 
 
 def main():
     scx = ScenarioSections.from_file("1_47.aoe2scenario")
-
-    print("UNIT DATA")
-
-    print(scx.unit_data.num_players)
-    print(scx.unit_data.player_data4[0].food)
-    print(scx.unit_data.player_data4[0].wood)
-    print(scx.unit_data.player_data4[0].gold)
-    print(scx.unit_data.player_data4[0].stone)
-    print(scx.unit_data.player_data4[0].ore_x)
-    print(scx.unit_data.player_data4[0].trade_goods_duplicate)
-    print(scx.unit_data.player_data4[0].population_limit)
-    print(scx.unit_data.num_players2)
-    print(scx.unit_data.player_data3[0].constant_name)
-    print(scx.unit_data.player_data3[0].editor_camera_x)
-    print(scx.unit_data.player_data3[0].editor_camera_y)
-    print(scx.unit_data.player_data3[0].initial_camera_x)
-    print(scx.unit_data.player_data3[0].initial_camera_y)
-    print(scx.unit_data.player_data3[0].aok_allied_victory)
-    print(scx.unit_data.player_data3[0].diplomacy_stances_interaction)
-    print(scx.unit_data.player_data3[0].diplomacy_stances_ai_system)
-    print(scx.unit_data.player_data3[0].colour)
-    print(scx.unit_data.player_data3[0].victory_version)
-    print(scx.unit_data.player_data3[0].num_grand_theft_empires)
-    print(scx.unit_data.player_data3[0].unknown2)
-    print(scx.unit_data.player_data3[0].grand_theft_empires)
-    print(scx.unit_data.player_data3[0].num_ww_campaign2)
-    print(scx.unit_data.player_data3[0].unknown3)
-    print(scx.unit_data.player_data3[0].ww_campaign2)
-    print(scx.unit_data.player_data3[0].unknown4)
-    print(scx.unit_data.units)
-
-    print("TRIGGER DATA")
-
-    print(scx.trigger_data.trigger_version)
-    print(scx.trigger_data.trigger_instruction_start)
-    print(scx.trigger_data.num_triggers)
 
     with open("1_47.aoe2scenario", "rb") as file:
         bts = iter(file.read())
@@ -132,6 +94,8 @@ def main():
     for cbyte, byte in zip(FileData.to_bytes(scx.file_data), bts):
         if cbyte != byte:
             print(cbyte, byte)
+
+    scx.to_file("first.aoe2scenario")
 
 if __name__ == "__main__":
     main()

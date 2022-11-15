@@ -1,14 +1,16 @@
 from __future__ import annotations
 
+from abc import ABCMeta
 from typing import Type, TYPE_CHECKING, Any, Callable, TypeVar
 
 from src.generators.IncrementalGenerator import IncrementalGenerator
 from src.retrievers.MapValidate import MapValidate
 from src.errors.VersionError import VersionError
 from src.types.ParserType import ParserTypeObjCls
+from src.types.BaseStruct import BaseStruct
 
 if TYPE_CHECKING:
-    from src.types.BaseStruct import BaseStruct
+    pass
 
 
 def ver_str(ver: tuple[int]) -> str:
@@ -34,7 +36,7 @@ class Retriever(MapValidate):
         on_write: list[Callable[[Retriever, BaseStruct], None]] = None,
         mappers: list[Callable[[Retriever, BaseStruct, T], T]] = None,
         validators: list[Callable[[Retriever, BaseStruct, Any], tuple[bool, str]]] = None,
-        on_get: list[Callable[[Retriever, BaseStruct, Type[BaseStruct]], None]] = None,
+        on_get: list[Callable[[Retriever, BaseStruct], None]] = None,
         on_set: list[Callable[[Retriever, BaseStruct], None]] = None,
     ):
         super().__init__(mappers, validators, on_get, on_set)
@@ -111,13 +113,20 @@ class Retriever(MapValidate):
             setattr(instance, self.p_name, None)
             return
 
+        is_sub_obj = isinstance(self.cls_or_obj, BaseStruct) or type(self.cls_or_obj) is ABCMeta and issubclass(self.cls_or_obj, BaseStruct)
+
         if repeat == 1 and not hasattr(instance, self.r_name):
-            setattr(instance, self.p_name, self.cls_or_obj.from_generator(igen, struct_version = instance.struct_version))
+            obj = self.cls_or_obj.from_generator(igen, struct_version = instance.struct_version)
+            if is_sub_obj:
+                obj._parent = instance
+            setattr(instance, self.p_name, obj)
             return
 
         ls: list = [None] * repeat
         for i in range(repeat):
             ls[i] = self.cls_or_obj.from_generator(igen, struct_version = instance.struct_version)
+            if is_sub_obj:
+                ls[i]._parent = instance
         setattr(instance, self.p_name, ls)
 
         for func in self.on_read:
@@ -138,6 +147,10 @@ class Retriever(MapValidate):
             return self.cls_or_obj.to_bytes(getattr(instance, self.p_name))
 
         ls: list = getattr(instance, self.p_name)
+
+        if self.p_name == "colours":
+            print("at", repeat)
+
         if not len(ls) == repeat:
             raise ValueError(f"length of {self.p_name!r} is not the same as {repeat = }")
 

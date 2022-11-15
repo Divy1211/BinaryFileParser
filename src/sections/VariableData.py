@@ -10,7 +10,13 @@ class Variable(BaseStruct):
     id: int = Retriever(UInt32, default = 0)
     name: str = Retriever(NullTermStr32, default = "_Variable0")
 
+    def __init__(self, struct_version: tuple[int, ...] = (3, 2)):
+        super().__init__(struct_version)
+
 
 class VariableData(BaseStruct):
     variables: list[Variable] = Retriever(Array32(Variable), default = [])
     unused: bytes = Retriever(Bytes[9], default = b"\x00"*9)
+
+    def __init__(self, struct_version: tuple[int, ...] = (3, 2)):
+        super().__init__(struct_version)

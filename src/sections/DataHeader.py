@@ -28,7 +28,7 @@ class DataHeader(BaseStruct):
     player_data1: list[PlayerData1] = Retriever(PlayerData1, default = PlayerData1(), repeat = 16)
     lock_civilizations: list[bool] = Retriever(Bool32, default = False, repeat = 16)
     unknown: bytes = Retriever(Bytes[9], default = b"\x01"+b"\x00"*8)
-    filename: str = Retriever(Str16, default = "MadeWithAoE2SP.aoe2scenario")
+    file_name: str = Retriever(Str16, default = "MadeWithAoE2SP.aoe2scenario")
 
     def __init__(self, struct_version: tuple[int, ...] = (1, 47)):
         super().__init__(struct_version)

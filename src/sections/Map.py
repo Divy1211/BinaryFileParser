@@ -18,14 +18,22 @@ class Terrain(BaseStruct):
 class Map(BaseStruct):
     @staticmethod
     def set_terrain_data_repeat(retriever: Retriever, instance: Map):
-        Map.tiles.set_repeat(instance, instance.width * instance.height)  # type: ignore
+        Map.tiles.set_repeat(instance, instance.width * instance.height)
+
+    @staticmethod
+    def update_script_file_path(retriever: Retriever, instance: Map):
+        instance._parent.file_data.script_file_path = instance.script_name+".xs" if instance.script_name else ""
+
+    @staticmethod
+    def update_width_height(retriever: Retriever, instance: Map):
+        instance.width = instance.height = int(len(instance.tiles) ** 0.5)
 
     string_starter1: bytes = Retriever(Bytes[2], default = b"\x60\x0a")
     water_definition: str = Retriever(Str16, default = "")
     string_starter2: bytes = Retriever(Bytes[2], default = b"\x60\x0a")
     colour_mood: str = Retriever(Str16, default = "Empty")
     string_starter3: bytes = Retriever(Bytes[2], default = b"\x60\x0a")
-    script_name: str = Retriever(Str16, default = "")                              # todo: dep
+    script_name: str = Retriever(Str16, default = "", on_write = [update_script_file_path])
     collide_and_correct: bool = Retriever(Bool8, default = False)
     villager_force_drop: bool = Retriever(Bool8, default = False)
     unknown: bytes = Retriever(Bytes[128], default = b"\xff"*128)
@@ -35,8 +43,8 @@ class Map(BaseStruct):
     unknown5 = Retriever(Bytes[4], default = b"\x0d\xf0\xad\xde")
     unknown4 = Retriever(Bytes[4], default = b"\x02"+b"\x00"*3)
     no_waves_on_shore: bool = Retriever(Bool8, default = False)
-    width: int = Retriever(UInt32, default = 120, on_set = [set_terrain_data_repeat]) # type: ignore
-    height: int = Retriever(UInt32, default = 120, on_set = [set_terrain_data_repeat]) # type: ignore
+    width: int = Retriever(UInt32, default = 120, on_set = [set_terrain_data_repeat], on_write = [update_width_height])
+    height: int = Retriever(UInt32, default = 120, on_set = [set_terrain_data_repeat])
     tiles: list[Terrain] = Retriever(Terrain, default = Terrain())
 
     def __init__(self, struct_version: tuple[int, ...] = (1, 47)):

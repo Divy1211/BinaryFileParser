@@ -26,6 +26,15 @@ class BaseStruct(ParserType):
         BaseStruct._retrievers = []
         cls._retrievers = cls_retrievers
 
+    @classmethod
+    def default(cls, struct_version: tuple[int, ...] = None):
+        instance = cls() if not struct_version else cls(struct_version)
+        for retriever in cls._retrievers:
+            if hasattr(instance, retriever.r_name):
+                setattr(instance, retriever.p_name, [retriever.default for _ in range(retriever.repeat(instance))])
+                continue
+            setattr(instance, retriever.p_name, retriever.default)
+
     def __init__(self, struct_version: tuple[int, ...] = (0,)):
         self.struct_version = struct_version
 
@@ -56,11 +65,7 @@ class BaseStruct(ParserType):
         for retriever in cls._retrievers:
             if retriever.remaining_compressed:
                 igen = IncrementalGenerator.from_bytes(cls.decompress(igen.get_remaining_bytes()))
-            try:
-                retriever.from_generator(instance, igen)
-            except Exception:
-                print(retriever.p_name)
-                raise
+            retriever.from_generator(instance, igen)
 
         file_len = len(igen.file_content)
 
@@ -75,8 +80,8 @@ class BaseStruct(ParserType):
         return cls.from_generator(igen, struct_version = struct_version, strict = strict)
 
     @classmethod
-    def from_file(cls, filename: str, *, file_version: tuple[int, ...] = (0, ), strict = False) -> BaseStruct:
-        igen = IncrementalGenerator.from_file(filename)
+    def from_file(cls, file_name: str, *, file_version: tuple[int, ...] = (0, ), strict = False) -> BaseStruct:
+        igen = IncrementalGenerator.from_file(file_name)
         return cls.from_generator(igen, struct_version = file_version, strict = strict)
 
     @classmethod
@@ -96,8 +101,8 @@ class BaseStruct(ParserType):
 
         return b"".join(bytes_[:compress_idx])+compressed
 
-    def to_file(self, filename: str):
-        with open(filename, "wb") as file:
+    def to_file(self, file_name: str):
+        with open(file_name, "wb") as file:
             file.write(self.to_bytes(self))
 
     # todo: write val <-> data (names) to file

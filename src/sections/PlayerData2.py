@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from src.retrievers.Retriever import Retriever
 from src.types.BaseStruct import BaseStruct
 from src.types.Bytes import Bytes
@@ -14,13 +16,43 @@ class AiFile(BaseStruct):
 
 
 class Resources(BaseStruct):
-    gold: int = Retriever(Int32, default = 0)
-    wood: int = Retriever(Int32, default = 0)
-    food: int = Retriever(Int32, default = 0)
-    stone: int = Retriever(Int32, default = 0)
-    ore_x: int = Retriever(Int32, default = 0)
+    @staticmethod
+    def update_player_data4_gold(retriever: Retriever, instance: Resources):
+        for i in range(8):
+            instance._parent._parent.unit_data.player_data4[i].gold = instance._parent.resources[i].gold
+
+    @staticmethod
+    def update_player_data4_wood(retriever: Retriever, instance: Resources):
+        for i in range(8):
+            instance._parent._parent.unit_data.player_data4[i].gold = instance._parent.resources[i].wood
+
+    @staticmethod
+    def update_player_data4_food(retriever: Retriever, instance: Resources):
+        for i in range(8):
+            instance._parent._parent.unit_data.player_data4[i].gold = instance._parent.resources[i].food
+
+    @staticmethod
+    def update_player_data4_stone(retriever: Retriever, instance: Resources):
+        for i in range(8):
+            instance._parent._parent.unit_data.player_data4[i].gold = instance._parent.resources[i].stone
+
+    @staticmethod
+    def update_player_data4_ore_x(retriever: Retriever, instance: Resources):
+        for i in range(8):
+            instance._parent._parent.unit_data.player_data4[i].gold = instance._parent.resources[i].ore_x
+
+    @staticmethod
+    def update_player_data4_trade_goods(retriever: Retriever, instance: Resources):
+        for i in range(8):
+            instance._parent._parent.unit_data.player_data4[i].gold = instance._parent.resources[i].trade_goods
+
+    gold: int = Retriever(Int32, default = 0, on_write = [update_player_data4_gold])
+    wood: int = Retriever(Int32, default = 0, on_write = [update_player_data4_wood])
+    food: int = Retriever(Int32, default = 0, on_write = [update_player_data4_food])
+    stone: int = Retriever(Int32, default = 0, on_write = [update_player_data4_stone])
+    ore_x: int = Retriever(Int32, default = 0, on_write = [update_player_data4_ore_x])
     """unused"""
-    trade_goods: int = Retriever(Int32, default = 0)
+    trade_goods: int = Retriever(Int32, default = 0, on_write = [update_player_data4_trade_goods])
     """unused"""
     player_colour: int = Retriever(Int32, default = 0)
 

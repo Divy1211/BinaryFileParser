@@ -50,5 +50,5 @@ class ScenarioSections(BaseStruct):
         ver_str = igen.get_bytes(4, update_progress = False).decode("ASCII")
         return tuple(map(int, ver_str.split(".")))
 
-    def __init__(self, struct_version: tuple[int, ...]):
+    def __init__(self, struct_version: tuple[int, ...] = (1, 47)):
         super().__init__(struct_version)
