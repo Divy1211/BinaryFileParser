@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from src.retrievers.Retriever import Retriever
 from src.types.BaseStruct import BaseStruct
-from src.types.Array import Array
+from src.types.Array import Array32
 from src.types.Int import UInt32, Int32
 from src.types.Str import FixedLenStr, NullTermStr32
 
@@ -18,7 +18,7 @@ class FileHeader(BaseStruct):
     """always (?) 1k"""
     unknown2: int = Retriever(UInt32, default = 1)
     """always (?) 1"""
-    unknowns: list[int] = Retriever(Array[UInt32], default = [2, 3, 4, 5, 6, 7])
+    unknowns: list[int] = Retriever(Array32[UInt32], default = [2, 3, 4, 5, 6, 7])
     creator: str = Retriever(NullTermStr32, default = "Alian713")
     num_triggers: int = Retriever(UInt32, default = 420) # todo: dep
 

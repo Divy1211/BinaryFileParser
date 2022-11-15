@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Type, TYPE_CHECKING, Any, Callable
+from typing import Type, TYPE_CHECKING, Any, Callable, TypeVar
 
 from src.generators.IncrementalGenerator import IncrementalGenerator
 from src.retrievers.MapValidate import MapValidate
@@ -15,8 +15,11 @@ def ver_str(ver: tuple[int]) -> str:
     return ".".join(map(str, ver))
 
 
+T = TypeVar("T")
+
+
 class Retriever(MapValidate):
-    __slots__ = "cls_or_obj", "min_ver", "max_ver", "default", "_repeat", "remaining_compressed"
+    __slots__ = "cls_or_obj", "min_ver", "max_ver", "default", "_repeat", "remaining_compressed", "on_read", "on_write"
 
     def __init__(
         self,
@@ -25,10 +28,12 @@ class Retriever(MapValidate):
         max_ver: tuple[int] = (1000,),
         *,
         default: Any = None,
-        remaining_compressed = False,
         repeat: int = 1,
-        mappers: list[Callable[[Any], Any]] = None,
-        validators: list[Callable[[Any], tuple[bool, str]]] = None,
+        remaining_compressed = False,
+        on_read: list[Callable[[Retriever, BaseStruct], None]] = None,
+        on_write: list[Callable[[Retriever, BaseStruct], None]] = None,
+        mappers: list[Callable[[Retriever, BaseStruct, T], T]] = None,
+        validators: list[Callable[[Retriever, BaseStruct, Any], tuple[bool, str]]] = None,
         on_get: list[Callable[[Retriever, BaseStruct, Type[BaseStruct]], None]] = None,
         on_set: list[Callable[[Retriever, BaseStruct], None]] = None,
     ):
@@ -39,6 +44,8 @@ class Retriever(MapValidate):
         self.default = default
         self._repeat = repeat
         self.remaining_compressed = remaining_compressed
+        self.on_read = on_read or []
+        self.on_write = on_write or []
 
         # if class/object overrides the is_valid method
         if 'is_valid' in cls_or_obj.__dict__:
@@ -99,34 +106,42 @@ class Retriever(MapValidate):
         if not self.supported(instance.struct_version):
             return
 
-        if self.repeat(instance) == -1:
+        repeat = self.repeat(instance)
+        if repeat == -1:
             setattr(instance, self.p_name, None)
             return
 
-        if self.repeat(instance) == 1:
+        if repeat == 1 and not hasattr(instance, self.r_name):
             setattr(instance, self.p_name, self.cls_or_obj.from_generator(igen, struct_version = instance.struct_version))
             return
 
-        ls: list = [None] * self.repeat(instance)
-        for i in range(self.repeat(instance)):
+        ls: list = [None] * repeat
+        for i in range(repeat):
             ls[i] = self.cls_or_obj.from_generator(igen, struct_version = instance.struct_version)
         setattr(instance, self.p_name, ls)
+
+        for func in self.on_read:
+            func(self, instance)
 
     def to_bytes(self, instance: BaseStruct) -> bytes:
         if not self.supported(instance.struct_version):
             return b""
 
-        if self.repeat(instance) == -1:
+        repeat = self.repeat(instance)
+        if repeat == -1:
             return b""
 
-        if self.repeat(instance) == 1:
+        for func in self.on_write:
+            func(self, instance)
+
+        if repeat == 1 and not hasattr(instance, self.r_name):
             return self.cls_or_obj.to_bytes(getattr(instance, self.p_name))
 
         ls: list = getattr(instance, self.p_name)
-        if not len(ls) == self.repeat(instance):
-            raise ValueError(f"length of {self.p_name!r} is not the same as {self.repeat(instance) = }")
+        if not len(ls) == repeat:
+            raise ValueError(f"length of {self.p_name!r} is not the same as {repeat = }")
 
-        ls: list[bytes] = [b""] * self.repeat(instance)
+        ls: list[bytes] = [b""] * repeat
         for j, value in enumerate(getattr(instance, self.p_name)):
             ls[j] = self.cls_or_obj.to_bytes(value)
 

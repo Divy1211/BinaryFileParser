@@ -56,7 +56,11 @@ class BaseStruct(ParserType):
         for retriever in cls._retrievers:
             if retriever.remaining_compressed:
                 igen = IncrementalGenerator.from_bytes(cls.decompress(igen.get_remaining_bytes()))
-            retriever.from_generator(instance, igen)
+            try:
+                retriever.from_generator(instance, igen)
+            except Exception:
+                print(retriever.p_name)
+                raise
 
         file_len = len(igen.file_content)
 
@@ -101,3 +105,4 @@ class BaseStruct(ParserType):
     # todo: repr
     # todo: compare
     # todo: file/header/decompressed in both hex/val <-> data
+    # todo: to_json

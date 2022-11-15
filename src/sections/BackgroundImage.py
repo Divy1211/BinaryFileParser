@@ -19,7 +19,7 @@ class BitMapInfoHeader(BaseStruct):
     height: int = Retriever(UInt32, default = 0)
     planes: int = Retriever(Int16, default = 0)
     num_bits: int = Retriever(Int16, default = 0)
-    compression: int = Retriever(UInt32, default = 0, validators = [partial(ge, 0), partial(le, 13)])
+    compression: int = Retriever(UInt32, default = 0, validators = [partial(ge, 0), partial(le, 13)]) # type: ignore
     image_size: int = Retriever(UInt32, default = 0)
     x_pixels_per_meter: int = Retriever(UInt32, default = 0)
     y_pixels_per_meter: int = Retriever(UInt32, default = 0)

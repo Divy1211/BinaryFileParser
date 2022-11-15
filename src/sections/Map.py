@@ -23,7 +23,7 @@ class Map(BaseStruct):
     string_starter1: bytes = Retriever(Bytes[2], default = b"\x60\x0a")
     water_definition: str = Retriever(Str16, default = "")
     string_starter2: bytes = Retriever(Bytes[2], default = b"\x60\x0a")
-    color_mood: str = Retriever(Str16, default = "Empty")
+    colour_mood: str = Retriever(Str16, default = "Empty")
     string_starter3: bytes = Retriever(Bytes[2], default = b"\x60\x0a")
     script_name: str = Retriever(Str16, default = "")                              # todo: dep
     collide_and_correct: bool = Retriever(Bool8, default = False)

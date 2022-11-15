@@ -2,7 +2,8 @@ import operator
 from typing import Literal
 
 from src.generators.IncrementalGenerator import IncrementalGenerator
-from src.types.ParserType import ParserType
+from src.retrievers.Retriever import Retriever
+from src.types.ParserType import ParserType, ParserTypeObjCls
 
 
 class Int(ParserType):
@@ -52,13 +53,13 @@ class UInt64(Int):
 
 
 
-def ge(a: int, b: int) -> tuple[bool, str]:
+def ge(a: int, retriever: Retriever, instance: ParserTypeObjCls, b: int) -> tuple[bool, str]:
     if operator.ge(a, b):
         return True, ""
     return False, f"%s must be >= {a}"
 
 
-def le(a: int, b: int) -> tuple[bool, str]:
+def le(a: int, retriever: Retriever, instance: ParserTypeObjCls, b: int) -> tuple[bool, str]:
     if operator.ge(a, b):
         return True, ""
     return False, f"%s must be <= {a}"

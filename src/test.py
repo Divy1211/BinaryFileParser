@@ -1,5 +1,6 @@
 import zlib
 
+from src.sections.FileData import FileData
 from src.sections.Map import Map
 from src.sections.Options import Options
 from src.sections.ScenarioSections import ScenarioSections
@@ -11,158 +12,53 @@ from src.sections.FileHeader import FileHeader
 from src.sections.GlobalVictory import GlobalVictory
 from src.sections.Messages import Messages
 from src.sections.PlayerData2 import PlayerData2
+from src.sections.TriggerData import TriggerData, Trigger
+from src.sections.UnitData import UnitData
+from src.sections.VariableData import VariableData
+from src.types.Float import Float64
+from src.types.Int import Int32
+
 
 def main():
-    scx = ScenarioSections.from_file("default0.aoe2scenario")
+    scx = ScenarioSections.from_file("1_47.aoe2scenario")
 
-    print("FILE HEADER")
+    print("UNIT DATA")
 
-    print(scx.file_header.file_version)
-    print(scx.file_header.header_len)
-    print(scx.file_header.savable)
-    print(scx.file_header.timestamp_of_last_save)
-    print(scx.file_header.scenario_instructions)
-    print(scx.file_header.num_players)
-    print(scx.file_header.unknown1)
-    print(scx.file_header.unknown2)
-    print(scx.file_header.unknowns)
-    print(scx.file_header.creator)
-    print(scx.file_header.num_triggers)
-    print(scx.file_header.struct_version)
+    print(scx.unit_data.num_players)
+    print(scx.unit_data.player_data4[0].food)
+    print(scx.unit_data.player_data4[0].wood)
+    print(scx.unit_data.player_data4[0].gold)
+    print(scx.unit_data.player_data4[0].stone)
+    print(scx.unit_data.player_data4[0].ore_x)
+    print(scx.unit_data.player_data4[0].trade_goods_duplicate)
+    print(scx.unit_data.player_data4[0].population_limit)
+    print(scx.unit_data.num_players2)
+    print(scx.unit_data.player_data3[0].constant_name)
+    print(scx.unit_data.player_data3[0].editor_camera_x)
+    print(scx.unit_data.player_data3[0].editor_camera_y)
+    print(scx.unit_data.player_data3[0].initial_camera_x)
+    print(scx.unit_data.player_data3[0].initial_camera_y)
+    print(scx.unit_data.player_data3[0].aok_allied_victory)
+    print(scx.unit_data.player_data3[0].diplomacy_stances_interaction)
+    print(scx.unit_data.player_data3[0].diplomacy_stances_ai_system)
+    print(scx.unit_data.player_data3[0].colour)
+    print(scx.unit_data.player_data3[0].victory_version)
+    print(scx.unit_data.player_data3[0].num_grand_theft_empires)
+    print(scx.unit_data.player_data3[0].unknown2)
+    print(scx.unit_data.player_data3[0].grand_theft_empires)
+    print(scx.unit_data.player_data3[0].num_ww_campaign2)
+    print(scx.unit_data.player_data3[0].unknown3)
+    print(scx.unit_data.player_data3[0].ww_campaign2)
+    print(scx.unit_data.player_data3[0].unknown4)
+    print(scx.unit_data.units)
 
-    print("DATA HEADER")
+    print("TRIGGER DATA")
 
-    print(scx.data_header.next_unit_id)
-    print(scx.data_header.version)
-    print(scx.data_header.tribe_names)
-    print(scx.data_header.player_name_str_ids)
-    print(scx.data_header.player_data1[0].active)
-    print(scx.data_header.player_data1[0].human)
-    print(scx.data_header.player_data1[0].civilization)
-    print(scx.data_header.player_data1[0].architecture_set)
-    print(scx.data_header.player_data1[0].cty_mode)
-    print(scx.data_header.player_data1[0].struct_version)
-    print(scx.data_header.lock_civilizations)
-    print(scx.data_header.unknown)
-    print(scx.data_header.filename)
-    print(scx.data_header.version)
+    print(scx.trigger_data.trigger_version)
+    print(scx.trigger_data.trigger_instruction_start)
+    print(scx.trigger_data.num_triggers)
 
-    print("MESSAGES")
-
-    print(scx.messages.instructions_str_id)
-    print(scx.messages.hints_str_id)
-    print(scx.messages.victory_str_id)
-    print(scx.messages.loss_str_id)
-    print(scx.messages.history_str_id)
-    print(scx.messages.scouts_str_id)
-    print(scx.messages.instructions)
-    print(scx.messages.hints)
-    print(scx.messages.victory)
-    print(scx.messages.loss)
-    print(scx.messages.history)
-    print(scx.messages.scouts)
-    print(scx.messages.struct_version)
-
-    print("CINEMATICS")
-
-    print(scx.cinematics.pregame)
-    print(scx.cinematics.victory)
-    print(scx.cinematics.loss)
-    print(scx.cinematics.struct_version)
-
-    print("BACKGROUND IMG")
-
-    print(scx.background_image.filename)
-    print(scx.background_image.version)
-    print(scx.background_image.width)
-    print(scx.background_image.height)
-    print(scx.background_image.orientation)
-    print(scx.background_image.info_header)
-    print(scx.background_image.data)
-    print(scx.background_image.version)
-
-    print("PLAYER DATA 2")
-
-    print(scx.player_data_2.strings)
-    print(scx.player_data_2.ai_names)
-    print(scx.player_data_2.ai_files[15].unknown)
-    print(scx.player_data_2.ai_files[15].per_content)
-    print(scx.player_data_2.ai_files[15].struct_version)
-    print(scx.player_data_2.ai_types)
-    print(scx.player_data_2.separator)
-    print('pd2')
-    for i in range(16):
-        print(scx.player_data_2.resources[i].gold)
-        print(scx.player_data_2.resources[i].wood)
-        print(scx.player_data_2.resources[i].food)
-        print(scx.player_data_2.resources[i].stone)
-        print(scx.player_data_2.resources[i].ore_x)
-        print(scx.player_data_2.resources[i].trade_goods)
-        print(scx.player_data_2.resources[i].player_color)
-    print(scx.player_data_2.struct_version)
-
-    print("GLOBAL VICTORY")
-
-    print(scx.global_victory.separator)
-    print(scx.global_victory.conquest)
-    print(scx.global_victory.capture_num_monuments)
-    print(scx.global_victory.collect_num_relics)
-    print(scx.global_victory.discovery)
-    print(scx.global_victory.explore_map_percent)
-    print(scx.global_victory.collect_gold)
-    print(scx.global_victory.meet_all_conditions)
-    print(scx.global_victory.mode)
-    print(scx.global_victory.min_score)
-    print(scx.global_victory.time_limit)
-    print(scx.global_victory.struct_version)
-
-    print("DIPLOMACY")
-
-    print(scx.diplomacy.player_stances)
-    print(scx.diplomacy.individual_victories)
-    print(scx.diplomacy.separator)
-    print(scx.diplomacy.allied_victories)
-    print(scx.diplomacy.lock_teams_in_game)
-    print(scx.diplomacy.lock_teams_in_lobby)
-    print(scx.diplomacy.random_start_points)
-    print(scx.diplomacy.max_num_teams)
-
-    print("OPTIONS")
-
-    print(scx.options.disabled_tech_ids)
-    print(scx.options.disabled_unit_ids)
-    print(scx.options.disabled_building_ids)
-    print(scx.options.combat_mode)
-    print(scx.options.naval_mode)
-    print(scx.options.all_techs)
-    print(scx.options.starting_ages)
-    print(scx.options.unknown1)
-    print(scx.options.ai_map_type)
-    print(scx.options.unknown3)
-    print(scx.options.base_priorities)
-    print(scx.options.unknown2)
-    print(scx.options.num_triggers)
-
-    print(scx.map.string_starter1)
-    print(scx.map.water_definition)
-    print(scx.map.string_starter2)
-    print(scx.map.color_mood)
-    print(scx.map.string_starter3)
-    print(scx.map.script_name)
-    print(scx.map.collide_and_correct)
-    print(scx.map.villager_force_drop)
-    print(scx.map.unknown)
-    print(scx.map.lock_coop_alliances)
-    print(scx.map.population_caps)
-    print(scx.map.unknown3)
-    print(scx.map.unknown5)
-    print(scx.map.unknown4)
-    print(scx.map.no_waves_on_shore)
-    print(scx.map.width)
-    print(scx.map.height)
-    # print(scx.map.tiles)
-
-    with open("default0.aoe2scenario", "rb") as file:
+    with open("1_47.aoe2scenario", "rb") as file:
         bts = iter(file.read())
 
     print("file header")
@@ -214,6 +110,26 @@ def main():
 
     print("map")
     for cbyte, byte in zip(Map.to_bytes(scx.map), bts):
+        if cbyte != byte:
+            print(cbyte, byte)
+
+    print("unit data")
+    for cbyte, byte in zip(UnitData.to_bytes(scx.unit_data), bts):
+        if cbyte != byte:
+            print(cbyte, byte)
+
+    print("trigger data")
+    for cbyte, byte in zip(TriggerData.to_bytes(scx.trigger_data), bts):
+        if cbyte != byte:
+            print(cbyte, byte)
+
+    print("variable data")
+    for cbyte, byte in zip(VariableData.to_bytes(scx.variable_data), bts):
+        if cbyte != byte:
+            print(cbyte, byte)
+
+    print("file data")
+    for cbyte, byte in zip(FileData.to_bytes(scx.file_data), bts):
         if cbyte != byte:
             print(cbyte, byte)
 

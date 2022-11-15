@@ -9,18 +9,18 @@ from src.types.ParserType import ParserType
 class BaseStr(ParserType, ABC):
     @classmethod
     def from_bytes(cls, bytes_: bytes, byteorder: Literal["big", "little"] = "little", struct_version: tuple[int, ...] = (0,)) -> str:
-        try:
-            return bytes_.decode("utf-8")
-        except UnicodeDecodeError:
-            return bytes_.decode("latin-1")
+        # try:
+        #     return bytes_.decode("utf-8")
+        # except UnicodeDecodeError:
+        return bytes_.decode("latin-1")
 
     # todo: pass plain bytes
     @classmethod
     def to_bytes(cls, value: str, byteorder: Literal["big", "little"] = "little") -> bytes:
-        try:
-            bytes_ = value.encode("utf-8")
-        except UnicodeEncodeError:
-            bytes_ = value.encode("latin-1")
+        # try:
+        #     bytes_ = value.encode("utf-8")
+        # except UnicodeEncodeError:
+        bytes_ = value.encode("latin-1")
 
         return bytes_
 

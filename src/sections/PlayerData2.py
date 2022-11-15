@@ -22,7 +22,7 @@ class Resources(BaseStruct):
     """unused"""
     trade_goods: int = Retriever(Int32, default = 0)
     """unused"""
-    player_color: int = Retriever(Int32, default = 0)
+    player_colour: int = Retriever(Int32, default = 0)
 
     def __init__(self, struct_version: tuple[int, ...] = (1, 47)):
         super().__init__(struct_version)

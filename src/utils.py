@@ -1,3 +1,4 @@
+import time
 import traceback
 from contextlib import contextmanager
 from typing import Callable
@@ -21,3 +22,25 @@ def ignored(*errors, msg: str = "", show_traceback: bool = False, callback: Call
         if show_traceback:
             print(traceback.format_exc())
         callback(e)
+
+
+exec_time = {}
+@contextmanager
+def timed(name: str = "", /, *, print_time: bool = False) -> None:
+    """
+    Records the execution time of the context manager block.
+
+    :param name: If specified, the execution time will be recorded in the exec_times dict with this name as the key
+    :param print_time: If true, print the context manager execution time to console
+    """
+    global exec_time
+
+    start = time.perf_counter_ns()
+    yield
+    end = time.perf_counter_ns()
+
+    runtime = (end-start)/10**6
+    if name:
+        exec_time[name] = runtime
+    if print_time:
+        print(name, "took:", runtime, "ms")

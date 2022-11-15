@@ -6,12 +6,16 @@ from src.sections.BackgroundImage import BackgroundImage
 from src.sections.Cinematics import Cinematics
 from src.sections.DataHeader import DataHeader
 from src.sections.Diplomacy import Diplomacy
+from src.sections.FileData import FileData
 from src.sections.FileHeader import FileHeader
 from src.sections.Map import Map
 from src.sections.Messages import Messages
 from src.sections.Options import Options
 from src.sections.PlayerData2 import PlayerData2
 from src.sections.GlobalVictory import GlobalVictory
+from src.sections.TriggerData import TriggerData
+from src.sections.UnitData import UnitData
+from src.sections.VariableData import VariableData
 from src.types.BaseStruct import BaseStruct
 
 
@@ -26,6 +30,10 @@ class ScenarioSections(BaseStruct):
     diplomacy: Diplomacy = Retriever(Diplomacy, default = Diplomacy())
     options: Options = Retriever(Options, default = Options())
     map: Map = Retriever(Map, default = Map())
+    unit_data: UnitData = Retriever(UnitData, default = UnitData())
+    trigger_data: TriggerData = Retriever(TriggerData, default = TriggerData())
+    variable_data: VariableData = Retriever(VariableData, default = VariableData())
+    file_data: FileData = Retriever(FileData, default = FileData())
 
     @classmethod
     def decompress(cls, bytes_: bytes) -> bytes:
