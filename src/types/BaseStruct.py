@@ -1,6 +1,8 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Literal
 
+from alive_progress import alive_bar
+
 from src.errors.CompressionError import CompressionError
 from src.errors.ParserError import ParserError
 from src.errors.VersionError import VersionError
@@ -58,7 +60,7 @@ class BaseStruct(ParserType):
     @classmethod
     def from_generator(
         cls, igen: IncrementalGenerator, *, byteorder: Literal["big", "little"] = "little",
-        struct_version: tuple[int, ...] = (0,), strict: bool = False,
+        struct_version: tuple[int, ...] = (0,), strict: bool = False, top = False,
     ) -> BaseStruct:
         try:
             struct_version = cls.get_version(igen)
@@ -66,10 +68,19 @@ class BaseStruct(ParserType):
             pass
 
         instance = cls(struct_version)
-        for retriever in cls._retrievers:
-            if retriever.remaining_compressed:
-                igen = IncrementalGenerator.from_bytes(cls.decompress(igen.get_remaining_bytes()))
-            retriever.from_generator(instance, igen)
+        if top:
+            with alive_bar(len(cls._retrievers), dual_line = True, title = "Reading File") as bar:
+                for retriever in cls._retrievers:
+                    bar.text = f"  -> {retriever.p_name.title().replace('_', ' ')}"
+                    if retriever.remaining_compressed:
+                        igen = IncrementalGenerator.from_bytes(cls.decompress(igen.get_remaining_bytes()))
+                    retriever.from_generator(instance, igen)
+                    bar()
+        else:
+            for retriever in cls._retrievers:
+                if retriever.remaining_compressed:
+                    igen = IncrementalGenerator.from_bytes(cls.decompress(igen.get_remaining_bytes()))
+                retriever.from_generator(instance, igen)
 
         file_len = len(igen.file_content)
 
@@ -89,18 +100,27 @@ class BaseStruct(ParserType):
     @classmethod
     def from_file(cls, file_name: str, *, file_version: tuple[int, ...] = (0,), strict = False) -> BaseStruct:
         igen = IncrementalGenerator.from_file(file_name)
-        return cls.from_generator(igen, struct_version = file_version, strict = strict)
+        return cls.from_generator(igen, struct_version = file_version, strict = strict, top = True)
 
     @classmethod
-    def to_bytes(cls, instance: BaseStruct, *, byteorder: Literal["big", "little"] = "little") -> bytes:
+    def to_bytes(cls, instance: BaseStruct, *, byteorder: Literal["big", "little"] = "little", top = False) -> bytes:
         length = len(instance._retrievers)
 
         bytes_ = [b""] * length
         compress_idx = length
-        for i, retriever in enumerate(instance._retrievers):
-            if retriever.remaining_compressed:
-                compress_idx = i
-            bytes_[i] = retriever.to_bytes(instance)
+        if top:
+            with alive_bar(len(instance._retrievers), dual_line = True, title = "Writing File") as bar:
+                for i, retriever in enumerate(instance._retrievers):
+                    bar.text = f"  <- {retriever.p_name.title().replace('_', ' ')}"
+                    if retriever.remaining_compressed:
+                        compress_idx = i
+                    bytes_[i] = retriever.to_bytes(instance)
+                    bar()
+        else:
+            for i, retriever in enumerate(instance._retrievers):
+                if retriever.remaining_compressed:
+                    compress_idx = i
+                bytes_[i] = retriever.to_bytes(instance)
 
         compressed = b""
         if compress_idx != length:
@@ -110,7 +130,7 @@ class BaseStruct(ParserType):
 
     def to_file(self, file_name: str):
         with open(file_name, "wb") as file:
-            file.write(self.to_bytes(self))
+            file.write(self.to_bytes(self, top = True))
 
     # todo: write val <-> data (names) to file
     # todo: write hex (decompressed) to file
