@@ -10,7 +10,7 @@ from src.types.Str import FixedLenStr, NullTermStr32
 class FileHeader(BaseStruct):
     @staticmethod
     def update_num_triggers(retriever: Retriever, instance: FileHeader):
-        instance.num_triggers = len(instance._parent.trigger_data.triggers)
+        instance.num_triggers = len(instance.parent.trigger_data.triggers)
 
     file_version: str = Retriever(FixedLenStr[4], default = "1.47")
     header_len: int = Retriever(UInt32, default = 0)

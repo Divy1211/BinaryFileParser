@@ -19,32 +19,32 @@ class Resources(BaseStruct):
     @staticmethod
     def update_player_data4_gold(retriever: Retriever, instance: Resources):
         for i in range(8):
-            instance._parent._parent.unit_data.player_data4[i].gold = instance._parent.resources[i].gold
+            instance.parent.parent.unit_data.player_data4[i].gold = instance.parent.resources[i].gold
 
     @staticmethod
     def update_player_data4_wood(retriever: Retriever, instance: Resources):
         for i in range(8):
-            instance._parent._parent.unit_data.player_data4[i].gold = instance._parent.resources[i].wood
+            instance.parent.parent.unit_data.player_data4[i].gold = instance.parent.resources[i].wood
 
     @staticmethod
     def update_player_data4_food(retriever: Retriever, instance: Resources):
         for i in range(8):
-            instance._parent._parent.unit_data.player_data4[i].gold = instance._parent.resources[i].food
+            instance.parent.parent.unit_data.player_data4[i].gold = instance.parent.resources[i].food
 
     @staticmethod
     def update_player_data4_stone(retriever: Retriever, instance: Resources):
         for i in range(8):
-            instance._parent._parent.unit_data.player_data4[i].gold = instance._parent.resources[i].stone
+            instance.parent.parent.unit_data.player_data4[i].gold = instance.parent.resources[i].stone
 
     @staticmethod
     def update_player_data4_ore_x(retriever: Retriever, instance: Resources):
         for i in range(8):
-            instance._parent._parent.unit_data.player_data4[i].gold = instance._parent.resources[i].ore_x
+            instance.parent.parent.unit_data.player_data4[i].gold = instance.parent.resources[i].ore_x
 
     @staticmethod
     def update_player_data4_trade_goods(retriever: Retriever, instance: Resources):
         for i in range(8):
-            instance._parent._parent.unit_data.player_data4[i].gold = instance._parent.resources[i].trade_goods
+            instance.parent.parent.unit_data.player_data4[i].gold = instance.parent.resources[i].trade_goods
 
     gold: int = Retriever(Int32, default = 0, on_write = [update_player_data4_gold])
     wood: int = Retriever(Int32, default = 0, on_write = [update_player_data4_wood])

@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Literal
 
-from src.generators.IncrementalGenerator import IncrementalGenerator
+from src.types.IncrementalGenerator import IncrementalGenerator
 from src.types.ParserType import ParserType
 
 

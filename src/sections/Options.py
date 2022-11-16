@@ -11,7 +11,7 @@ from src.types.Int import UInt32, UInt8
 class Options(BaseStruct):
     @staticmethod
     def update_num_triggers(retriever: Retriever, instance: Options):
-        instance.num_triggers = len(instance._parent.trigger_data.triggers)
+        instance.num_triggers = len(instance.parent.trigger_data.triggers)
 
     disabled_tech_ids: list[list[int]] = Retriever(StackedArray32s[UInt32, 16], default = [[] for _ in range(16)])
     disabled_unit_ids: list[list[int]] = Retriever(StackedArray32s[UInt32, 16], default = [[] for _ in range(16)])

@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Callable, Type, Any, TypeVar
 
 T = TypeVar("T")
+MapValidateSub = TypeVar("MapValidateSub", bound = "MapValidate")
 
 
 class MapValidate:
@@ -10,10 +11,10 @@ class MapValidate:
 
     def __init__(
         self,
-        mappers: list[Callable[[MapValidate, Any, T], T]] = None,
-        validators: list[Callable[[MapValidate, Any, Any], tuple[bool, str]]] = None,
-        on_get: list[Callable[[MapValidate, Any], None]] = None,
-        on_set: list[Callable[[MapValidate, Any], None]] = None,
+        mappers: list[Callable[[MapValidateSub, Any, T], T]] | None = None,
+        validators: list[Callable[[MapValidateSub, Any, Any], tuple[bool, str]]] | None = None,
+        on_get: list[Callable[[MapValidateSub, Any], None]] | None = None,
+        on_set: list[Callable[[MapValidateSub, Any], None]] | None = None,
     ):
         self.mappers = mappers or []
         self.validators = validators or []

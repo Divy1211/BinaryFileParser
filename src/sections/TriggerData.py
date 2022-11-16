@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from src.generators.IncrementalGenerator import IncrementalGenerator
+from src.types.IncrementalGenerator import IncrementalGenerator
 from src.retrievers.Retriever import Retriever
 from src.types.BaseStruct import BaseStruct
 from src.types.Bool import Bool32, Bool8

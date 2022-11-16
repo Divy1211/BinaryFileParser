@@ -22,7 +22,7 @@ class Map(BaseStruct):
 
     @staticmethod
     def update_script_file_path(retriever: Retriever, instance: Map):
-        instance._parent.file_data.script_file_path = instance.script_name+".xs" if instance.script_name else ""
+        instance.parent.file_data.script_file_path = instance.script_name+".xs" if instance.script_name else ""
 
     @staticmethod
     def update_width_height(retriever: Retriever, instance: Map):

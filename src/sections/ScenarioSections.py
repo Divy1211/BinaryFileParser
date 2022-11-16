@@ -1,6 +1,6 @@
 import zlib
 
-from src.generators.IncrementalGenerator import IncrementalGenerator
+from src.types.IncrementalGenerator import IncrementalGenerator
 from src.retrievers.Retriever import Retriever
 from src.sections.BackgroundImage import BackgroundImage
 from src.sections.Cinematics import Cinematics

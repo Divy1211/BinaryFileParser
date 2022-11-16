@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABCMeta
 from typing import Type, TYPE_CHECKING, Any, Callable, TypeVar
 
-from src.generators.IncrementalGenerator import IncrementalGenerator
+from src.types.IncrementalGenerator import IncrementalGenerator
 from src.retrievers.MapValidate import MapValidate
 from src.errors.VersionError import VersionError
 from src.types.ParserType import ParserTypeObjCls
@@ -18,6 +18,8 @@ def ver_str(ver: tuple[int]) -> str:
 
 
 T = TypeVar("T")
+RetrieverSub = TypeVar("RetrieverSub", bound = "Retriever")
+BaseStructSub = TypeVar("BaseStructSub", bound = BaseStruct)
 
 
 class Retriever(MapValidate):
@@ -31,13 +33,13 @@ class Retriever(MapValidate):
         *,
         default: Any = None,
         repeat: int = 1,
-        remaining_compressed = False,
-        on_read: list[Callable[[Retriever, BaseStruct], None]] = None,
-        on_write: list[Callable[[Retriever, BaseStruct], None]] = None,
-        mappers: list[Callable[[Retriever, BaseStruct, T], T]] = None,
-        validators: list[Callable[[Retriever, BaseStruct, Any], tuple[bool, str]]] = None,
-        on_get: list[Callable[[Retriever, BaseStruct], None]] = None,
-        on_set: list[Callable[[Retriever, BaseStruct], None]] = None,
+        remaining_compressed: bool = False,
+        on_read: list[Callable[[RetrieverSub, BaseStructSub], None]] | None = None,
+        on_write: list[Callable[[RetrieverSub, BaseStructSub], None]] | None = None,
+        mappers: list[Callable[[RetrieverSub, BaseStructSub, T], T]] | None = None,
+        validators: list[Callable[[RetrieverSub, BaseStructSub, Any], tuple[bool, str]]] | None = None,
+        on_get: list[Callable[[RetrieverSub, BaseStructSub], None]] | None = None,
+        on_set: list[Callable[[RetrieverSub, BaseStructSub], None]] | None = None,
     ):
         super().__init__(mappers, validators, on_get, on_set)
         self.cls_or_obj = cls_or_obj
@@ -56,7 +58,7 @@ class Retriever(MapValidate):
             else:
                 self.validators.append(lambda iterable: all(map(cls_or_obj.is_valid, iterable)))
 
-    def supported(self, ver: tuple[int]) -> bool:
+    def supported(self, ver: tuple[int, ...]) -> bool:
         return self.min_ver < ver < self.max_ver
 
     def __set_name__(self, owner: Type[BaseStruct], name: str) -> None:
@@ -118,7 +120,7 @@ class Retriever(MapValidate):
         if repeat == 1 and not hasattr(instance, self.r_name):
             obj = self.cls_or_obj.from_generator(igen, struct_version = instance.struct_version)
             if is_sub_obj:
-                obj._parent = instance
+                obj.parent = instance
             setattr(instance, self.p_name, obj)
             return
 
@@ -126,7 +128,7 @@ class Retriever(MapValidate):
         for i in range(repeat):
             ls[i] = self.cls_or_obj.from_generator(igen, struct_version = instance.struct_version)
             if is_sub_obj:
-                ls[i]._parent = instance
+                ls[i].parent = instance
         setattr(instance, self.p_name, ls)
 
         for func in self.on_read:
