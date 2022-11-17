@@ -1,35 +1,25 @@
 import struct
-from typing import Literal
 
-from src.types.IncrementalGenerator import IncrementalGenerator
-from src.types.ParserType import ParserType
-
-
-class Float(ParserType):
-    _byte_len = 4
-    _struct_symbol = 'f'
-
-    @classmethod
-    def from_generator(cls, igen: IncrementalGenerator, byteorder: Literal["big", "little"] = "little", struct_version: tuple[int, ...] = (0,)) -> float:
-        return cls.from_bytes(igen.get_bytes(cls._byte_len), byteorder)
-
-    @classmethod
-    def from_bytes(cls, bytes_: bytes, byteorder: Literal["big", "little"] = "little", struct_version: tuple[int, ...] = (0,)) -> float:
-        return struct.unpack(cls._struct_symbol, bytes_)[0]
-
-    @classmethod
-    def to_bytes(cls, value: float, byteorder: Literal["big", "little"] = "little") -> bytes:
-        return struct.pack(cls._struct_symbol, value)
+from src.types.ByteStream import ByteStream
+from src.types.Parseable import Parseable
 
 
-class Float16(Float):
-    _byte_len = 2
-    _struct_symbol = 'e'
+class Float(Parseable):
+    __slots__ = "struct_symbol"
 
-class Float32(Float):
-    _byte_len = 4
-    _struct_symbol = 'f'
+    def __init__(self, size: int, struct_symbol: str):
+        super().__init__(size)
+        self.struct_symbol = struct_symbol
 
-class Float64(Float):
-    _byte_len = 8
-    _struct_symbol = 'd'
+    def from_stream(self, stream: ByteStream, *, struct_version: tuple[int, ...] = (0,)) -> float:
+        return self.from_bytes(stream.get(self.size))
+
+    def from_bytes(self, bytes_: bytes, *, struct_version: tuple[int, ...] = (0,)) -> float:
+        return struct.unpack(self.struct_symbol, bytes_)[0]
+
+    def to_bytes(self, value: float) -> bytes:
+        return struct.pack(self.struct_symbol, value)
+
+float16 = Float(2, "e")
+float32 = Float(4, "f")
+float64 = Float(8, "d")

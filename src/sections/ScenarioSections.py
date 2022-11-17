@@ -1,6 +1,6 @@
 import zlib
 
-from src.types.IncrementalGenerator import IncrementalGenerator
+from src.types.ByteStream import ByteStream
 from src.retrievers.Retriever import Retriever
 from src.sections.BackgroundImage import BackgroundImage
 from src.sections.Cinematics import Cinematics
@@ -46,9 +46,9 @@ class ScenarioSections(BaseStruct):
         return compressed
 
     @classmethod
-    def get_version(cls, igen: IncrementalGenerator) -> tuple[int, ...]:
-        ver_str = igen.get_bytes(4, update_progress = False).decode("ASCII")
+    def get_version(cls, stream: ByteStream) -> tuple[int, ...]:
+        ver_str = stream.peek(4).decode("ASCII")
         return tuple(map(int, ver_str.split(".")))
 
-    def __init__(self, struct_version: tuple[int, ...] = (1, 47)):
-        super().__init__(struct_version)
+    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None):
+        super().__init__(struct_version, parent)

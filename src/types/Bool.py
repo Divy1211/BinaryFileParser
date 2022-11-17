@@ -1,33 +1,26 @@
-from typing import Literal
+import struct
 
-from src.types.IncrementalGenerator import IncrementalGenerator
-from src.types.ParserType import ParserType
-
-
-class Bool(ParserType):
-    _byte_len = 1
-
-    @classmethod
-    def from_generator(cls, igen: IncrementalGenerator, *, byteorder: Literal["big", "little"] = "little", struct_version: tuple[int, ...] = (0,)) -> bool:
-        return cls.from_bytes(igen.get_bytes(cls._byte_len), byteorder = byteorder)
-
-    @classmethod
-    def from_bytes(cls, bytes_: bytes, *, byteorder: Literal["big", "little"] = "little", struct_version: tuple[int, ...] = (0,)) -> bool:
-        return bool(int.from_bytes(bytes_, byteorder, signed = False))
-
-    @classmethod
-    def to_bytes(cls, value: bool, *, byteorder: Literal["big", "little"] = "little") -> bytes:
-        return int.to_bytes(int(value), cls._byte_len, byteorder, signed = False)
+from src.types.ByteStream import ByteStream
+from src.types.Parseable import Parseable
 
 
-class Bool8(Bool):
-    _byte_len = 1
+class Bool(Parseable):
+    __slots__ = "struct_symbol"
 
-class Bool16(Bool):
-    _byte_len = 2
+    def __init__(self, size: int, struct_symbol: str):
+        super().__init__(size)
+        self.struct_symbol = struct_symbol
 
-class Bool32(Bool):
-    _byte_len = 4
+    def from_stream(self, stream: ByteStream, *, struct_version: tuple[int, ...] = (0,)) -> bool:
+        return self.from_bytes(stream.get(self.size), struct_version = struct_version)
 
-class Bool64(Bool):
-    _byte_len = 8
+    def from_bytes(self, bytes_: bytes, *, struct_version: tuple[int, ...] = (0,)) -> bool:
+        return not not struct.unpack(self.struct_symbol, bytes_)[0]
+
+    def to_bytes(self, value: bool) -> bytes:
+        return struct.pack(self.struct_symbol, 1 if value else 0)
+
+bool8 = Bool(1, "<B")
+bool16 = Bool(2, "<H")
+bool32 = Bool(4, "<I")
+bool64 = Bool(8, "<Q")

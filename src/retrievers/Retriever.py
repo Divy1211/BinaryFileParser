@@ -1,16 +1,13 @@
 from __future__ import annotations
 
 from abc import ABCMeta
-from typing import Type, TYPE_CHECKING, Any, Callable, TypeVar
+from typing import Type, Any, Callable, TypeVar
 
-from src.types.IncrementalGenerator import IncrementalGenerator
-from src.retrievers.MapValidate import MapValidate
 from src.errors.VersionError import VersionError
-from src.types.ParserType import ParserTypeObjCls
+from src.retrievers.MapValidate import MapValidate
 from src.types.BaseStruct import BaseStruct
-
-if TYPE_CHECKING:
-    pass
+from src.types.ByteStream import ByteStream
+from src.types.Parseable import Parseable
 
 
 def ver_str(ver: tuple[int]) -> str:
@@ -23,11 +20,11 @@ BaseStructSub = TypeVar("BaseStructSub", bound = BaseStruct)
 
 
 class Retriever(MapValidate):
-    __slots__ = "cls_or_obj", "min_ver", "max_ver", "default", "_repeat", "remaining_compressed", "on_read", "on_write"
+    __slots__ = "dtype", "min_ver", "max_ver", "default", "_repeat", "remaining_compressed", "on_read", "on_write"
 
     def __init__(
         self,
-        cls_or_obj: ParserTypeObjCls,
+        dtype: Parseable | Type[Parseable],
         min_ver: tuple[int] = (-1,),
         max_ver: tuple[int] = (1000,),
         *,
@@ -42,7 +39,7 @@ class Retriever(MapValidate):
         on_set: list[Callable[[RetrieverSub, BaseStructSub], None]] | None = None,
     ):
         super().__init__(mappers, validators, on_get, on_set)
-        self.cls_or_obj = cls_or_obj
+        self.dtype = dtype
         self.min_ver = min_ver
         self.max_ver = max_ver
         self.default = default
@@ -51,12 +48,10 @@ class Retriever(MapValidate):
         self.on_read = on_read or []
         self.on_write = on_write or []
 
-        # if class/object overrides the is_valid method
-        if 'is_valid' in cls_or_obj.__dict__:
-            if self._repeat == 1:
-                self.validators.append(cls_or_obj.is_valid)
-            else:
-                self.validators.append(lambda iterable: all(map(cls_or_obj.is_valid, iterable)))
+        # if self._repeat == 1:
+        #     self.validators.append(lambda retriever, instance, x: dtype.is_valid(x))
+        # else:
+        #     self.validators.append(lambda retriever, instance, iterable: all(map(dtype.is_valid, iterable)))
 
     def supported(self, ver: tuple[int, ...]) -> bool:
         return self.min_ver < ver < self.max_ver
@@ -70,6 +65,10 @@ class Retriever(MapValidate):
             raise VersionError(
                 f"{self.p_name!r} is not supported in your scenario version {ver_str(instance.struct_version)!r}"
             )
+
+        if isinstance(value, BaseStruct):
+            value.parent = instance
+
         super().__set__(instance, value)
 
     def __get__(self, instance: BaseStruct, owner: Type[BaseStruct]):
@@ -90,7 +89,7 @@ class Retriever(MapValidate):
                 super().__set__(instance, self.default)
                 return self.default
 
-            ls = [self.default]*self.repeat(instance)
+            ls = [self.default] * self.repeat(instance)
             super().__set__(instance, ls)
             return ls
 
@@ -106,7 +105,7 @@ class Retriever(MapValidate):
             return repeat
         return self._repeat
 
-    def from_generator(self, instance: BaseStruct, igen: IncrementalGenerator):
+    def from_stream(self, instance: BaseStruct, stream: ByteStream):
         if not self.supported(instance.struct_version):
             return
 
@@ -115,20 +114,20 @@ class Retriever(MapValidate):
             setattr(instance, self.p_name, None)
             return
 
-        is_sub_obj = isinstance(self.cls_or_obj, BaseStruct) or type(self.cls_or_obj) is ABCMeta and issubclass(self.cls_or_obj, BaseStruct)
-
         if repeat == 1 and not hasattr(instance, self.r_name):
-            obj = self.cls_or_obj.from_generator(igen, struct_version = instance.struct_version)
-            if is_sub_obj:
-                obj.parent = instance
+            if type(self.dtype) == ABCMeta and issubclass(self.dtype, BaseStruct):
+                obj = self.dtype.from_stream(stream, struct_version = instance.struct_version, parent = instance)
+            else:
+                obj = self.dtype.from_stream(stream, struct_version = instance.struct_version)
             setattr(instance, self.p_name, obj)
             return
 
         ls: list = [None] * repeat
         for i in range(repeat):
-            ls[i] = self.cls_or_obj.from_generator(igen, struct_version = instance.struct_version)
-            if is_sub_obj:
-                ls[i].parent = instance
+            if type(self.dtype) == ABCMeta and issubclass(self.dtype, BaseStruct):
+                ls[i] = self.dtype.from_stream(stream, struct_version = instance.struct_version, parent = instance)
+            else:
+                ls[i] = self.dtype.from_stream(stream, struct_version = instance.struct_version)
         setattr(instance, self.p_name, ls)
 
         for func in self.on_read:
@@ -146,7 +145,7 @@ class Retriever(MapValidate):
             func(self, instance)
 
         if repeat == 1 and not hasattr(instance, self.r_name):
-            return self.cls_or_obj.to_bytes(getattr(instance, self.p_name))
+            return self.dtype.to_bytes(getattr(instance, self.p_name))
 
         ls: list = getattr(instance, self.p_name)
 
@@ -158,6 +157,6 @@ class Retriever(MapValidate):
 
         ls: list[bytes] = [b""] * repeat
         for j, value in enumerate(getattr(instance, self.p_name)):
-            ls[j] = self.cls_or_obj.to_bytes(value)
+            ls[j] = self.dtype.to_bytes(value)
 
         return b"".join(ls)

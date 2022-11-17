@@ -1,78 +1,99 @@
 from __future__ import annotations
 
-from typing import Literal
+import struct
 
-from src.types.IncrementalGenerator import IncrementalGenerator
-from src.types.ParserType import ParserType, ParserTypeObjCls
+from src.types.ByteStream import ByteStream
+from src.types.Parseable import Parseable
 
-class BaseArray(ParserType):
-    def __init__(self, cls_or_obj: ParserTypeObjCls):
-        self.cls_or_obj = cls_or_obj
+class BaseArray(Parseable):
+    __slots__ = ("dtype", "struct_symbol", "length")
+
+    def __init__(self, size: int, dtype: Parseable, struct_symbol: str):
+        super().__init__(size)
+        self.dtype = dtype
+        self.struct_symbol = struct_symbol
         self.length = -1
 
-    def from_generator(self, igen: IncrementalGenerator, *, byteorder: Literal["big", "little"] = "little", struct_version: tuple[int, ...] = (0,)) -> list:
-        ls = [None]*self.length
+    def from_stream(self, stream: ByteStream, *, struct_version: tuple[int, ...] = (0,)) -> list:
+        ls = [None] * self.length
         for i in range(self.length):
-            ls[i] = self.cls_or_obj.from_generator(igen, struct_version = struct_version)
+            ls[i] = self.dtype.from_stream(stream, struct_version = struct_version)
         return ls
 
-    def from_bytes(self, bytes_: bytes, *, byteorder: Literal["big", "little"] = "little", struct_version: tuple[int, ...] = (0,)) -> list:
-        return self.from_generator(IncrementalGenerator.from_bytes(bytes_), struct_version = struct_version)
+    def from_bytes(self, bytes_: bytes, *, struct_version: tuple[int, ...] = (0,)) -> list:
+        return self.from_stream(ByteStream.from_bytes(bytes_), struct_version = struct_version)
 
-    def to_bytes(self, value: list, *, byteorder: Literal["big", "little"] = "little") -> bytes:
+    def to_bytes(self, value: list) -> bytes:
         ls = [b""]*self.length
         for i, val in enumerate(value):
-            ls[i] = self.cls_or_obj.to_bytes(val)
+            ls[i] = self.dtype.to_bytes(val)
         return b"".join(ls)
 
 
 class Array(BaseArray):
-    _len_len = 4
+    __slots__ = ()
 
-    def from_generator(self, igen: IncrementalGenerator, *, byteorder: Literal["big", "little"] = "little", struct_version: tuple[int, ...] = (0,)) -> list:
-        self.length = int.from_bytes(igen.get_bytes(self._len_len), "little", signed = False)
-        return super().from_generator(igen, byteorder = byteorder, struct_version = struct_version)
+    def from_stream(self, stream: ByteStream, *, struct_version: tuple[int, ...] = (0,)) -> list:
+        self.length = struct.unpack(self.struct_symbol, stream.get(self.size))[0]
+        return super().from_stream(stream, struct_version = struct_version)
 
-    def to_bytes(self, value: list, *, byteorder: Literal["big", "little"] = "little") -> bytes:
+    def to_bytes(self, value: list) -> bytes:
         self.length = len(value)
-        length_bytes = int.to_bytes(self.length, length = self._len_len, byteorder = "little", signed = False)
-        return length_bytes+super().to_bytes(value, byteorder = byteorder)
+        length_bytes = struct.pack(self.struct_symbol, self.length)
+        return length_bytes+super().to_bytes(value)
 
-    def __class_getitem__(cls, item: ParserTypeObjCls) -> Array:
-        return cls(item)
+class Array8(Array):
+    __slots__ = ()
 
-class Array32(Array):
-    _len_len = 4
+    def __class_getitem__(cls, item: Parseable) -> Array8:
+        return cls(1, item, '<B')
 
 class Array16(Array):
-    _len_len = 2
+    __slots__ = ()
+
+    def __class_getitem__(cls, item: Parseable) -> Array16:
+        return cls(2, item, '<H')
+
+class Array32(Array):
+    __slots__ = ()
+
+    def __class_getitem__(cls, item: Parseable) -> Array32:
+        return cls(4, item, '<I')
+
+class Array64(Array):
+    __slots__ = ()
+
+    def __class_getitem__(cls, item: Parseable) -> Array64:
+        return cls(8, item, '<Q')
 
 
 class FixedLenArray(BaseArray):
+    __slots__ = ()
+
+    def __init__(self, size: int, dtype: Parseable, struct_symbol: str, length: int):
+        super().__init__(size, dtype, struct_symbol)
+        self.length = length
+
     def is_valid(self, value: list) -> tuple[bool, str]:
         if len(value) == self.length:
             return True, ""
         return False, f"%s must have a fixed length of {value}"
 
-    def __init__(self, cls_or_obj: ParserTypeObjCls, length: int,):
-        super().__init__(cls_or_obj)
-        self.length = length
-
-    def to_bytes(self, value: list, *, byteorder: Literal["big", "little"] = "little") -> bytes:
+    def to_bytes(self, value: list) -> bytes:
         valid, msg = self.is_valid(value)
         if not valid:
             raise TypeError(msg)
-        return super().to_bytes(value, byteorder=byteorder)
+        return super().to_bytes(value)
 
-    def __class_getitem__(cls, item: tuple[int, ParserTypeObjCls]) -> FixedLenArray:
-        return cls(item[1], item[0])
+    def __class_getitem__(cls, item: tuple[Parseable, int]) -> FixedLenArray:
+        return cls(4, item[0], '<I', item[1])
 
 
 class StackedArrays(BaseArray):
-    _len_len = 4
+    __slots__ = "num_arrays"
 
-    def __init__(self, cls_or_obj: ParserTypeObjCls, num_arrays: int):
-        super().__init__(cls_or_obj)
+    def __init__(self, size: int, dtype: Parseable, struct_symbol: str, num_arrays: int = -1):
+        super().__init__(size, dtype, struct_symbol)
         self.num_arrays = num_arrays
 
     def is_valid(self, value: list[list]) -> tuple[bool, str]:
@@ -84,21 +105,21 @@ class StackedArrays(BaseArray):
             return True, ""
         return False, f"%s expected {self.num_arrays} but found {num_arrays} stacked arrays"
 
-    def from_generator(self, igen: IncrementalGenerator, *, byteorder: Literal["big", "little"] = "little", struct_version: tuple[int, ...] = (0,)) -> list[list]:
+    def from_stream(self, stream: ByteStream, *, struct_version: tuple[int, ...] = (0,)) -> list[list]:
         num_arrays = self.num_arrays
         if num_arrays == -1:
-            num_arrays = int.from_bytes(igen.get_bytes(self._len_len), "little", signed = False)
+            num_arrays = struct.unpack(self.struct_symbol, stream.get(self.size))[0]
 
-        lengths: list[int] = [int.from_bytes(igen.get_bytes(self._len_len), "little", signed = False) for _ in range(num_arrays)]
+        lengths: list[int] = [struct.unpack(self.struct_symbol, stream.get(self.size))[0] for _ in range(num_arrays)]
         ls: list[list] = [[] for _ in range(num_arrays)]
 
         for i, length in enumerate(lengths):
             self.length = length
-            ls[i] = super().from_generator(igen, byteorder = byteorder, struct_version = struct_version)
+            ls[i] = super().from_stream(stream, struct_version = struct_version)
 
         return ls
 
-    def to_bytes(self, value: list[list], *, byteorder: Literal["big", "little"] = "little") -> bytes:
+    def to_bytes(self, value: list[list]) -> bytes:
         valid, msg = self.is_valid(value)
         if not valid:
             raise TypeError(msg)
@@ -107,21 +128,41 @@ class StackedArrays(BaseArray):
         num_arrays = self.num_arrays
         if num_arrays == -1:
             num_arrays = len(value)
-            length_bytes = int.to_bytes(num_arrays, length = self._len_len, byteorder = "little", signed = False)
+            length_bytes = struct.pack(self.struct_symbol, num_arrays)
 
         bytes_: list[bytes] = [b""]*(2*num_arrays)
         lengths = [len(ls) for ls in value]
         for i, length in enumerate(lengths):
             self.length = length
-            bytes_[i] = int.to_bytes(length, length = 4, byteorder = "little", signed = False)
-            bytes_[num_arrays+i] = super().to_bytes(value[i], byteorder = byteorder)
+            bytes_[i] = struct.pack(self.struct_symbol, length)
+            bytes_[num_arrays+i] = super().to_bytes(value[i])
 
         return length_bytes+b"".join(bytes_)
 
-    def __class_getitem__(cls, item: ParserTypeObjCls | tuple[ParserTypeObjCls, int]) -> StackedArrays:
+
+class StackedArray8s(StackedArrays):
+    def __class_getitem__(cls, item: Parseable | tuple[Parseable, int]) -> StackedArrays:
         if isinstance(item, tuple):
-            return cls(item[0], item[1])
-        return cls(item, -1)
+            return cls(4, item[0], '<B', item[1])
+        return cls(4, item, '<B')
+
+
+class StackedArray16s(StackedArrays):
+    def __class_getitem__(cls, item: Parseable | tuple[Parseable, int]) -> StackedArrays:
+        if isinstance(item, tuple):
+            return cls(4, item[0], '<H', item[1])
+        return cls(4, item, '<H')
+
 
 class StackedArray32s(StackedArrays):
-    _len_len = 4
+    def __class_getitem__(cls, item: Parseable | tuple[Parseable, int]) -> StackedArrays:
+        if isinstance(item, tuple):
+            return cls(4, item[0], '<I', item[1])
+        return cls(4, item, '<I')
+
+
+class StackedArray64s(StackedArrays):
+    def __class_getitem__(cls, item: Parseable | tuple[Parseable, int]) -> StackedArrays:
+        if isinstance(item, tuple):
+            return cls(4, item[0], '<Q', item[1])
+        return cls(4, item, '<Q')

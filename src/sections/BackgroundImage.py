@@ -3,8 +3,8 @@ from __future__ import annotations
 from src.retrievers.Retriever import Retriever
 from src.types.BaseStruct import BaseStruct
 from src.types.Bytes import Bytes
-from src.types.Int import UInt32, Int16, Int32
-from src.types.Str import Str16
+from src.types.Int import uint32, int16, int32
+from src.types.Str import str16
 
 
 class BitMapInfoHeader(BaseStruct):
@@ -16,21 +16,21 @@ class BitMapInfoHeader(BaseStruct):
     def update_num_colours(retriever: Retriever, instance: BitMapInfoHeader):
         instance.num_colours = len(instance.colours)
 
-    header_size: int = Retriever(Int32, default = 0)
-    width: int = Retriever(UInt32, default = 0)
-    height: int = Retriever(UInt32, default = 0)
-    planes: int = Retriever(Int16, default = 0)
-    num_bits: int = Retriever(Int16, default = 0)
-    compression: int = Retriever(UInt32, default = 0)
-    image_size: int = Retriever(UInt32, default = 0)
-    x_pixels_per_meter: int = Retriever(UInt32, default = 0)
-    y_pixels_per_meter: int = Retriever(UInt32, default = 0)
-    num_colours: int = Retriever(UInt32, default = 0, on_set = [set_colours_repeat], on_write = [update_num_colours])
-    num_important_colours: int = Retriever(UInt32, default = 0)
-    colours: list[int] = Retriever(UInt32, default = 0)
+    header_size: int = Retriever(int32, default = 0)
+    width: int = Retriever(uint32, default = 0)
+    height: int = Retriever(uint32, default = 0)
+    planes: int = Retriever(int16, default = 0)
+    num_bits: int = Retriever(int16, default = 0)
+    compression: int = Retriever(uint32, default = 0)
+    image_size: int = Retriever(uint32, default = 0)
+    x_pixels_per_meter: int = Retriever(uint32, default = 0)
+    y_pixels_per_meter: int = Retriever(uint32, default = 0)
+    num_colours: int = Retriever(uint32, default = 0, on_set = [set_colours_repeat], on_write = [update_num_colours])
+    num_important_colours: int = Retriever(uint32, default = 0)
+    colours: list[int] = Retriever(uint32, default = 0)
 
-    def __init__(self, struct_version: tuple[int, ...] = (1, 47)):
-        super().__init__(struct_version)
+    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None):
+        super().__init__(struct_version, parent)
 
 
 class BackgroundImage(BaseStruct):
@@ -42,13 +42,13 @@ class BackgroundImage(BaseStruct):
     def set_bmp_header_repeat(retriever: Retriever, instance: BackgroundImage):
         BackgroundImage.info_header.set_repeat(instance, 1 if instance.width != 0 != instance.height else -1)
 
-    file_name: str = Retriever(Str16, default = "")
-    version: int = Retriever(UInt32, default = 3)
-    width: int = Retriever(UInt32, default = 0, on_set = [set_bmp_header_repeat, set_img_repeat])
-    height: int = Retriever(Int32, default = 0, on_set = [set_bmp_header_repeat, set_img_repeat])
-    orientation: int = Retriever(Int16, default = 1)
+    file_name: str = Retriever(str16, default = "")
+    version: int = Retriever(uint32, default = 3)
+    width: int = Retriever(uint32, default = 0, on_set = [set_bmp_header_repeat, set_img_repeat])
+    height: int = Retriever(int32, default = 0, on_set = [set_bmp_header_repeat, set_img_repeat])
+    orientation: int = Retriever(int16, default = 1)
     info_header: BitMapInfoHeader = Retriever(BitMapInfoHeader, default = BitMapInfoHeader())
     data: list[bytes] = Retriever(Bytes[1], default = b"\x00")
 
-    def __init__(self, struct_version: tuple[int, ...] = (1, 47)):
-        super().__init__(struct_version)
+    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None):
+        super().__init__(struct_version, parent)

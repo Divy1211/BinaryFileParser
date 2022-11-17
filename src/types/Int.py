@@ -1,50 +1,30 @@
-from typing import Literal
+import struct
 
-from src.types.IncrementalGenerator import IncrementalGenerator
-from src.types.ParserType import ParserType
-
-
-class Int(ParserType):
-    _byte_len = 4
-    _signed = True
-
-    @classmethod
-    def from_generator(cls, igen: IncrementalGenerator, byteorder: Literal["big", "little"] = "little", struct_version: tuple[int, ...] = (0,)) -> int:
-        return cls.from_bytes(igen.get_bytes(cls._byte_len), byteorder)
-
-    @classmethod
-    def from_bytes(cls, bytes_: bytes, byteorder: Literal["big", "little"] = "little", struct_version: tuple[int, ...] = (0,)) -> int:
-        return int.from_bytes(bytes_, byteorder, signed = cls._signed)
-
-    @classmethod
-    def to_bytes(cls, value: int, byteorder: Literal["big", "little"] = "little") -> bytes:
-        return int.to_bytes(value, cls._byte_len, byteorder, signed = cls._signed)
+from src.types.ByteStream import ByteStream
+from src.types.Parseable import Parseable
 
 
-class Int8(Int):
-    _byte_len = 1
+class Int(Parseable):
+    __slots__ = "struct_symbol"
 
-class Int16(Int):
-    _byte_len = 2
+    def __init__(self, size: int, struct_symbol: str):
+        super().__init__(size)
+        self.struct_symbol = struct_symbol
 
-class Int32(Int):
-    _byte_len = 4
+    def from_stream(self, stream: ByteStream, *, struct_version: tuple[int, ...] = (0,)) -> int:
+        return self.from_bytes(stream.get(self.size), struct_version = struct_version)
 
-class Int64(Int):
-    _byte_len = 8
+    def from_bytes(self, bytes_: bytes, *, struct_version: tuple[int, ...] = (0,)) -> int:
+        return struct.unpack(self.struct_symbol, bytes_)[0]
 
-class UInt8(Int):
-    _byte_len = 1
-    _signed = False
+    def to_bytes(self, value: int) -> bytes:
+        return struct.pack(self.struct_symbol, value)
 
-class UInt16(Int):
-    _byte_len = 2
-    _signed = False
-
-class UInt32(Int):
-    _byte_len = 4
-    _signed = False
-
-class UInt64(Int):
-    _byte_len = 8
-    _signed = False
+int8 = Int(1, "<b")
+int16 = Int(2, "<h")
+int32 = Int(4, "<i")
+int64 = Int(8, "<q")
+uint8 = Int(1, "<B")
+uint16 = Int(2, "<H")
+uint32 = Int(4, "<I")
+uint64 = Int(8, "<Q")
