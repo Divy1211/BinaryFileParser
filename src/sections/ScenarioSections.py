@@ -8,7 +8,7 @@ from src.sections.DataHeader import DataHeader
 from src.sections.Diplomacy import Diplomacy
 from src.sections.FileData import FileData
 from src.sections.FileHeader import FileHeader
-from src.sections.Map import Map
+from src.sections.MapData import MapData
 from src.sections.Messages import Messages
 from src.sections.Options import Options
 from src.sections.PlayerData2 import PlayerData2
@@ -29,7 +29,7 @@ class ScenarioSections(BaseStruct):
     global_victory: GlobalVictory = Retriever(GlobalVictory, default = GlobalVictory())
     diplomacy: Diplomacy = Retriever(Diplomacy, default = Diplomacy())
     options: Options = Retriever(Options, default = Options())
-    map: Map = Retriever(Map, default = Map())
+    map_data: MapData = Retriever(MapData, default = MapData())
     unit_data: UnitData = Retriever(UnitData, default = UnitData())
     trigger_data: TriggerData = Retriever(TriggerData, default = TriggerData())
     variable_data: VariableData = Retriever(VariableData, default = VariableData())

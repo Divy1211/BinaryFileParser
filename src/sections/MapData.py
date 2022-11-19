@@ -15,17 +15,17 @@ class Terrain(BaseStruct):
     layer: int = Retriever(int16, default = -1)
 
 
-class Map(BaseStruct):
+class MapData(BaseStruct):
     @staticmethod
-    def set_terrain_data_repeat(retriever: Retriever, instance: Map):
-        Map.tiles.set_repeat(instance, instance.width * instance.height)
+    def set_terrain_data_repeat(retriever: Retriever, instance: MapData):
+        MapData.tiles.set_repeat(instance, instance.width * instance.height)
 
     @staticmethod
-    def update_script_file_path(retriever: Retriever, instance: Map):
+    def update_script_file_path(retriever: Retriever, instance: MapData):
         instance.parent.file_data.script_file_path = instance.script_name+".xs" if instance.script_name else ""
 
     @staticmethod
-    def update_width_height(retriever: Retriever, instance: Map):
+    def update_width_height(retriever: Retriever, instance: MapData):
         instance.width = instance.height = int(len(instance.tiles) ** 0.5)
 
     string_starter1: bytes = Retriever(Bytes[2], default = b"\x60\x0a")

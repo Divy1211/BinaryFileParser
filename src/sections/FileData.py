@@ -12,8 +12,8 @@ class AiFile2(BaseStruct):
     file_name: str = Retriever(nt_str32, default = "")
     per_content: str = Retriever(nt_str32, default = "")
 
-    def __init__(self, struct_version: tuple[int, ...] = (3, 2)):
-        super().__init__(struct_version)
+    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None):
+        super().__init__(struct_version, parent)
 
 class FileData(BaseStruct):
     @staticmethod

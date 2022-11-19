@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from alive_progress import alive_bar
+from alive_progress import alive_it
 
 from src.errors.CompressionError import CompressionError
 from src.errors.ParserError import ParserError
@@ -63,7 +63,7 @@ class BaseStruct(Parseable):
     @classmethod
     def from_stream(
         cls, stream: ByteStream, *, struct_version: tuple[int, ...] = (0,), strict: bool = False,
-        show_progress: bool = False, parent: BaseStruct = None,
+        show_progress: bool = False, parent: BaseStruct = None
     ) -> BaseStruct:
         try:
             struct_version = cls.get_version(stream)
@@ -71,19 +71,22 @@ class BaseStruct(Parseable):
             pass
 
         instance = cls(struct_version, parent)
+        retriever_ls = cls._retrievers
         if show_progress:
-            with alive_bar(len(cls._retrievers), dual_line = True, title = "Reading File") as bar:
-                for retriever in cls._retrievers:
-                    bar.text = f"  -> {retriever.p_name.title().replace('_', ' ')}"
-                    if retriever.remaining_compressed:
-                        stream = ByteStream.from_bytes(cls.decompress(stream.remaining()))
-                    retriever.from_stream(instance, stream)
-                    bar()
-        else:
-            for retriever in cls._retrievers:
-                if retriever.remaining_compressed:
-                    stream = ByteStream.from_bytes(cls.decompress(stream.remaining()))
-                retriever.from_stream(instance, stream)
+            retriever_ls = alive_it(
+                retriever_ls,
+                dual_line = True,
+                title = f"         Reading File",
+                stats = False,
+                finalize = lambda bar: bar.title(f"Finished Reading File")
+            )
+
+        for retriever in retriever_ls:
+            if show_progress:
+                retriever_ls.text = f"            -> {retriever.p_name.title().replace('_', ' ')}"
+            if retriever.remaining_compressed:
+                stream = ByteStream.from_bytes(cls.decompress(stream.remaining()))
+            retriever.from_stream(instance, stream)
 
         file_len = len(stream.content)
 
@@ -108,19 +111,22 @@ class BaseStruct(Parseable):
 
         bytes_ = [b""] * length
         compress_idx = length
+        retriever_ls = instance._retrievers
         if show_progress:
-            with alive_bar(len(instance._retrievers), dual_line = True, title = "Writing File") as bar:
-                for i, retriever in enumerate(instance._retrievers):
-                    bar.text = f"  <- {retriever.p_name.title().replace('_', ' ')}"
-                    if retriever.remaining_compressed:
-                        compress_idx = i
-                    bytes_[i] = retriever.to_bytes(instance)
-                    bar()
-        else:
-            for i, retriever in enumerate(instance._retrievers):
-                if retriever.remaining_compressed:
-                    compress_idx = i
-                bytes_[i] = retriever.to_bytes(instance)
+            retriever_ls = alive_it(
+                retriever_ls,
+                dual_line = True,
+                title = f"         Writing File",
+                stats = False,
+                finalize = lambda bar: bar.title(f"Finished Writing File")
+            )
+
+        for i, retriever in enumerate(retriever_ls):
+            if show_progress:
+                retriever_ls.text = f"            <- {retriever.p_name.title().replace('_', ' ')}"
+            if retriever.remaining_compressed:
+                compress_idx = i
+            bytes_[i] = retriever.to_bytes(instance)
 
         compressed = b""
         if compress_idx != length:

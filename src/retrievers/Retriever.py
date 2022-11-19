@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+
 from abc import ABCMeta
 from typing import Type, Any, Callable, TypeVar
 
@@ -114,20 +115,18 @@ class Retriever(MapValidate):
             setattr(instance, self.p_name, None)
             return
 
-        if repeat == 1 and not hasattr(instance, self.r_name):
+        def getobj():
             if type(self.dtype) == ABCMeta and issubclass(self.dtype, BaseStruct):
-                obj = self.dtype.from_stream(stream, struct_version = instance.struct_version, parent = instance)
-            else:
-                obj = self.dtype.from_stream(stream, struct_version = instance.struct_version)
-            setattr(instance, self.p_name, obj)
+                return self.dtype.from_stream(stream, struct_version = instance.struct_version, parent = instance)
+            return self.dtype.from_stream(stream, struct_version = instance.struct_version)
+
+        if repeat == 1 and not hasattr(instance, self.r_name):
+            setattr(instance, self.p_name, getobj())
             return
 
         ls: list = [None] * repeat
         for i in range(repeat):
-            if type(self.dtype) == ABCMeta and issubclass(self.dtype, BaseStruct):
-                ls[i] = self.dtype.from_stream(stream, struct_version = instance.struct_version, parent = instance)
-            else:
-                ls[i] = self.dtype.from_stream(stream, struct_version = instance.struct_version)
+            ls[i] = getobj()
         setattr(instance, self.p_name, ls)
 
         for func in self.on_read:
@@ -148,15 +147,12 @@ class Retriever(MapValidate):
             return self.dtype.to_bytes(getattr(instance, self.p_name))
 
         ls: list = getattr(instance, self.p_name)
-
-        if self.p_name == "colours":
-            print("at", repeat)
-
         if not len(ls) == repeat:
             raise ValueError(f"length of {self.p_name!r} is not the same as {repeat = }")
 
-        ls: list[bytes] = [b""] * repeat
-        for j, value in enumerate(getattr(instance, self.p_name)):
-            ls[j] = self.dtype.to_bytes(value)
+        bytes_: list[bytes] = [b""] * repeat
 
-        return b"".join(ls)
+        for j, value in enumerate(getattr(instance, self.p_name)):
+            bytes_[j] = self.dtype.to_bytes(value)
+
+        return b"".join(bytes_)
