@@ -25,7 +25,7 @@ class ScenarioSections(BaseStruct):
     messages: Messages = Retriever(Messages, default = Messages())
     cinematics: Cinematics = Retriever(Cinematics, default = Cinematics())
     background_image: BackgroundImage = Retriever(BackgroundImage, default = BackgroundImage())
-    player_data_2: PlayerData2 = Retriever(PlayerData2, default = PlayerData2())
+    player_data2: PlayerData2 = Retriever(PlayerData2, default = PlayerData2())
     global_victory: GlobalVictory = Retriever(GlobalVictory, default = GlobalVictory())
     diplomacy: Diplomacy = Retriever(Diplomacy, default = Diplomacy())
     options: Options = Retriever(Options, default = Options())
@@ -50,5 +50,5 @@ class ScenarioSections(BaseStruct):
         ver_str = stream.peek(4).decode("ASCII")
         return tuple(map(int, ver_str.split(".")))
 
-    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None):
-        super().__init__(struct_version, parent)
+    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True):
+        super().__init__(struct_version, parent, initialise_defaults)

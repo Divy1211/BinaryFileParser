@@ -27,10 +27,10 @@ class BitMapInfoHeader(BaseStruct):
     y_pixels_per_meter: int = Retriever(uint32, default = 0)
     num_colours: int = Retriever(uint32, default = 0, on_set = [set_colours_repeat], on_write = [update_num_colours])
     num_important_colours: int = Retriever(uint32, default = 0)
-    colours: list[int] = Retriever(uint32, default = 0)
+    colours: list[int] = Retriever(uint32, default = 0, repeat = 0)
 
-    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None):
-        super().__init__(struct_version, parent)
+    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True):
+        super().__init__(struct_version, parent, initialise_defaults)
 
 
 class BackgroundImage(BaseStruct):
@@ -50,5 +50,5 @@ class BackgroundImage(BaseStruct):
     info_header: BitMapInfoHeader = Retriever(BitMapInfoHeader, default = BitMapInfoHeader())
     data: list[bytes] = Retriever(Bytes[1], default = b"\x00")
 
-    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None):
-        super().__init__(struct_version, parent)
+    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True):
+        super().__init__(struct_version, parent, initialise_defaults)

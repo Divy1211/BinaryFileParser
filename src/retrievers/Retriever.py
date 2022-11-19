@@ -2,6 +2,7 @@ from __future__ import annotations
 
 
 from abc import ABCMeta
+from copy import copy
 from typing import Type, Any, Callable, TypeVar
 
 from src.errors.VersionError import VersionError
@@ -67,9 +68,14 @@ class Retriever(MapValidate):
                 f"{self.p_name!r} is not supported in your scenario version {ver_str(instance.struct_version)!r}"
             )
 
-        if isinstance(value, BaseStruct):
-            value.parent = instance
+        def set_parent(obj):
+            if isinstance(obj, BaseStruct):
+                obj.parent = instance
+            elif isinstance(obj, list):
+                for sub_obj in obj:
+                    set_parent(sub_obj)
 
+        set_parent(value)
         super().__set__(instance, value)
 
     def __get__(self, instance: BaseStruct, owner: Type[BaseStruct]):
@@ -85,14 +91,7 @@ class Retriever(MapValidate):
         except AttributeError:
             if self.default is None:
                 raise ValueError(f"No default value specified for retriever {self.p_name!r}")
-
-            if self.repeat(instance) == 1:
-                super().__set__(instance, self.default)
-                return self.default
-
-            ls = [self.default] * self.repeat(instance)
-            super().__set__(instance, ls)
-            return ls
+            return self.from_default(instance)
 
     @property
     def r_name(self) -> str:
@@ -106,6 +105,24 @@ class Retriever(MapValidate):
             return repeat
         return self._repeat
 
+    def from_default(self, instance: BaseStruct) -> None:
+        repeat = self.repeat(instance)
+        if repeat == -1:
+            return None
+
+        val = self.default
+        if type(self.dtype) is ABCMeta and issubclass(self.dtype, BaseStruct):
+            val = (
+                val.from_default(val.struct_version) if repeat == 1
+                else [val.from_default(val.struct_version) for _ in range(repeat)]
+            )
+        elif isinstance(val, list):
+            val = copy(val) if repeat == 1 else [copy(val) for _ in range(repeat)]
+        elif repeat != 1:
+            val = [val] * repeat
+
+        return val
+
     def from_stream(self, instance: BaseStruct, stream: ByteStream):
         if not self.supported(instance.struct_version):
             return
@@ -116,7 +133,7 @@ class Retriever(MapValidate):
             return
 
         def getobj():
-            if type(self.dtype) == ABCMeta and issubclass(self.dtype, BaseStruct):
+            if type(self.dtype) is ABCMeta and issubclass(self.dtype, BaseStruct):
                 return self.dtype.from_stream(stream, struct_version = instance.struct_version, parent = instance)
             return self.dtype.from_stream(stream, struct_version = instance.struct_version)
 
@@ -151,7 +168,6 @@ class Retriever(MapValidate):
             raise ValueError(f"length of {self.p_name!r} is not the same as {repeat = }")
 
         bytes_: list[bytes] = [b""] * repeat
-
         for j, value in enumerate(getattr(instance, self.p_name)):
             bytes_[j] = self.dtype.to_bytes(value)
 

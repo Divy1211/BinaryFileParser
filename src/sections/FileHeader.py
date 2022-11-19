@@ -26,5 +26,5 @@ class FileHeader(BaseStruct):
     creator: str = Retriever(nt_str32, default = "AoE2ScenarioParser")
     num_triggers: int = Retriever(uint32, default = 0, on_write = [update_num_triggers])
 
-    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None):
-        super().__init__(struct_version, parent)
+    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True):
+        super().__init__(struct_version, parent, initialise_defaults)

@@ -23,5 +23,5 @@ class GlobalVictory(BaseStruct):
     time_limit: int = Retriever(uint32, default = 9000)
     """in 10ths of a year"""
 
-    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None):
-        super().__init__(struct_version, parent)
+    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True):
+        super().__init__(struct_version, parent, initialise_defaults)

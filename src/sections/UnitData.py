@@ -24,8 +24,8 @@ class PlayerData4(BaseStruct):
     trade_goods: float = Retriever(float32, default = 0.0)
     population_limit: float = Retriever(float32, default = 200.0)
 
-    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None):
-        super().__init__(struct_version, parent)
+    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True):
+        super().__init__(struct_version, parent, initialise_defaults)
 
 
 class PlayerData3(BaseStruct):
@@ -65,17 +65,17 @@ class PlayerData3(BaseStruct):
     colour: int = Retriever(uint32, default = 0)
     victory_version: float = Retriever(float32, default = 2.0, on_set = [set_unknown2_repeat, set_num_wwc2_repeat])
     num_grand_theft_empires: int = Retriever(uint16, default = 0, on_set = [set_gte_repeat], on_write = [update_num_gte])
-    unknown2: list[int] = Retriever(uint8, default = 0)
+    unknown2: list[int] = Retriever(uint8, default = 0, repeat = 7)
     grand_theft_empires: list[bytes] = Retriever(Bytes[44], default = b"\x00"*44)
     """unknown structure"""
     num_ww_campaign2: int = Retriever(uint8, default = 0, on_set = [set_wwc2_repeat], on_write = [update_num_wwc2])
     unknown3: int = Retriever(uint8, default = 0, repeat = 7)
-    ww_campaign2: list[bytes] = Retriever(Bytes[32], default = [])
+    ww_campaign2: list[bytes] = Retriever(Bytes[32], default = [], repeat = 0)
     """unknown structure"""
     unknown4: int = Retriever(int32, default = -1)
 
-    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None):
-        super().__init__(struct_version, parent)
+    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True):
+        super().__init__(struct_version, parent, initialise_defaults)
 
 
 class Unit(BaseStruct):
@@ -89,8 +89,8 @@ class Unit(BaseStruct):
     initial_animation_frame: int = Retriever(uint16, default = 0)
     garrisoned_in_reference_id: int = Retriever(int32, default = -1)
 
-    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None):
-        super().__init__(struct_version, parent)
+    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True):
+        super().__init__(struct_version, parent, initialise_defaults)
 
 
 class UnitData(BaseStruct):
@@ -109,5 +109,5 @@ class UnitData(BaseStruct):
     player_data3: list[PlayerData3] = Retriever(PlayerData3, default = PlayerData3(), repeat = 8)
     units: list[list[Unit]] = Retriever(Array32[Unit], default = [])
 
-    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None):
-        super().__init__(struct_version, parent)
+    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True):
+        super().__init__(struct_version, parent, initialise_defaults)

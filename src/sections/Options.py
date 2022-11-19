@@ -27,5 +27,5 @@ class Options(BaseStruct):
     unknown2: bytes = Retriever(Bytes[7], default = b"\x00"*7)
     num_triggers: int = Retriever(uint32, default = 0, on_write = [update_num_triggers])
 
-    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None):
-        super().__init__(struct_version, parent)
+    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True):
+        super().__init__(struct_version, parent, initialise_defaults)

@@ -93,10 +93,10 @@ class Effect(BaseStruct):
     action_type: int = Retriever(int32, default = -1)
     message: str = Retriever(str32, default = "", on_read = [remove_null_term], on_write = [append_null_term_if_used])
     sound_name: str = Retriever(str32, default = "", on_read = [remove_null_term], on_write = [append_null_term_if_used])
-    selected_object_ids: list[int] = Retriever(int32, default = -1)
+    selected_object_ids: list[int] = Retriever(int32, default = -1, repeat = 0)
 
-    def __init__(self, struct_version: tuple[int, ...] = (3, 2), parent: BaseStruct = None):
-        super().__init__(struct_version, parent)
+    def __init__(self, struct_version: tuple[int, ...] = (3, 2), parent: BaseStruct = None, initialise_defaults = True):
+        super().__init__(struct_version, parent, initialise_defaults)
 
 class Condition(BaseStruct):
     condition_type: int = Retriever(int32, default = 0)
@@ -130,8 +130,8 @@ class Condition(BaseStruct):
     include_changeable_weapon_objects: int = Retriever(int32, default = -1)
     xs_function: str = Retriever(str32, default = "")
 
-    def __init__(self, struct_version: tuple[int, ...] = (3, 2), parent: BaseStruct = None):
-        super().__init__(struct_version, parent)
+    def __init__(self, struct_version: tuple[int, ...] = (3, 2), parent: BaseStruct = None, initialise_defaults = True):
+        super().__init__(struct_version, parent, initialise_defaults)
 
 
 class Trigger(BaseStruct):
@@ -186,17 +186,17 @@ class Trigger(BaseStruct):
     short_description: str = Retriever(nt_str32, default = "")
     num_effects: int = Retriever(uint32, default = 0, on_set = [set_effects_repeat, set_effect_display_orders_repeat], on_write = [update_num_effects])
     """originally int32"""
-    effects: list[Effect] = Retriever(Effect, default = Effect())
-    effect_display_orders: list[int] = Retriever(uint32, default = 0)
+    effects: list[Effect] = Retriever(Effect, default = Effect(), repeat = 0)
+    effect_display_orders: list[int] = Retriever(uint32, default = 0, repeat = 0)
     """originally int32"""
     num_conditions: int = Retriever(uint32, default = 0, on_set = [set_conditions_repeat, set_condition_display_orders_repeat], on_write = [update_num_conditions])
     """originally int32"""
-    conditions: list[Condition] = Retriever(Condition, default = Condition())
-    condition_display_orders: list[int] = Retriever(uint32, default = 0)
+    conditions: list[Condition] = Retriever(Condition, default = Condition(), repeat = 0)
+    condition_display_orders: list[int] = Retriever(uint32, default = 0, repeat = 0)
     """originally int32"""
 
-    def __init__(self, struct_version: tuple[int, ...] = (3, 2), parent: BaseStruct = None):
-        super().__init__(struct_version, parent)
+    def __init__(self, struct_version: tuple[int, ...] = (3, 2), parent: BaseStruct = None, initialise_defaults = True):
+        super().__init__(struct_version, parent, initialise_defaults)
 
 
 class TriggerData(BaseStruct):
@@ -222,8 +222,8 @@ class TriggerData(BaseStruct):
     trigger_instruction_start: int = Retriever(int8, default = 0)
     num_triggers: int = Retriever(uint32, default = 0, on_set = [set_triggers_repeat, set_display_orders_repeat], on_write = [update_num_triggers])
     """originally int32"""
-    triggers: list[Trigger] = Retriever(Trigger, default = Trigger())
-    trigger_display_orders: list[int] = Retriever(uint32, default = 0)
+    triggers: list[Trigger] = Retriever(Trigger, default = Trigger(), repeat = 0)
+    trigger_display_orders: list[int] = Retriever(uint32, default = 0, repeat = 0)
     unknown: bytes = Retriever(Bytes[1028], default = b"\x00"*1028)
 
     @classmethod
@@ -231,5 +231,5 @@ class TriggerData(BaseStruct):
         ver_str = str(float64.from_bytes(stream.peek(8)))
         return tuple(map(int, ver_str.split(".")))
 
-    def __init__(self, struct_version: tuple[int, ...] = (3, 2), parent: BaseStruct = None):
-        super().__init__(struct_version, parent)
+    def __init__(self, struct_version: tuple[int, ...] = (3, 2), parent: BaseStruct = None, initialise_defaults = True):
+        super().__init__(struct_version, parent, initialise_defaults)

@@ -45,7 +45,7 @@ class MapData(BaseStruct):
     no_waves_on_shore: bool = Retriever(bool8, default = False)
     width: int = Retriever(uint32, default = 120, on_set = [set_terrain_data_repeat], on_write = [update_width_height])
     height: int = Retriever(uint32, default = 120, on_set = [set_terrain_data_repeat])
-    tiles: list[Terrain] = Retriever(Terrain, default = Terrain())
+    tiles: list[Terrain] = Retriever(Terrain, default = Terrain(), repeat = 14_400)
 
-    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None):
-        super().__init__(struct_version, parent)
+    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True):
+        super().__init__(struct_version, parent, initialise_defaults)

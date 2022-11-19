@@ -16,8 +16,8 @@ class PlayerData1(BaseStruct):
     architecture_set: int = Retriever(uint32, default = 43)
     cty_mode: int = Retriever(uint32, default = 4)
 
-    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None):
-        super().__init__(struct_version, parent)
+    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True):
+        super().__init__(struct_version, parent, initialise_defaults)
 
 
 class DataHeader(BaseStruct):
@@ -30,5 +30,5 @@ class DataHeader(BaseStruct):
     unknown: bytes = Retriever(Bytes[9], default = b"\x01"+b"\x00"*8)
     file_name: str = Retriever(str16, default = "MadeWithAoE2SP.aoe2scenario")
 
-    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None):
-        super().__init__(struct_version, parent)
+    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True):
+        super().__init__(struct_version, parent, initialise_defaults)

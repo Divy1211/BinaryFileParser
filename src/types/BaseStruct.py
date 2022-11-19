@@ -29,18 +29,20 @@ class BaseStruct(Parseable):
         cls._retrievers = cls_retrievers
 
     @classmethod
-    def default(cls, struct_version: tuple[int, ...] = None):
-        instance = cls() if not struct_version else cls(struct_version)
+    def from_default(cls, struct_version: tuple[int, ...] = None, instance: BaseStruct = None):
+        instance = instance or cls() if not struct_version else cls(struct_version)
         for retriever in cls._retrievers:
-            if hasattr(instance, retriever.r_name):
-                setattr(instance, retriever.p_name, [retriever.default for _ in range(retriever.repeat(instance))])
+            if not retriever.supported(instance.struct_version):
                 continue
-            setattr(instance, retriever.p_name, retriever.default)
+            setattr(instance, retriever.p_name, retriever.from_default(instance))
+        return instance
 
-    def __init__(self, struct_version: tuple[int, ...] = (0,), parent: BaseStruct = None):
+    def __init__(self, struct_version: tuple[int, ...] = (0,), parent: BaseStruct = None, initialise_defaults = True):
         super().__init__(-1)
         self.struct_version = struct_version
         self.parent = parent
+        if initialise_defaults:
+            self.from_default(instance = self)
 
     @classmethod
     def get_version(cls, stream: ByteStream) -> tuple[int, ...]:
@@ -70,7 +72,7 @@ class BaseStruct(Parseable):
         except VersionError:
             pass
 
-        instance = cls(struct_version, parent)
+        instance = cls(struct_version, parent, initialise_defaults = False)
         retriever_ls = cls._retrievers
         if show_progress:
             retriever_ls = alive_it(
@@ -126,7 +128,11 @@ class BaseStruct(Parseable):
                 retriever_ls.text = f"            <- {retriever.p_name.title().replace('_', ' ')}"
             if retriever.remaining_compressed:
                 compress_idx = i
-            bytes_[i] = retriever.to_bytes(instance)
+            try:
+                bytes_[i] = retriever.to_bytes(instance)
+            except Exception:
+                print(retriever.p_name, getattr(instance, retriever.p_name))
+                raise
 
         compressed = b""
         if compress_idx != length:
