@@ -15,6 +15,9 @@ if TYPE_CHECKING:
 
 
 class BaseStruct(Parseable):
+    """
+
+    """
     __slots__ = "struct_version", "parent"
 
     _retrievers: list[Retriever] = []

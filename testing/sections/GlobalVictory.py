@@ -1,5 +1,5 @@
 from src.retrievers.Retriever import Retriever
-from src.types.BaseStruct import BaseStruct
+from src.retrievers.BaseStruct import BaseStruct
 from src.types.Int import uint32
 
 

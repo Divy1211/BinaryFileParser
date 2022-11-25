@@ -1,6 +1,6 @@
 from src.retrievers.Retriever import Retriever
 from src.types.Array import FixedLenArray
-from src.types.BaseStruct import BaseStruct
+from src.retrievers.BaseStruct import BaseStruct
 from src.types.Bool import bool32, bool8
 from src.types.Bytes import Bytes
 from src.types.Int import uint32, int8

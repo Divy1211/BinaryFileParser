@@ -7,7 +7,7 @@ from typing import Type, Any, Callable, TypeVar
 
 from src.errors.VersionError import VersionError
 from src.retrievers.MapValidate import MapValidate
-from src.types.BaseStruct import BaseStruct
+from src.retrievers.BaseStruct import BaseStruct
 from src.types.ByteStream import ByteStream
 from src.types.Parseable import Parseable
 

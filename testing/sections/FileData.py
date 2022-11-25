@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from src.retrievers.Retriever import Retriever
 from src.types.Array import Array32
-from src.types.BaseStruct import BaseStruct
+from src.retrievers.BaseStruct import BaseStruct
 from src.types.Bool import bool32
 from src.types.Bytes import Bytes
 from src.types.Str import str32, str16, nt_str32

@@ -2,21 +2,21 @@ import zlib
 
 from src.types.ByteStream import ByteStream
 from src.retrievers.Retriever import Retriever
-from src.sections.BackgroundImage import BackgroundImage
-from src.sections.Cinematics import Cinematics
-from src.sections.DataHeader import DataHeader
-from src.sections.Diplomacy import Diplomacy
-from src.sections.FileData import FileData
-from src.sections.FileHeader import FileHeader
-from src.sections.MapData import MapData
-from src.sections.Messages import Messages
-from src.sections.Options import Options
-from src.sections.PlayerData2 import PlayerData2
-from src.sections.GlobalVictory import GlobalVictory
-from src.sections.TriggerData import TriggerData
-from src.sections.UnitData import UnitData
-from src.sections.VariableData import VariableData
-from src.types.BaseStruct import BaseStruct
+from testing.sections.BackgroundImage import BackgroundImage
+from testing.sections.Cinematics import Cinematics
+from testing.sections.DataHeader import DataHeader
+from testing.sections.Diplomacy import Diplomacy
+from testing.sections.FileData import FileData
+from testing.sections.FileHeader import FileHeader
+from testing.sections.MapData import MapData
+from testing.sections.Messages import Messages
+from testing.sections.Options import Options
+from testing.sections.PlayerData2 import PlayerData2
+from testing.sections.GlobalVictory import GlobalVictory
+from testing.sections.TriggerData import TriggerData
+from testing.sections.UnitData import UnitData
+from testing.sections.VariableData import VariableData
+from src.retrievers.BaseStruct import BaseStruct
 
 
 class ScenarioSections(BaseStruct):
