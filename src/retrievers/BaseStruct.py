@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from abc import ABCMeta
 from typing import TYPE_CHECKING
 
 from alive_progress import alive_it
@@ -56,7 +57,17 @@ class BaseStruct(Parseable):
             If set to false, skip initialisation of struct values from default. This is only set to false when reading
             a file
         """
-        super().__init__(-1)
+        size = 0
+        for retriever in self._retrievers:
+            if not retriever.supported(struct_version):
+                continue
+
+            if type(retriever.dtype) is ABCMeta and issubclass(retriever.dtype, BaseStruct):
+                size += retriever.default.size
+            else:
+                size += retriever.dtype.size
+
+        super().__init__(size)
         self.struct_version = struct_version
         self.parent = parent
         if initialise_defaults:

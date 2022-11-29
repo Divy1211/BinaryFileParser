@@ -3,13 +3,13 @@ from __future__ import annotations
 
 class ByteStream:
     """A stream of bytes which can be used to get or peek n number of bytes at a time"""
-    def __init__(self, name: str, content: bytes, progress: int = 0):
+    __slots__ = "content", "progress"
+
+    def __init__(self, content: bytes, progress: int = 0):
         """
-        :param name: The name of the file from which the stream was created (unused)
         :param content: The content of the file in bytes
         :param progress: The number of bytes that have been read from the content
         """
-        self.name = name
         self.content: bytes = content
         self.progress = progress
 
@@ -23,7 +23,7 @@ class ByteStream:
         """
         with open(filepath, 'rb') as f:
             file_content = f.read()
-        return cls(filepath, file_content)
+        return cls(file_content)
 
     @classmethod
     def from_bytes(cls, bytes_: bytes) -> ByteStream:
@@ -33,7 +33,7 @@ class ByteStream:
         :param bytes_:
         :return: ByteStream object
         """
-        return cls("_bytes", bytes_)
+        return cls(bytes_)
 
     def get(self, n: int) -> bytes:
         """

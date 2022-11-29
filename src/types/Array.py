@@ -144,6 +144,8 @@ class StackedArrays(BaseArray):
 
 
 class StackedArray8s(StackedArrays):
+    __slots__ = ()
+
     def __class_getitem__(cls, item: ParseableType | tuple[ParseableType, int]) -> StackedArrays:
         if isinstance(item, tuple):
             return cls(4, item[0], '<B', item[1])
@@ -151,6 +153,8 @@ class StackedArray8s(StackedArrays):
 
 
 class StackedArray16s(StackedArrays):
+    __slots__ = ()
+
     def __class_getitem__(cls, item: ParseableType | tuple[ParseableType, int]) -> StackedArrays:
         if isinstance(item, tuple):
             return cls(4, item[0], '<H', item[1])
@@ -158,6 +162,8 @@ class StackedArray16s(StackedArrays):
 
 
 class StackedArray32s(StackedArrays):
+    __slots__ = ()
+
     def __class_getitem__(cls, item: ParseableType | tuple[ParseableType, int]) -> StackedArrays:
         if isinstance(item, tuple):
             return cls(4, item[0], '<I', item[1])
@@ -165,6 +171,8 @@ class StackedArray32s(StackedArrays):
 
 
 class StackedArray64s(StackedArrays):
+    __slots__ = ()
+
     def __class_getitem__(cls, item: ParseableType | tuple[ParseableType, int]) -> StackedArrays:
         if isinstance(item, tuple):
             return cls(4, item[0], '<Q', item[1])
