@@ -22,6 +22,9 @@ BaseStructSub = TypeVar("BaseStructSub", bound = BaseStruct)
 
 
 class Retriever(MapValidate):
+    """
+    Represents a binary object in a struct and the restrictions/dependencies associated with it
+    """
     __slots__ = "dtype", "min_ver", "max_ver", "default", "_repeat", "remaining_compressed", "on_read", "on_write"
 
     def __init__(
@@ -40,6 +43,36 @@ class Retriever(MapValidate):
         on_get: list[Callable[[RetrieverSub, BaseStructSub], None]] | None = None,
         on_set: list[Callable[[RetrieverSub, BaseStructSub], None]] | None = None,
     ):
+        """
+        :param dtype: The type of the value to read
+        :param min_ver:
+            The minimum struct version which supports this retriever property. If the version of the struct being read
+            is less than min_ver, reading this retriever property is skipped and a version error is raised if an attempt
+            to access or assign it is made
+        :param max_ver:
+            The maximum struct version which supports this retriever property. If the version of the struct being read
+            is greater than max_ver, reading this retriever property is skipped and a version error is raised if an
+            attempt to access or assign it is made
+        :param default: A default value for this retriever property
+        :param repeat:
+            The number of times this value is repeated. Possible values for this parameter include:
+                -1: skips reading value entirely, set property to None
+                0: skips reading value entirely, set property to []
+                1: single value is read and assigned to the property
+                >1: a list of values is read and assigned to the property
+        :param remaining_compressed:
+            If set to true, the decompress/compress methods are used on the remaining bytes before reading/writing the
+            remaining retriever properties
+        :param on_read:
+            A list of functions that are called when this retriever property is read from bytes for the first time
+        :param on_write: A list of functions that are called when this retriever property is written to bytes
+        :param mappers: A list of functions that can mutate the value that is assigned to this retriever property
+        :param validators:
+            A list of functions that can validate the value that is assigned to this retriever property.
+            A ValueError is raised if validation from any one of these functions fails
+        :param on_get: A list of functions that are called when this retriever property is accessed
+        :param on_set: A list of functions that are called when this retriever property is set
+        """
         super().__init__(mappers, validators, on_get, on_set)
         self.dtype = dtype
         self.min_ver = min_ver
@@ -56,6 +89,12 @@ class Retriever(MapValidate):
         #     self.validators.append(lambda retriever, instance, iterable: all(map(dtype.is_valid, iterable)))
 
     def supported(self, ver: tuple[int, ...]) -> bool:
+        """
+        Determine if this retriever property is supported in the specified version
+
+        :param ver: The version to check for support in
+        :return: true if supported else false
+        """
         return self.min_ver < ver < self.max_ver
 
     def __set_name__(self, owner: Type[BaseStruct], name: str) -> None:
@@ -98,14 +137,31 @@ class Retriever(MapValidate):
         return f"_repeat_{self.p_name}"
 
     def set_repeat(self, instance: BaseStruct, repeat: int) -> None:
+        """
+        Set the repeat value of a retriever property for a provided struct object.
+
+        :param instance: The struct object to set the repeat value of this retriever property for
+        :param repeat: The repeat value to set
+        """
         setattr(instance, self.r_name, repeat)
 
     def repeat(self, instance: BaseStruct) -> int:
+        """
+        Get the repeat value of a retriever property for a provided struct object
+
+        :param instance: The struct object to get the repeat value of this retriever property from
+        :return: The repeat value
+        """
         if (repeat := getattr(instance, self.r_name, None)) is not None:
             return repeat
         return self._repeat
 
     def from_default(self, instance: BaseStruct) -> None:
+        """
+        Initialise this retriever property from its default value
+
+        :param instance: The struct object to initialise the retriever property for
+        """
         repeat = self.repeat(instance)
         if repeat == -1:
             return None
@@ -123,7 +179,13 @@ class Retriever(MapValidate):
 
         return val
 
-    def from_stream(self, instance: BaseStruct, stream: ByteStream):
+    def from_stream(self, instance: BaseStruct, stream: ByteStream) -> None:
+        """
+        Initialise this retriever property from a stream
+
+        :param instance: The struct object to initialise the retriever property for
+        :param stream: The stream to initialise the retriever property from
+        """
         if not self.supported(instance.struct_version):
             return
 
@@ -150,6 +212,12 @@ class Retriever(MapValidate):
             func(self, instance)
 
     def to_bytes(self, instance: BaseStruct) -> bytes:
+        """
+        Convert this retriever property to bytes
+
+        :param instance: The struct object to convert the retriever property from
+        :return: The bytes of the retriever property
+        """
         if not self.supported(instance.struct_version):
             return b""
 

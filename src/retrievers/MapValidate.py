@@ -25,22 +25,12 @@ class MapValidate:
         on_set: list[Callable[[MapValidateSub, Instance], None]] | None = None,
     ):
         """
-        :param mappers:
-            A list of functions that transform the assigned data value in sequence. These will be called with the
-            descriptor, the data instance and the data value that was assigned to the descriptor property and must
-            return a value of the same type. The output of one mapper function becomes the input of the next.
+        :param mappers: A list of functions that can mutate the value that is assigned to this property
         :param validators:
-            A list of functions that validate the assigned data value in sequence. These will be called with the
-            descriptor, the data instance and the data value that was assigned to the descriptor property and must
-            return a tuple of boolean and string values. The boolean indicates validity, and when False, a ValueError is
-            raised using the returned string as the error message. This string needs to include a format specifier '%s'
-            which will be replaced with the name of the descriptor property
-        :param on_get:
-            A list of functions that will be called when a data value is accessed. These will be called with the
-            descriptor and the data instance
-        :param on_set:
-            A list of functions that will be called when a data value is assigned. These will be called with the
-            descriptor and the data instance
+            A list of functions that can validate the value that is assigned to this property. A ValueError is raised if
+            validation from any one of these functions fails
+        :param on_get: A list of functions that are called when this property is accessed
+        :param on_set: A list of functions that are called when this property is set
         """
         self.mappers = mappers or []
         self.validators = validators or []
