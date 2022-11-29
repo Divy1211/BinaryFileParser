@@ -43,6 +43,7 @@ class Retriever(MapValidate):
         on_get: list[Callable[[RetrieverSub, BaseStructSub], None]] | None = None,
         on_set: list[Callable[[RetrieverSub, BaseStructSub], None]] | None = None,
     ):
+        # todo: default factories and deep copies
         """
         :param dtype: The type of the value to read
         :param min_ver:
