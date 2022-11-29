@@ -1,14 +1,17 @@
 from __future__ import annotations
 
 import struct
+from typing import Type
 
 from src.types.ByteStream import ByteStream
 from src.types.Parseable import Parseable
 
+ParseableType = Type[Parseable] | Parseable
+
 class BaseArray(Parseable):
     __slots__ = ("dtype", "struct_symbol", "length")
 
-    def __init__(self, size: int, dtype: Parseable, struct_symbol: str):
+    def __init__(self, size: int, dtype: ParseableType, struct_symbol: str):
         super().__init__(size)
         self.dtype = dtype
         self.struct_symbol = struct_symbol
@@ -45,32 +48,32 @@ class Array(BaseArray):
 class Array8(Array):
     __slots__ = ()
 
-    def __class_getitem__(cls, item: Parseable) -> Array8:
+    def __class_getitem__(cls, item: ParseableType) -> Array8:
         return cls(1, item, '<B')
 
 class Array16(Array):
     __slots__ = ()
 
-    def __class_getitem__(cls, item: Parseable) -> Array16:
+    def __class_getitem__(cls, item: ParseableType) -> Array16:
         return cls(2, item, '<H')
 
 class Array32(Array):
     __slots__ = ()
 
-    def __class_getitem__(cls, item: Parseable) -> Array32:
+    def __class_getitem__(cls, item: ParseableType) -> Array32:
         return cls(4, item, '<I')
 
 class Array64(Array):
     __slots__ = ()
 
-    def __class_getitem__(cls, item: Parseable) -> Array64:
+    def __class_getitem__(cls, item: ParseableType) -> Array64:
         return cls(8, item, '<Q')
 
 
 class FixedLenArray(BaseArray):
     __slots__ = ()
 
-    def __init__(self, size: int, dtype: Parseable, struct_symbol: str, length: int):
+    def __init__(self, size: int, dtype: ParseableType, struct_symbol: str, length: int):
         super().__init__(size, dtype, struct_symbol)
         self.length = length
 
@@ -85,14 +88,14 @@ class FixedLenArray(BaseArray):
             raise TypeError(msg)
         return super().to_bytes(value)
 
-    def __class_getitem__(cls, item: tuple[Parseable, int]) -> FixedLenArray:
+    def __class_getitem__(cls, item: tuple[ParseableType, int]) -> FixedLenArray:
         return cls(4, item[0], '<I', item[1])
 
 
 class StackedArrays(BaseArray):
     __slots__ = "num_arrays"
 
-    def __init__(self, size: int, dtype: Parseable, struct_symbol: str, num_arrays: int = -1):
+    def __init__(self, size: int, dtype: ParseableType, struct_symbol: str, num_arrays: int = -1):
         super().__init__(size, dtype, struct_symbol)
         self.num_arrays = num_arrays
 
@@ -141,28 +144,28 @@ class StackedArrays(BaseArray):
 
 
 class StackedArray8s(StackedArrays):
-    def __class_getitem__(cls, item: Parseable | tuple[Parseable, int]) -> StackedArrays:
+    def __class_getitem__(cls, item: ParseableType | tuple[ParseableType, int]) -> StackedArrays:
         if isinstance(item, tuple):
             return cls(4, item[0], '<B', item[1])
         return cls(4, item, '<B')
 
 
 class StackedArray16s(StackedArrays):
-    def __class_getitem__(cls, item: Parseable | tuple[Parseable, int]) -> StackedArrays:
+    def __class_getitem__(cls, item: ParseableType | tuple[ParseableType, int]) -> StackedArrays:
         if isinstance(item, tuple):
             return cls(4, item[0], '<H', item[1])
         return cls(4, item, '<H')
 
 
 class StackedArray32s(StackedArrays):
-    def __class_getitem__(cls, item: Parseable | tuple[Parseable, int]) -> StackedArrays:
+    def __class_getitem__(cls, item: ParseableType | tuple[ParseableType, int]) -> StackedArrays:
         if isinstance(item, tuple):
             return cls(4, item[0], '<I', item[1])
         return cls(4, item, '<I')
 
 
 class StackedArray64s(StackedArrays):
-    def __class_getitem__(cls, item: Parseable | tuple[Parseable, int]) -> StackedArrays:
+    def __class_getitem__(cls, item: ParseableType | tuple[ParseableType, int]) -> StackedArrays:
         if isinstance(item, tuple):
             return cls(4, item[0], '<Q', item[1])
         return cls(4, item, '<Q')

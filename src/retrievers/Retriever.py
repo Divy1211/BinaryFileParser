@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from abc import ABCMeta
 from copy import copy
-from typing import Type, Any, Callable, TypeVar
+from typing import Type, Callable, TypeVar
 
 from src.errors.VersionError import VersionError
 from src.retrievers.MapValidate import MapValidate
@@ -30,13 +30,13 @@ class Retriever(MapValidate):
         min_ver: tuple[int] = (-1,),
         max_ver: tuple[int] = (1000,),
         *,
-        default: Any = None,
+        default: T = None,
         repeat: int = 1,
         remaining_compressed: bool = False,
         on_read: list[Callable[[RetrieverSub, BaseStructSub], None]] | None = None,
         on_write: list[Callable[[RetrieverSub, BaseStructSub], None]] | None = None,
         mappers: list[Callable[[RetrieverSub, BaseStructSub, T], T]] | None = None,
-        validators: list[Callable[[RetrieverSub, BaseStructSub, Any], tuple[bool, str]]] | None = None,
+        validators: list[Callable[[RetrieverSub, BaseStructSub, T], tuple[bool, str]]] | None = None,
         on_get: list[Callable[[RetrieverSub, BaseStructSub], None]] | None = None,
         on_set: list[Callable[[RetrieverSub, BaseStructSub], None]] | None = None,
     ):
@@ -62,7 +62,7 @@ class Retriever(MapValidate):
         super().__set_name__(owner, name)
         owner.add_retriever(self)
 
-    def __set__(self, instance: BaseStruct, value: Any) -> None:
+    def __set__(self, instance: BaseStruct, value: T) -> None:
         if not self.supported(instance.struct_version):
             raise VersionError(
                 f"{self.p_name!r} is not supported in your scenario version {ver_str(instance.struct_version)!r}"
@@ -78,7 +78,7 @@ class Retriever(MapValidate):
         set_parent(value)
         super().__set__(instance, value)
 
-    def __get__(self, instance: BaseStruct, owner: Type[BaseStruct]):
+    def __get__(self, instance: BaseStruct, owner: Type[BaseStruct]) -> Retriever | T:
         if instance is None:
             return self
 
