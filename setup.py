@@ -1,20 +1,17 @@
-from setuptools import setup, Extension
-from Cython.Build import cythonize
+from setuptools import setup, find_packages
 
-ext = Extension(
-    "ByteStream",
-    sources = ["./src/types/ByteStream.pyx"],
-    language = "c++",
-)
+with open("requirements.txt", "r", encoding = 'utf-8') as file:
+    requires = file.read().splitlines()
 
 setup(
-    name = "ByteStream",
-    ext_modules = cythonize(
-        ext,
-        language_level = '3',
-        compiler_directives = {
-            'language_level': '3'
-        },
-        annotate = True,
-    )
+    name='binary-file-parser',
+    version='0.0.0',
+    license='MIT',
+    author="Divy1211",
+    author_email='divy1211.dc@gmail.com',
+    packages=find_packages('src'),
+    package_dir={'': 'src'},
+    url='https://github.com/Divy1211/FileParser',
+    keywords='File Parser',
+    install_requires=requires,
 )

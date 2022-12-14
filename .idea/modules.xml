@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/FileParser.iml" filepath="$PROJECT_DIR$/.idea/FileParser.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/BinaryFileParser.iml" filepath="$PROJECT_DIR$/.idea/BinaryFileParser.iml" />
     </modules>
   </component>
 </project>

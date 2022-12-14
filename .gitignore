@@ -1,1 +1,6 @@
 venv/*
+dist/*
+src/binary_file_parser.egg-info/*
+docs/*
+*.aoe2scenario
+mkdocs.yml
