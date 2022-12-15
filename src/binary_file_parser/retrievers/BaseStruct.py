@@ -237,7 +237,7 @@ class BaseStruct(Parseable):
 
     # todo: write val <-> data (names) to file
     # todo: write hex (decompressed) to file
-    # todo: repr
+    # todo: repr, eq, neq
     # todo: diff
     # todo: file/header/decompressed in both hex/val <-> data
     # todo: to_json
