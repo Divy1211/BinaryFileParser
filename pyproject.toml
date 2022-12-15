@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "binary-file-parser"
 version = "0.0.1"
-description = "Read/Write bi`nary files after describing their specifications in code (similar to an ORM table schema)"
+description = "Read/Write binary files after describing their specifications in code (similar to an ORM table schema)"
 readme = "README.md"
 authors = [{ name = "Divy1211", email = "divy1211.dc@gmail.com" }]
 license = { file = "LICENSE" }
@@ -22,7 +22,9 @@ dependencies = [
 requires-python = ">=3.10"
 
 [project.optional-dependencies]
-dev = ["twine", "pytest", "pylint", "mkdocs", "mkdocstrings"]
+dev = ["pytest", "pylint"]
+docs = ["mkdocs"]
+depl = ["build", "twine"]
 
 [project.urls]
 Homepage = "https://github.com/Divy1211/FileParser"
