@@ -1,7 +1,7 @@
 import struct
 
-from src.types.ByteStream import ByteStream
-from src.types.Parseable import Parseable
+from binary_file_parser.types.ByteStream import ByteStream
+from binary_file_parser.types.Parseable import Parseable
 
 
 class Int(Parseable):

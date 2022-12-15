@@ -5,14 +5,14 @@ from typing import TYPE_CHECKING
 
 from alive_progress import alive_it
 
-from src.errors.CompressionError import CompressionError
-from src.errors.ParserError import ParserError
-from src.errors.VersionError import VersionError
-from src.types.ByteStream import ByteStream
-from src.types.Parseable import Parseable
+from binary_file_parser.errors import CompressionError
+from binary_file_parser.errors import ParsingError
+from binary_file_parser.errors import VersionError
+from binary_file_parser.types import ByteStream
+from binary_file_parser.types import Parseable
 
 if TYPE_CHECKING:
-    from src.retrievers.Retriever import Retriever
+    from binary_file_parser.retrievers.Retriever import Retriever
 
 
 class BaseStruct(Parseable):
@@ -156,7 +156,7 @@ class BaseStruct(Parseable):
         file_len = len(stream.content)
 
         if stream.progress != file_len and strict:
-            raise ParserError(f"{file_len - stream.progress} bytes are left after parsing all retrievers successfully")
+            raise ParsingError(f"{file_len - stream.progress} bytes are left after parsing all retrievers successfully")
 
         return instance
 

@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import TypeVar
 
-from src.types.ByteStream import ByteStream
+from binary_file_parser.types.ByteStream import ByteStream
 
 T = TypeVar("T")
 class Parseable(ABC):

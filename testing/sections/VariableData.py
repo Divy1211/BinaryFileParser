@@ -1,9 +1,9 @@
-from src.retrievers.Retriever import Retriever
-from src.types.Array import Array32
-from src.retrievers.BaseStruct import BaseStruct
-from src.types.Bytes import Bytes
-from src.types.Int import uint32
-from src.types.Str import nt_str32
+from src import Retriever
+from src import Array32
+from binary_file_parser.retrievers.BaseStruct import BaseStruct
+from binary_file_parser.types.Bytes import Bytes
+from binary_file_parser.types.Int import uint32
+from binary_file_parser.types.Str import nt_str32
 
 
 class Variable(BaseStruct):

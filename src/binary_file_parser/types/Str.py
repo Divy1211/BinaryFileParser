@@ -3,8 +3,8 @@ from __future__ import annotations
 import struct
 from abc import ABC
 
-from src.types.ByteStream import ByteStream
-from src.types.Parseable import Parseable
+from binary_file_parser.types.ByteStream import ByteStream
+from binary_file_parser.types.Parseable import Parseable
 
 
 class BaseStr(Parseable, ABC):

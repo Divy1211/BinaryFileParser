@@ -1,0 +1,28 @@
+[build-system]
+requires      = ["setuptools>=57.4.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "binary-file-parser"
+version = "0.0.1"
+description = "Read/Write bi`nary files after describing their specifications in code (similar to an ORM table schema)"
+readme = "README.md"
+authors = [{ name = "Divy1211", email = "divy1211.dc@gmail.com" }]
+license = { file = "LICENSE" }
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+keywords = ["binary", "file", "parser"]
+dependencies = [
+    "alive-progress>=2.4.1",
+]
+requires-python = ">=3.10"
+
+[project.optional-dependencies]
+dev = ["twine", "pytest", "pylint", "mkdocs", "mkdocstrings"]
+
+[project.urls]
+Homepage = "https://github.com/Divy1211/FileParser"

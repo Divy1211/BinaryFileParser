@@ -1,9 +1,9 @@
-from src.retrievers.Retriever import Retriever
-from src.types.Array import FixedLenArray
-from src.retrievers.BaseStruct import BaseStruct
-from src.types.Bool import bool32, bool8
-from src.types.Bytes import Bytes
-from src.types.Int import uint32, int8
+from src import Retriever
+from src import FixedLenArray
+from binary_file_parser.retrievers.BaseStruct import BaseStruct
+from binary_file_parser.types.Bool import bool32, bool8
+from binary_file_parser.types.Bytes import Bytes
+from binary_file_parser.types.Int import uint32, int8
 
 
 class Diplomacy(BaseStruct):

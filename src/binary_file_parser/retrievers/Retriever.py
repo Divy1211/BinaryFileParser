@@ -5,11 +5,12 @@ from abc import ABCMeta
 from copy import copy
 from typing import Type, Callable, TypeVar
 
-from src.errors.VersionError import VersionError
-from src.retrievers.MapValidate import MapValidate
-from src.retrievers.BaseStruct import BaseStruct
-from src.types.ByteStream import ByteStream
-from src.types.Parseable import Parseable
+from binary_file_parser.errors import VersionError
+from binary_file_parser.types import ByteStream
+from binary_file_parser.types import Parseable
+
+from binary_file_parser.retrievers.MapValidate import MapValidate
+from binary_file_parser.retrievers.BaseStruct import BaseStruct
 
 
 def ver_str(ver: tuple[int]) -> str:

@@ -1,0 +1,7 @@
+twine
+pytest
+pylint
+mkdocs
+mkdocstrings
+
+-r requirements.txt

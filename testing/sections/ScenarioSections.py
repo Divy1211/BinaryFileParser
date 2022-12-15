@@ -1,7 +1,7 @@
 import zlib
 
-from src.types.ByteStream import ByteStream
-from src.retrievers.Retriever import Retriever
+from binary_file_parser.types.ByteStream import ByteStream
+from src import Retriever
 from testing.sections.BackgroundImage import BackgroundImage
 from testing.sections.Cinematics import Cinematics
 from testing.sections.DataHeader import DataHeader
@@ -16,8 +16,7 @@ from testing.sections.GlobalVictory import GlobalVictory
 from testing.sections.TriggerData import TriggerData
 from testing.sections.UnitData import UnitData
 from testing.sections.VariableData import VariableData
-from src.retrievers.BaseStruct import BaseStruct
-
+from binary_file_parser.retrievers.BaseStruct import BaseStruct
 
 class ScenarioSections(BaseStruct):
     file_header: FileHeader = Retriever(FileHeader, default = FileHeader())

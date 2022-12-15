@@ -1,6 +1,6 @@
-from src.retrievers.Retriever import Retriever
-from src.retrievers.BaseStruct import BaseStruct
-from src.types.Int import uint32
+from src import Retriever
+from binary_file_parser.retrievers.BaseStruct import BaseStruct
+from binary_file_parser.types.Int import uint32
 
 
 class GlobalVictory(BaseStruct):
