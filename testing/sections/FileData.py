@@ -1,11 +1,7 @@
 from __future__ import annotations
 
-from src import Retriever
-from src import Array32
-from binary_file_parser.retrievers.BaseStruct import BaseStruct
-from binary_file_parser.types.Bool import bool32
-from binary_file_parser.types.Bytes import Bytes
-from binary_file_parser.types.Str import str32, str16, nt_str32
+from binary_file_parser import Retriever, BaseStruct
+from binary_file_parser.types import bool32, Bytes, str32, str16, nt_str32, Array32
 
 
 class AiFile2(BaseStruct):

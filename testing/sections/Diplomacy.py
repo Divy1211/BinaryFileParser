@@ -1,9 +1,5 @@
-from src import Retriever
-from src import FixedLenArray
-from binary_file_parser.retrievers.BaseStruct import BaseStruct
-from binary_file_parser.types.Bool import bool32, bool8
-from binary_file_parser.types.Bytes import Bytes
-from binary_file_parser.types.Int import uint32, int8
+from binary_file_parser import Retriever, BaseStruct
+from binary_file_parser.types import bool32, bool8, Bytes, uint32, int8, FixedLenArray
 
 
 class Diplomacy(BaseStruct):

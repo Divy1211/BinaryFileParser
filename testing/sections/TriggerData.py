@@ -1,14 +1,7 @@
 from __future__ import annotations
 
-from src import Retriever
-from binary_file_parser.retrievers.BaseStruct import BaseStruct
-from binary_file_parser.types.ByteStream import ByteStream
-from binary_file_parser.types.Bool import bool32, bool8
-from binary_file_parser.types.Bytes import Bytes
-from src import float64
-from binary_file_parser.types.Int import int8, uint32, int32
-from binary_file_parser.types.Str import nt_str32, str32
-
+from binary_file_parser import Retriever, BaseStruct
+from binary_file_parser.types import ByteStream, bool32, bool8, Bytes, int8, uint32, int32, nt_str32, str32, float64
 
 attr_usage_ids = {
     "message": {3, 20, 26, 37, 44, 45, 48, 51, 55, 56, 59, 60, 65, 66},

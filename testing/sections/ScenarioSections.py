@@ -1,22 +1,22 @@
 import zlib
 
-from binary_file_parser.types.ByteStream import ByteStream
-from src import Retriever
+from binary_file_parser import Retriever, BaseStruct
+from binary_file_parser.types import ByteStream
 from testing.sections.BackgroundImage import BackgroundImage
 from testing.sections.Cinematics import Cinematics
 from testing.sections.DataHeader import DataHeader
 from testing.sections.Diplomacy import Diplomacy
 from testing.sections.FileData import FileData
 from testing.sections.FileHeader import FileHeader
+from testing.sections.GlobalVictory import GlobalVictory
 from testing.sections.MapData import MapData
 from testing.sections.Messages import Messages
 from testing.sections.Options import Options
 from testing.sections.PlayerData2 import PlayerData2
-from testing.sections.GlobalVictory import GlobalVictory
 from testing.sections.TriggerData import TriggerData
 from testing.sections.UnitData import UnitData
 from testing.sections.VariableData import VariableData
-from binary_file_parser.retrievers.BaseStruct import BaseStruct
+
 
 class ScenarioSections(BaseStruct):
     file_header: FileHeader = Retriever(FileHeader, default = FileHeader())

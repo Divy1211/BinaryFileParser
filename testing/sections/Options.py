@@ -1,11 +1,7 @@
 from __future__ import annotations
 
-from src import Retriever
-from src import StackedArray32s
-from binary_file_parser.retrievers.BaseStruct import BaseStruct
-from binary_file_parser.types.Bool import bool32
-from binary_file_parser.types.Bytes import Bytes
-from binary_file_parser.types.Int import uint32, uint8
+from binary_file_parser import Retriever, BaseStruct
+from binary_file_parser.types import bool32, Bytes, uint32, uint8, StackedArray32s
 
 
 class Options(BaseStruct):

@@ -1,10 +1,7 @@
 from __future__ import annotations
 
-
-from src import Retriever
-from binary_file_parser.retrievers.BaseStruct import BaseStruct
-from binary_file_parser.types.Int import uint32
-from binary_file_parser.types.Str import str16
+from binary_file_parser import Retriever, BaseStruct
+from binary_file_parser.types import uint32, str16
 
 
 class Messages(BaseStruct):

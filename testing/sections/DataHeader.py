@@ -1,12 +1,7 @@
 from __future__ import annotations
 
-from src import Retriever
-from binary_file_parser.retrievers.BaseStruct import BaseStruct
-from binary_file_parser.types.Bool import bool32
-from binary_file_parser.types.Bytes import Bytes
-from src import float32
-from binary_file_parser.types.Int import uint32
-from binary_file_parser.types.Str import FixedLenStr, str16
+from binary_file_parser import Retriever, BaseStruct
+from binary_file_parser.types import bool32, Bytes, uint32, FixedLenStr, str16, float32
 
 
 class PlayerData1(BaseStruct):

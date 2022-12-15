@@ -1,4 +1,4 @@
-from binary_file_parser.errors import ParsingError
+from binary_file_parser.errors.ParsingError import ParsingError
 
 
 class VersionError(ParsingError):
