@@ -23,7 +23,7 @@ class Effect(BaseStruct):
     def append_null_term_if_used(retriever: Retriever, instance: Effect):
         if instance.type in attr_usage_ids[retriever.p_name]:
             val = getattr(instance, retriever.s_name)
-            if val[-1] != "\x00":
+            if len(val) > 0 and val[-1] != "\x00":
                 setattr(instance, retriever.s_name, val+"\x00")
 
     @staticmethod
@@ -93,7 +93,8 @@ class Effect(BaseStruct):
 
 class Condition(BaseStruct):
     condition_type: int = Retriever(int32, default = 0)
-    static_value: int = Retriever(int32, default = 27)
+    static_value_2_5: int = Retriever(int32, default = 24, max_ver = (2, 5))
+    static_value_3_0: int = Retriever(int32, default = 27, min_ver = (3, 0))
     quantity: int = Retriever(int32, default = -1)
     attribute: int = Retriever(int32, default = -1)
     unit_object: int = Retriever(int32, default = -1)
@@ -118,9 +119,9 @@ class Condition(BaseStruct):
     unit_ai_action: int = Retriever(int32, default = -1)
     unknown4: int = Retriever(int32, default = -1)
     object_state: int = Retriever(int32, default = -1)
-    timer_id: int = Retriever(int32, default = -1)
-    victory_timer_type: int = Retriever(int32, default = -1)
-    include_changeable_weapon_objects: int = Retriever(int32, default = -1)
+    timer_id: int = Retriever(int32, default = -1, min_ver = (3, 0))
+    victory_timer_type: int = Retriever(int32, default = -1, min_ver = (3, 0))
+    include_changeable_weapon_objects: int = Retriever(int32, default = -1, min_ver = (3, 0))
     xs_function: str = Retriever(str32, default = "")
 
     def __init__(self, struct_version: tuple[int, ...] = (3, 2), parent: BaseStruct = None, initialise_defaults = True):
@@ -211,7 +212,7 @@ class TriggerData(BaseStruct):
                 raise ValueError("trigger display order array out of sync")
             instance.trigger_display_orders.extend(range(highest_display_order+1, instance.num_triggers))
 
-    trigger_version: float = Retriever(float64, default = 2.6)
+    trigger_version: float = Retriever(float64, default = 3.2)
     trigger_instruction_start: int = Retriever(int8, default = 0)
     num_triggers: int = Retriever(uint32, default = 0, on_set = [set_triggers_repeat, set_display_orders_repeat], on_write = [update_num_triggers])
     """originally int32"""

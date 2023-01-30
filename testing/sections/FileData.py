@@ -21,6 +21,7 @@ class FileData(BaseStruct):
     def update_ai_files_present(retriever: Retriever, instance: FileData):
         instance.ai_files_present = len(instance.ai_files) > 0
 
+    unknown2: bytes = Retriever(Bytes[4], default = b"\x00" * 4, max_ver = (1, 45))
     script_file_path: str = Retriever(str16, default = "")
     script_file_content: str = Retriever(str32, default = "")
     ai_files_present: bool = Retriever(bool32, default = False, on_set = [set_ai_files_repeat], on_write = [update_ai_files_present])

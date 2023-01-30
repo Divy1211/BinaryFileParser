@@ -22,7 +22,8 @@ class DataHeader(BaseStruct):
     player_name_str_ids: list[int] = Retriever(uint32, default = 4294967294, repeat = 16)
     player_data1: list[PlayerData1] = Retriever(PlayerData1, default = PlayerData1(), repeat = 16)
     lock_civilizations: list[bool] = Retriever(bool32, default = False, repeat = 16)
-    unknown: bytes = Retriever(Bytes[9], default = b"\x01"+b"\x00"*8)
+    unknown: bytes = Retriever(Bytes[9], default = b"\x00"+b"\x00"*8, max_ver = (1, 45))
+    unknown_1_46: bytes = Retriever(Bytes[9], default = b"\x01"+b"\x00"*8, min_ver = (1, 46))
     file_name: str = Retriever(str16, default = "MadeWithAoE2SP.aoe2scenario")
 
     def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True):
