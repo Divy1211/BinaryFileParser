@@ -28,9 +28,9 @@ from binary_file_parser.types import int32, uint64, str32, FixedLenStr
 
 class Spam(BaseStruct):
     file_version: str = Retriever(FixedLenStr[4], default = 0)
-    creator_name: int = Retriever(str32, default = 0)
+    creator_name: str = Retriever(str32, default = 0)
     saved_timestamp: int = Retriever(uint64, default = 0)
-    eggs: str = Retriever(int32, default = 0)
+    eggs: int = Retriever(int32, default = 0)
 
 # read a binary file that has the above format
 file = Spam.from_file("path/to/file")

@@ -31,8 +31,8 @@ class Retriever(MapValidate):
     def __init__(
         self,
         dtype: Parseable | Type[Parseable],
-        min_ver: tuple[int] = (-1,),
-        max_ver: tuple[int] = (1000,),
+        min_ver: tuple[int, ...] = (-1,),
+        max_ver: tuple[int, ...] = (1000,),
         *,
         default: T = None,
         repeat: int = 1,
@@ -97,7 +97,7 @@ class Retriever(MapValidate):
         :param ver: The version to check for support in
         :return: true if supported else false
         """
-        return self.min_ver < ver < self.max_ver
+        return self.min_ver <= ver <= self.max_ver
 
     def __set_name__(self, owner: Type[BaseStruct], name: str) -> None:
         super().__set_name__(owner, name)
@@ -234,7 +234,7 @@ class Retriever(MapValidate):
             return self.dtype.to_bytes(getattr(instance, self.p_name))
 
         ls: list = getattr(instance, self.p_name)
-        if not len(ls) == repeat:
+        if len(ls) != repeat:
             raise ValueError(f"length of {self.p_name!r} is not the same as {repeat = }")
 
         bytes_: list[bytes] = [b""] * repeat
