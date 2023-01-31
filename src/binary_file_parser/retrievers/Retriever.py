@@ -125,7 +125,7 @@ class Retriever(MapValidate):
 
         if not self.supported(instance.struct_version):
             raise VersionError(
-                f"{self.p_name!r} is not supported in your scenario version {ver_str(instance.struct_version)!r}"
+                f"{self.p_name!r} is not supported in your struct version {ver_str(instance.struct_version)!r}"
             )
         try:
             return super().__get__(instance, owner)
