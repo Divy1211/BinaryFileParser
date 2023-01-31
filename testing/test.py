@@ -2,7 +2,7 @@ from testing.sections.ScenarioSections import ScenarioSections
 
 
 def main():
-    ver = "1_43"
+    ver = "1_42"
     scx = ScenarioSections.from_file(f"{ver}.aoe2scenario")
     scx.to_file(f"first_{ver}.aoe2scenario")
 

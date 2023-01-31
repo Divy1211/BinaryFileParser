@@ -7,8 +7,14 @@ from binary_file_parser.types import bool32, Bytes, uint32, FixedLenStr, str16, 
 class PlayerData1(BaseStruct):
     active: bool = Retriever(bool32, default = False)
     human: bool = Retriever(bool32, default = False)
-    civilization: int = Retriever(uint32, default = 43)
-    architecture_set: int = Retriever(uint32, default = 43)
+    civilization_1_36: int = Retriever(uint32, default = 36, min_ver = (1, 36), max_ver = (1, 40))
+    architecture_set_1_36: int = Retriever(uint32, default = 36, min_ver = (1, 36), max_ver = (1, 40))
+    civilization_1_41: int = Retriever(uint32, default = 38, min_ver = (1, 41), max_ver = (1, 42))
+    architecture_set_1_41: int = Retriever(uint32, default = 38, min_ver = (1, 41), max_ver = (1, 42))
+    civilization_1_43: int = Retriever(uint32, default = 40, min_ver = (1, 43), max_ver = (1, 45))
+    architecture_set_1_43: int = Retriever(uint32, default = 40, min_ver = (1, 43), max_ver = (1, 45))
+    civilization_1_46: int = Retriever(uint32, default = 43, min_ver = (1, 46))
+    architecture_set_1_46: int = Retriever(uint32, default = 43, min_ver = (1, 46))
     cty_mode: int = Retriever(uint32, default = 4)
 
     def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True):
