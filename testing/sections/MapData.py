@@ -36,7 +36,7 @@ class MapData(BaseStruct):
     lock_coop_alliances: bool = Retriever(bool8, default = False)
     ai_map_type: int = Retriever(uint32, default = 0, max_ver = (1, 46))
     population_caps: list[int] = Retriever(uint32, default = 200, repeat = 16)
-    secondary_game_mode = Retriever(Bytes[4], default = b"\x00"*4)
+    secondary_game_mode = Retriever(Bytes[4], default = b"\x00"*4, min_ver = (1, 45))
     unknown3 = Retriever(Bytes[4], default = b"\x0d\xf0\xad\xde")
     unknown4 = Retriever(Bytes[4], default = b"\x02"+b"\x00"*3)
     no_waves_on_shore: bool = Retriever(bool8, default = False)
