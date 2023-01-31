@@ -30,8 +30,13 @@ class Effect(BaseStruct):
     def update_num_obj_sel(retreiver: Retriever, instance: Effect):
         instance.num_objects_selected = len(instance.selected_object_ids)
 
+    @staticmethod
+    def set_struct_ver(retriever: Retriever, instance: Effect):
+        if instance.static_value >= 52 and instance.struct_version == (2, 4):
+            instance.struct_version = (2, 4, 1)
+
     type: int = Retriever(int32, default = -1)
-    static_value: int = Retriever(int32, default = 52)
+    static_value: int = Retriever(int32, default = 52, on_set = [set_struct_ver])
     ai_script_goal: int = Retriever(int32, default = -1)
     quantity: int = Retriever(int32, default = -1)
     tribute_list: int = Retriever(int32, default = -1)
@@ -81,9 +86,9 @@ class Effect(BaseStruct):
     player_colour: int = Retriever(int32, default = -1)
     unknown4: int = Retriever(int32, default = -1)
     colour_mood: int = Retriever(int32, default = -1)
-    reset_timer: int = Retriever(int32, default = -1)
-    object_state: int = Retriever(int32, default = -1)
-    action_type: int = Retriever(int32, default = -1)
+    reset_timer: int = Retriever(int32, default = -1, min_ver = (2, 4, 1))
+    object_state: int = Retriever(int32, default = -1, min_ver = (2, 4, 1))
+    action_type: int = Retriever(int32, default = -1, min_ver = (2, 4, 1))
     message: str = Retriever(str32, default = "", on_read = [remove_null_term], on_write = [append_null_term_if_used])
     sound_name: str = Retriever(str32, default = "", on_read = [remove_null_term], on_write = [append_null_term_if_used])
     selected_object_ids: list[int] = Retriever(int32, default = -1, repeat = 0)
