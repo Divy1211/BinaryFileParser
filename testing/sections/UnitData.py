@@ -24,6 +24,21 @@ class PlayerData4(BaseStruct):
         super().__init__(struct_version, parent, initialise_defaults)
 
 
+class ViewF(BaseStruct):
+    x: float = Retriever(float32, default = 60.0)
+    y: float = Retriever(float32, default = 60.0)
+
+    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True):
+        super().__init__(struct_version, parent, initialise_defaults)
+
+class ViewI(BaseStruct):
+    x: int = Retriever(int16, default = 60)
+    y: int = Retriever(int16, default = 60)
+
+    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True):
+        super().__init__(struct_version, parent, initialise_defaults)
+
+
 class PlayerData3(BaseStruct):
     @staticmethod
     def set_unknown2_repeat(retriever: Retriever, instance: PlayerData3):
@@ -51,10 +66,8 @@ class PlayerData3(BaseStruct):
         instance.num_ww_campaign2 = len(instance.ww_campaign2)
 
     constant_name: str = Retriever(nt_str16, default = "Scenario Editor Phantom")
-    editor_camera_x: float = Retriever(float32, default = 72.0)
-    editor_camera_y: float = Retriever(float32, default = 72.0)
-    initial_camera_x: int = Retriever(int16, default = 72)
-    initial_camera_y: int = Retriever(int16, default = 72)
+    editor_view: ViewF = Retriever(ViewF, default = ViewF())
+    initial_view: ViewI = Retriever(ViewI, default = ViewI())
     aok_allied_victory: bool = Retriever(bool8, default = False)
     diplomacy_stances_interaction: list[int] = Retriever(Array16[uint8], default = [3, 0, 3, 3, 3, 3, 3, 3, 3])
     diplomacy_stances_ai_system: list[int] = Retriever(FixedLenArray[uint32, 9], default = [0, 1, 4, 4, 4, 4, 4, 4, 4])

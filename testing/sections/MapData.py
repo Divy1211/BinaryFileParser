@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 from binary_file_parser import Retriever, BaseStruct
-from binary_file_parser.types import bool8, Bytes, uint32, uint8, int16, str16
+from binary_file_parser.types import bool8, Bytes, uint32, uint8, int16, str16, int32
 
 
 class View(BaseStruct):
-    x: int = Retriever(uint32, default = 60)
-    y: int = Retriever(uint32, default = 60)
+    x: int = Retriever(int32, default = -1)
+    y: int = Retriever(int32, default = -1)
 
     def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True):
         super().__init__(struct_version, parent, initialise_defaults)
