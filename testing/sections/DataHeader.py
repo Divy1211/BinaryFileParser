@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 from binary_file_parser import Retriever, BaseStruct
-from binary_file_parser.types import bool32, Bytes, uint32, FixedLenStr, str16, float32
+from binary_file_parser.types import bool32, Bytes, uint32, FixedLenStr, str16, float32, bool8, uint16
 
 
 class PlayerData1(BaseStruct):
     active: bool = Retriever(bool32, default = False)
     human: bool = Retriever(bool32, default = False)
+    civilization_1_21: int = Retriever(uint32, default = 32, max_ver = (1, 21))
     civilization_1_36: int = Retriever(uint32, default = 36, min_ver = (1, 36), max_ver = (1, 40))
     architecture_set_1_40: int = Retriever(uint32, default = 36, min_ver = (1, 40), max_ver = (1, 40))
     civilization_1_41: int = Retriever(uint32, default = 38, min_ver = (1, 41), max_ver = (1, 42))
@@ -22,13 +23,24 @@ class PlayerData1(BaseStruct):
 
 
 class DataHeader(BaseStruct):
+    @staticmethod
+    def set_mission_items_repeat(retriever: Retriever, instance: DataHeader):
+        DataHeader.mission_items.set_repeat(instance, instance.num_mission_items)
+
     next_unit_id: int = Retriever(uint32, default = 0)
     version: float = Retriever(float32, default = 1.4700000286102295)
     tribe_names: list[str] = Retriever(FixedLenStr[256], default = "0"*256, repeat = 16)
-    player_name_str_ids: list[int] = Retriever(uint32, default = 4294967294, repeat = 16)
+    player_name_str_ids: list[int] = Retriever(uint32, default = 4294967294, repeat = 16, min_ver = (1, 18))
     player_data1: list[PlayerData1] = Retriever(PlayerData1, default = PlayerData1(), repeat = 16)
-    lock_civilizations: list[bool] = Retriever(bool32, default = False, repeat = 16)
-    unknown: bytes = Retriever(Bytes[9], default = b"\x00"+b"\x00"*8, max_ver = (1, 45))
+
+    conquest_mode: bool = Retriever(bool8, default = False, max_ver = (1, 21))
+    num_mission_items = Retriever(uint16, default = 0, max_ver = (1, 21), on_set = [set_mission_items_repeat])
+    mission_available = Retriever(uint16, default = 0, max_ver = (1, 21))
+    mission_timeline = Retriever(float32, default = 0, max_ver = (1, 21))
+    mission_items: list[bytes] = Retriever(Bytes[30], default = b"\x00", max_ver = (1, 21))
+
+    lock_civilizations: list[bool] = Retriever(bool32, default = False, repeat = 16, min_ver = (1, 36))
+    unknown_1_36: bytes = Retriever(Bytes[9], default = b"\x00"+b"\x00"*8, min_ver = (1, 36), max_ver = (1, 45))
     unknown_1_46: bytes = Retriever(Bytes[9], default = b"\x01"+b"\x00"*8, min_ver = (1, 46))
     file_name: str = Retriever(str16, default = "MadeWithAoE2SP.aoe2scenario")
 

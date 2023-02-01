@@ -26,8 +26,8 @@ class FileHeader(BaseStruct):
     unknown2: int = Retriever(uint32, default = 1)
     """always (?) 1"""
     unknowns: list[int] = Retriever(Array32[uint32], default = [2, 3, 4, 5, 6, 7])
-    creator: str = Retriever(nt_str32, default = "AoE2SP")
-    num_triggers: int = Retriever(uint32, default = 0, on_write = [update_num_triggers])
+    creator: str = Retriever(nt_str32, default = "AoE2SP", min_ver = (1, 36))
+    num_triggers: int = Retriever(uint32, default = 0, on_write = [update_num_triggers], min_ver = (1, 36))
 
     def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True):
         super().__init__(struct_version, parent, initialise_defaults)

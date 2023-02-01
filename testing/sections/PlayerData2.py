@@ -61,7 +61,7 @@ class PlayerData2(BaseStruct):
     strings: list[str] = Retriever(str16, default = "", repeat = 32)
     ai_names: list[str] = Retriever(str16, default = "", repeat = 16)
     ai_files: list[AiFile] = Retriever(AiFile, default = AiFile(), repeat = 16)
-    ai_types: list[int] = Retriever(uint8, default = 1, repeat = 16)
+    ai_types: list[int] = Retriever(uint8, default = 1, repeat = 16) # 0 = custom, 1 = standard, 2 = none
     separator: int = Retriever(uint32, default = 4294967197)
     resources: list[Resources] = Retriever(Resources, default = Resources(), repeat = 16)
 
