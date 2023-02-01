@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from binary_file_parser import Retriever, BaseStruct
-from binary_file_parser.types import uint32, int32, FixedLenStr, nt_str32, Array32
+from binary_file_parser.types import uint32, int32, FixedLenStr, nt_str32, Array32, bool32
 
 
 class FileHeader(BaseStruct):

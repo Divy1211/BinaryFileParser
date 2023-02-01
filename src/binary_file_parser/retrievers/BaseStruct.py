@@ -180,7 +180,7 @@ class BaseStruct(Parseable):
         return cls.from_stream(stream, struct_version = struct_version, strict = strict)
 
     @classmethod
-    def from_file(cls, file_name: str, *, file_version: tuple[int, ...] = (0,), strict = False) -> BaseStruct:
+    def from_file(cls, file_name: str, *, file_version: tuple[int, ...] = (0,), strict = True) -> BaseStruct:
         """
         Create a struct object from file
 

@@ -30,7 +30,7 @@ class MapData(BaseStruct):
     colour_mood: str = Retriever(str16, default = "Empty")
     string_starter3: bytes = Retriever(Bytes[2], default = b"\x60\x0a")
     script_name: str = Retriever(str16, default = "", on_write = [update_script_file_path])
-    lock_coop_alliances_1_41: bool = Retriever(bool8, default = False, max_ver = (1, 41))
+    lock_coop_alliances_1_41: bool = Retriever(bool8, default = False, min_ver = (1, 41), max_ver = (1, 41))
     collide_and_correct: bool = Retriever(bool8, default = False)
     villager_force_drop: bool = Retriever(bool8, default = False)
     unknown: bytes = Retriever(Bytes[128], default = b"\xff"*128)
