@@ -152,17 +152,15 @@ class BaseStruct(Parseable):
                 retriever_ls.text = f"            -> {retriever.p_name.title().replace('_', ' ')}"
             if retriever.remaining_compressed:
                 stream = ByteStream.from_bytes(cls.decompress(stream.remaining()))
-            try:
-                retriever.from_stream(instance, stream)
-            except Exception:
-                print(retriever.p_name)
-                print(retriever.repeat(instance))
-                raise
+            retriever.from_stream(instance, stream)
 
         file_len = len(stream.content)
 
         if stream.progress != file_len and strict:
-            raise ParsingError(f"{file_len - stream.progress} bytes are left after parsing all retrievers successfully")
+            raise ParsingError(
+                f"{file_len - stream.progress} bytes are left after parsing all retrievers successfully:\n"
+                f"{stream.remaining()}"
+            )
 
         return instance
 

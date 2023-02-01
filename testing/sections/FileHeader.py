@@ -14,6 +14,7 @@ class FileHeader(BaseStruct):
     savable: int = Retriever(int32, default = 6)
     timestamp_of_last_save: int = Retriever(uint32, default = 1610675127)
     scenario_instructions: str = Retriever(nt_str32, default = "")
+    individual_victories_used: bool = Retriever(bool32, default = False, max_ver = (1, 37))
     num_players: int = Retriever(uint32, default = 2)
     unknown1: int = Retriever(uint32, default = 1000)
     """always (?) 1k"""

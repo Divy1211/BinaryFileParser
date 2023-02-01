@@ -8,7 +8,7 @@ class PlayerData1(BaseStruct):
     active: bool = Retriever(bool32, default = False)
     human: bool = Retriever(bool32, default = False)
     civilization_1_36: int = Retriever(uint32, default = 36, min_ver = (1, 36), max_ver = (1, 40))
-    architecture_set_1_36: int = Retriever(uint32, default = 36, min_ver = (1, 36), max_ver = (1, 40))
+    architecture_set_1_40: int = Retriever(uint32, default = 36, min_ver = (1, 40), max_ver = (1, 40))
     civilization_1_41: int = Retriever(uint32, default = 38, min_ver = (1, 41), max_ver = (1, 42))
     architecture_set_1_41: int = Retriever(uint32, default = 38, min_ver = (1, 41), max_ver = (1, 42))
     civilization_1_43: int = Retriever(uint32, default = 40, min_ver = (1, 43), max_ver = (1, 45))
