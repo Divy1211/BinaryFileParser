@@ -4,11 +4,22 @@ from binary_file_parser import Retriever, BaseStruct
 from binary_file_parser.types import bool8, Bytes, uint32, uint8, int16, str16
 
 
+class View(BaseStruct):
+    x: int = Retriever(uint32, default = 60)
+    y: int = Retriever(uint32, default = 60)
+
+    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True):
+        super().__init__(struct_version, parent, initialise_defaults)
+
+
 class Terrain(BaseStruct):
     terrain_id: int = Retriever(uint8, default = 0)
     elevation: int = Retriever(uint8, default = 0)
     unused: bytes = Retriever(Bytes[3], default = b"\x00\xff\xff")
     layer: int = Retriever(int16, default = -1)
+
+    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True):
+        super().__init__(struct_version, parent, initialise_defaults)
 
 
 class MapData(BaseStruct):
@@ -33,7 +44,7 @@ class MapData(BaseStruct):
     lock_coop_alliances_1_41: bool = Retriever(bool8, default = False, min_ver = (1, 41), max_ver = (1, 41))
     collide_and_correct: bool = Retriever(bool8, default = False)
     villager_force_drop: bool = Retriever(bool8, default = False, min_ver = (1, 37))
-    unknown: bytes = Retriever(Bytes[128], default = b"\xff"*128, min_ver = (1, 40))
+    player_views: list[View] = Retriever(View, default = View(), min_ver = (1, 40), repeat = 16)
     lock_coop_alliances_1_42: bool = Retriever(bool8, default = False, min_ver = (1, 42))
     ai_map_type: int = Retriever(uint32, default = 0, min_ver = (1, 42), max_ver = (1, 46))
     population_caps: list[int] = Retriever(uint32, default = 200, repeat = 16, min_ver = (1, 44))

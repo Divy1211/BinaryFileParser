@@ -33,7 +33,7 @@ class ScenarioSections(BaseStruct):
     trigger_data: TriggerData = Retriever(TriggerData, default = TriggerData())
     variable_data: VariableData = Retriever(VariableData, default = VariableData())
     file_data: FileData = Retriever(FileData, default = FileData(), min_ver = (1, 40))
-    unknown: bytes = Retriever(Bytes[8], default = b"\x00"*8, max_ver = (1, 37))
+    unknown: bytes = Retriever(Bytes[8], default = b"\x00"*8)
 
     @classmethod
     def decompress(cls, bytes_: bytes) -> bytes:
