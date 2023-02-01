@@ -74,11 +74,12 @@ class BaseStruct(Parseable):
             self.from_default(instance = self)
 
     @classmethod
-    def get_version(cls, stream: ByteStream) -> tuple[int, ...]:
+    def get_version(cls, stream: ByteStream, struct_version: tuple[int, ...] = (0,)) -> tuple[int, ...]:
         """
         If defined, the struct will be versioned and values in the struct which are not supported in the version that is
         read will be skipped
 
+        :param struct_version:
         :param stream: The stream to read the struct version from
         :return: A tuple of ints indicating the version eg: v1.47 should return (1, 47)
         :raises VersionError: - When unimplemented
@@ -131,7 +132,7 @@ class BaseStruct(Parseable):
         :return: An instance of a subtype of BaseStruct
         """
         try:
-            struct_version = cls.get_version(stream)
+            struct_version = cls.get_version(stream, struct_version)
         except VersionError:
             pass
 
@@ -151,7 +152,12 @@ class BaseStruct(Parseable):
                 retriever_ls.text = f"            -> {retriever.p_name.title().replace('_', ' ')}"
             if retriever.remaining_compressed:
                 stream = ByteStream.from_bytes(cls.decompress(stream.remaining()))
-            retriever.from_stream(instance, stream)
+            try:
+                retriever.from_stream(instance, stream)
+            except Exception:
+                print(retriever.p_name)
+                print(retriever.repeat(instance))
+                raise
 
         file_len = len(stream.content)
 

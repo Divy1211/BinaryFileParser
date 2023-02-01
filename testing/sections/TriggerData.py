@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from binary_file_parser import Retriever, BaseStruct
 from binary_file_parser.types import ByteStream, bool32, bool8, Bytes, int8, uint32, int32, nt_str32, str32, float64
+from testing.utils import log
 
 attr_usage_ids = {
     "message": {3, 20, 26, 37, 44, 45, 48, 51, 55, 56, 59, 60, 65, 66},
@@ -30,13 +31,10 @@ class Effect(BaseStruct):
     def update_num_obj_sel(retreiver: Retriever, instance: Effect):
         instance.num_objects_selected = len(instance.selected_object_ids)
 
-    @staticmethod
-    def set_struct_ver(retriever: Retriever, instance: Effect):
-        if instance.static_value >= 52 and instance.struct_version == (2, 4):
-            instance.struct_version = (2, 4, 1)
-
     type: int = Retriever(int32, default = -1)
-    static_value: int = Retriever(int32, default = 52, on_set = [set_struct_ver])
+    static_value_2_4_1_41: int = Retriever(int32, default = 48, max_ver = (2, 4, 1, 41))
+    static_value_2_4_1_42: int = Retriever(int32, default = 49, min_ver = (2, 4, 1, 42), max_ver = (2, 4, 1, 43))
+    static_value_2_4_1_44: int = Retriever(int32, default = 52, min_ver = (2, 4, 1, 44))
     ai_script_goal: int = Retriever(int32, default = -1)
     quantity: int = Retriever(int32, default = -1)
     tribute_list: int = Retriever(int32, default = -1)
@@ -85,10 +83,10 @@ class Effect(BaseStruct):
     play_sound: int = Retriever(int32, default = -1)
     player_colour: int = Retriever(int32, default = -1)
     unknown4: int = Retriever(int32, default = -1)
-    colour_mood: int = Retriever(int32, default = -1)
-    reset_timer: int = Retriever(int32, default = -1, min_ver = (2, 4, 1))
-    object_state: int = Retriever(int32, default = -1, min_ver = (2, 4, 1))
-    action_type: int = Retriever(int32, default = -1, min_ver = (2, 4, 1))
+    colour_mood: int = Retriever(int32, default = -1, min_ver = (2, 4, 1, 42))
+    reset_timer: int = Retriever(int32, default = -1, min_ver = (2, 4, 1, 44))
+    object_state: int = Retriever(int32, default = -1, min_ver = (2, 4, 1, 44))
+    action_type: int = Retriever(int32, default = -1, min_ver = (2, 4, 1, 44))
     message: str = Retriever(str32, default = "", on_read = [remove_null_term], on_write = [append_null_term_if_used])
     sound_name: str = Retriever(str32, default = "", on_read = [remove_null_term], on_write = [append_null_term_if_used])
     selected_object_ids: list[int] = Retriever(int32, default = -1, repeat = 0)
@@ -98,7 +96,8 @@ class Effect(BaseStruct):
 
 class Condition(BaseStruct):
     condition_type: int = Retriever(int32, default = 0)
-    static_value_2_5: int = Retriever(int32, default = 24, max_ver = (2, 5))
+    static_value_2_4_1_41: int = Retriever(int32, default = 23, max_ver = (2, 4, 1, 41))
+    static_value_2_4_1_42: int = Retriever(int32, default = 24, min_ver = (2, 4, 1, 42), max_ver = (2, 5, 1, 45))
     static_value_3_0: int = Retriever(int32, default = 27, min_ver = (3, 0))
     quantity: int = Retriever(int32, default = -1)
     attribute: int = Retriever(int32, default = -1)
@@ -123,7 +122,7 @@ class Condition(BaseStruct):
     target_player: int = Retriever(int32, default = -1)
     unit_ai_action: int = Retriever(int32, default = -1)
     unknown4: int = Retriever(int32, default = -1)
-    object_state: int = Retriever(int32, default = -1)
+    object_state: int = Retriever(int32, default = -1, min_ver = (2, 4, 1, 42))
     timer_id: int = Retriever(int32, default = -1, min_ver = (3, 0))
     victory_timer_type: int = Retriever(int32, default = -1, min_ver = (3, 0))
     include_changeable_weapon_objects: int = Retriever(int32, default = -1, min_ver = (3, 0))
@@ -226,9 +225,9 @@ class TriggerData(BaseStruct):
     unknown: bytes = Retriever(Bytes[1028], default = b"\x00"*1028)
 
     @classmethod
-    def get_version(cls, stream: ByteStream) -> tuple[int, ...]:
+    def get_version(cls, stream: ByteStream, struct_version: tuple[int, ...] = (0,)) -> tuple[int, ...]:
         ver_str = str(float64.from_bytes(stream.peek(8)))
-        return tuple(map(int, ver_str.split(".")))
+        return log(tuple(map(int, ver_str.split("."))) + struct_version, "trig ver:")
 
     def __init__(self, struct_version: tuple[int, ...] = (3, 2), parent: BaseStruct = None, initialise_defaults = True):
         super().__init__(struct_version, parent, initialise_defaults)

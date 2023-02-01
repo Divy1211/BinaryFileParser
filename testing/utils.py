@@ -1,11 +1,11 @@
 import time
 import traceback
 from contextlib import contextmanager
-from typing import Callable
+from typing import Callable, TypeVar, Generator
 
 
 @contextmanager
-def ignored(*errors, msg: str = "", show_traceback: bool = False, callback: Callable[[Exception], None] = lambda _: ...) -> None:
+def ignored(*errors, msg: str = "", show_traceback: bool = False, callback: Callable[[Exception], None] = lambda _: ...) -> Generator:
     """
     Ignores the specified errors for the duration of the context manager block.
 
@@ -26,7 +26,7 @@ def ignored(*errors, msg: str = "", show_traceback: bool = False, callback: Call
 
 exec_time = {}
 @contextmanager
-def timed(name: str = "", /, *, print_time: bool = False) -> None:
+def timed(name: str = "", /, *, print_time: bool = False) -> Generator:
     """
     Records the execution time of the context manager block.
 
@@ -44,3 +44,11 @@ def timed(name: str = "", /, *, print_time: bool = False) -> None:
         exec_time[name] = runtime
     if print_time:
         print(name, "took:", runtime, "ms")
+
+T = TypeVar("T")
+def log(v: T, tag: str = "") -> T:
+    if tag:
+        print(tag, v)
+        return v
+    print(v)
+    return v

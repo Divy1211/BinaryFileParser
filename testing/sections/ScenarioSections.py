@@ -45,7 +45,7 @@ class ScenarioSections(BaseStruct):
         return compressed
 
     @classmethod
-    def get_version(cls, stream: ByteStream) -> tuple[int, ...]:
+    def get_version(cls, stream: ByteStream, struct_version: tuple[int, ...] = (0,)) -> tuple[int, ...]:
         ver_str = stream.peek(4).decode("ASCII")
         return tuple(map(int, ver_str.split(".")))
 
