@@ -25,7 +25,7 @@ class ScenarioSections(BaseStruct):
     cinematics: Cinematics = Retriever(Cinematics, default = Cinematics())
     background_image: BackgroundImage = Retriever(BackgroundImage, default = BackgroundImage())
     player_data2: PlayerData2 = Retriever(PlayerData2, default = PlayerData2())
-    global_victory: GlobalVictory = Retriever(GlobalVictory, default = GlobalVictory())
+    global_victory  : GlobalVictory = Retriever(GlobalVictory, default = GlobalVictory())
     diplomacy: Diplomacy = Retriever(Diplomacy, default = Diplomacy())
     options: Options = Retriever(Options, default = Options())
     map_data: MapData = Retriever(MapData, default = MapData())

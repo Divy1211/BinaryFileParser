@@ -239,6 +239,18 @@ class BaseStruct(Parseable):
         with open(file_name, "wb") as file:
             file.write(self.to_bytes(self, show_progress = True))
 
+    def __repr__(self) -> str:
+        string = f"{self.__class__.__name__}("
+        for retriever in self._retrievers:
+            if not retriever.supported(self.struct_version):
+                continue
+            obj = getattr(self, retriever.p_name)
+            stri = f"{obj!r}"
+            if isinstance(obj, BaseStruct):
+                stri = "\n    ".join(f"{obj}".splitlines())
+            string += f"\n    {retriever.p_name} = {stri},"
+        return string+"\n)\n"
+
     # todo: write val <-> data (names) to file
     # todo: write hex (decompressed) to file
     # todo: repr, eq, neq

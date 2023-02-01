@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from binary_file_parser import Retriever, BaseStruct
-from binary_file_parser.types import bool32, Bytes, uint32, uint8, StackedArray32s
+from binary_file_parser.types import bool32, Bytes, uint32, uint8, StackedArray32s, int32
 
 
 class Options(BaseStruct):
@@ -16,8 +16,9 @@ class Options(BaseStruct):
     naval_mode: bool = Retriever(bool32, default = False)
     all_techs: bool = Retriever(bool32, default = False)
     starting_ages: list[int] = Retriever(uint32, default = 2, repeat = 16)
-    unknown1_1_45: bytes = Retriever(Bytes[12], default = b"\x9d\xff\xff\xffu\x00\x00\x00.\x00\x00\x00", max_ver = (1, 45))
-    unknown1_1_46: bytes = Retriever(Bytes[12], default = b"\x9d"+b"\xff"*11, min_ver = (1, 46))
+    separator: bytes = Retriever(Bytes[4], default = b"\x9d\xff\xff\xff")
+    player1_camera_x: int = Retriever(int32, default = -1)
+    player1_camera_y: int = Retriever(int32, default = -1)
     ai_map_type_unused_1_45: int = Retriever(uint32, default = 2, max_ver = (1, 45))
     ai_map_type_unused_1_46: int = Retriever(uint32, default = 22, min_ver = (1, 46), max_ver = (1, 46))
     ai_map_type: int = Retriever(uint32, default = 0, min_ver = (1, 47))
