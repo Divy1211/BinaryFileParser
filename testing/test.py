@@ -9,11 +9,11 @@ def main():
     scx = ScenarioSections.from_file(rf"C:\Users\LENOVO PC\Games\Age of Empires 2 DE\76561198276345085\resources\_common\scenario\test.aoe2scenario")
     print(f"{scx.unit_data.player_data3[0].editor_view = }")
     print(f"{scx.unit_data.player_data3[1].editor_view = }")
-    # print(scx.map_data.player_views)
+    print(scx.map_data.player_views)
     # with open("./test.txt", "w") as file:
     #     file.write(f"{scx!r}")
     # print(*map(lambda x: (x.initial_camera_x, x.initial_camera_y, x.editor_camera_x, x.editor_camera_y), scx.unit_data.player_data3), sep = "\n")
-    scx.to_file(rf"C:\Users\LENOVO PC\Games\Age of Empires 2 DE\76561198276345085\resources\_common\scenario\ff.aoe2scenario")
+    # scx.to_file(rf"C:\Users\LENOVO PC\Games\Age of Empires 2 DE\76561198276345085\resources\_common\scenario\ff.aoe2scenario")
 
 
 if __name__ == "__main__":

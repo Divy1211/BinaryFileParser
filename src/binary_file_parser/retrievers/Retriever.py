@@ -13,7 +13,7 @@ from binary_file_parser.retrievers.MapValidate import MapValidate
 from binary_file_parser.retrievers.BaseStruct import BaseStruct
 
 
-def ver_str(ver: tuple[int]) -> str:
+def ver_str(ver: tuple[int, ...]) -> str:
     return ".".join(map(str, ver))
 
 

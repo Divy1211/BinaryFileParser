@@ -28,9 +28,7 @@ class BaseStruct(Parseable):
         cls._retrievers.append(retriever)
 
     def __init_subclass__(cls, **kwargs):
-        cls_retrievers = cls._retrievers[:]
-        BaseStruct._retrievers = []
-        cls._retrievers = cls_retrievers
+        cls._retrievers, BaseStruct._retrievers = cls._retrievers.copy(), []
 
     @classmethod
     def from_default(cls, struct_version: tuple[int, ...] = None, instance: BaseStruct = None) -> BaseStruct:
@@ -240,8 +238,11 @@ class BaseStruct(Parseable):
             file.write(self.to_bytes(self, show_progress = True))
 
     def __repr__(self) -> str:
+        # todo: add support for retriever refs and version combiners
         string = f"{self.__class__.__name__}("
         for retriever in self._retrievers:
+            if retriever.p_name.startswith("_"):
+                continue
             if not retriever.supported(self.struct_version):
                 continue
             obj = getattr(self, retriever.p_name)
@@ -249,11 +250,11 @@ class BaseStruct(Parseable):
             if isinstance(obj, BaseStruct):
                 stri = "\n    ".join(f"{obj}".splitlines())
             string += f"\n    {retriever.p_name} = {stri},"
-        return string+"\n)\n"
+        return string+"\n)"
 
     # todo: write val <-> data (names) to file
     # todo: write hex (decompressed) to file
-    # todo: repr, eq, neq
+    # todo: str, eq, neq
     # todo: diff
     # todo: file/header/decompressed in both hex/val <-> data
     # todo: to_json
