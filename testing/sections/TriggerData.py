@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 from binary_file_parser import Retriever, BaseStruct
-from binary_file_parser.types import ByteStream, bool32, bool8, Bytes, int8, uint32, int32, nt_str32, str32, float64
-
+from binary_file_parser.types import (
+    Array32, ByteStream, bool32, bool8, Bytes, int8, uint32, int32, nt_str32, str32,
+    float64,
+)
 
 attr_usage_ids = {
     "message": {3, 20, 26, 37, 44, 45, 48, 51, 55, 56, 59, 60, 65, 66},
@@ -92,7 +94,7 @@ class Effect(BaseStruct):
     sound_name: str = Retriever(str32, default = "", on_read = [remove_null_term], on_write = [append_null_term_if_used])
     selected_object_ids: list[int] = Retriever(int32, default = -1, repeat = 0)
 
-    def __init__(self, struct_version: tuple[int, ...] = (3, 2), parent: BaseStruct = None, initialise_defaults = True):
+    def __init__(self, struct_version: tuple[int, ...] = (3, 5, 1, 47), parent: BaseStruct = None, initialise_defaults = True):
         super().__init__(struct_version, parent, initialise_defaults)
 
 class Condition(BaseStruct):
@@ -130,7 +132,7 @@ class Condition(BaseStruct):
     include_changeable_weapon_objects: int = Retriever(int32, default = -1, min_ver = (3, 0, 1, 46))
     xs_function: str = Retriever(str32, default = "", min_ver = (2, 4, 1, 40))
 
-    def __init__(self, struct_version: tuple[int, ...] = (3, 2), parent: BaseStruct = None, initialise_defaults = True):
+    def __init__(self, struct_version: tuple[int, ...] = (3, 5, 1, 47), parent: BaseStruct = None, initialise_defaults = True):
         super().__init__(struct_version, parent, initialise_defaults)
 
 
@@ -197,8 +199,26 @@ class Trigger(BaseStruct):
     condition_display_orders: list[int] = Retriever(uint32, default = 0, repeat = 0)
     """originally int32"""
 
-    def __init__(self, struct_version: tuple[int, ...] = (3, 2), parent: BaseStruct = None, initialise_defaults = True):
+    def __init__(self, struct_version: tuple[int, ...] = (3, 5, 1, 47), parent: BaseStruct = None, initialise_defaults = True):
         super().__init__(struct_version, parent, initialise_defaults)
+
+
+class Variable(BaseStruct):
+    id: int = Retriever(uint32, default = 0)
+    name: str = Retriever(nt_str32, default = "_Variable0")
+
+    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True):
+        super().__init__(struct_version, parent, initialise_defaults)
+
+
+class VariableData(BaseStruct):
+    variables: list[Variable] = Retriever(Array32[Variable], default = [])
+    unused: bytes = Retriever(Bytes[9], default = b"\x00"*9, min_ver = (3, 0, 1, 46))
+    unknown: bytes = Retriever(Bytes[8], default = b"\x00"*8, min_ver = (3, 5, 1, 47))
+
+    def __init__(self, struct_version: tuple[int, ...] = (3, 5, 1, 47), parent: BaseStruct = None, initialise_defaults = True):
+        super().__init__(struct_version, parent, initialise_defaults)
+
 
 
 class TriggerData(BaseStruct):
@@ -227,11 +247,17 @@ class TriggerData(BaseStruct):
     triggers: list[Trigger] = Retriever(Trigger, default = Trigger(), repeat = 0)
     trigger_display_orders: list[int] = Retriever(uint32, default = 0, repeat = 0)
     unknown: bytes = Retriever(Bytes[1028], default = b"\x00"*1028)
+    variable_data: VariableData = Retriever(VariableData, default = VariableData())
 
     @classmethod
-    def get_version(cls, stream: ByteStream, struct_version: tuple[int, ...] = (0,)) -> tuple[int, ...]:
+    def get_version(
+        cls,
+        stream: ByteStream,
+        struct_version: tuple[int, ...] = (0,),
+        parent: BaseStruct = None,
+    ) -> tuple[int, ...]:
         ver_str = str(float64.from_bytes(stream.peek(8)))
         return tuple(map(int, ver_str.split("."))) + struct_version
 
-    def __init__(self, struct_version: tuple[int, ...] = (3, 2), parent: BaseStruct = None, initialise_defaults = True):
+    def __init__(self, struct_version: tuple[int, ...] = (3, 5, 1, 47), parent: BaseStruct = None, initialise_defaults = True):
         super().__init__(struct_version, parent, initialise_defaults)

@@ -15,7 +15,6 @@ from testing.sections.Options import Options
 from testing.sections.PlayerData2 import PlayerData2
 from testing.sections.TriggerData import TriggerData
 from testing.sections.UnitData import UnitData
-from testing.sections.VariableData import VariableData
 
 
 class ScenarioSections(BaseStruct):
@@ -31,7 +30,6 @@ class ScenarioSections(BaseStruct):
     map_data: MapData = Retriever(MapData, default = MapData())
     unit_data: UnitData = Retriever(UnitData, default = UnitData())
     trigger_data: TriggerData = Retriever(TriggerData, default = TriggerData())
-    variable_data: VariableData = Retriever(VariableData, default = VariableData())
     file_data: FileData = Retriever(FileData, default = FileData(), min_ver = (1, 40))
     unknown1: bytes = Retriever(Bytes[8], default = b"\x00"*8, max_ver = (1, 37))
 
@@ -46,7 +44,12 @@ class ScenarioSections(BaseStruct):
         return compressed
 
     @classmethod
-    def get_version(cls, stream: ByteStream, struct_version: tuple[int, ...] = (0,)) -> tuple[int, ...]:
+    def get_version(
+        cls,
+        stream: ByteStream,
+        struct_version: tuple[int, ...] = (0,),
+        parent: BaseStruct = None,
+    ) -> tuple[int, ...]:
         ver_str = stream.peek(4).decode("ASCII")
         return tuple(map(int, ver_str.split(".")))
 

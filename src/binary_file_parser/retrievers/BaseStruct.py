@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from abc import ABCMeta
+from contextlib import suppress
 from typing import TYPE_CHECKING
 
 from alive_progress import alive_it
@@ -76,13 +77,14 @@ class BaseStruct(Parseable):
             self.from_default(instance = self)
 
     @classmethod
-    def get_version(cls, stream: ByteStream, struct_version: tuple[int, ...] = (0,)) -> tuple[int, ...]:
+    def get_version(cls, stream: ByteStream, struct_version: tuple[int, ...] = (0,), parent: BaseStruct = None) -> tuple[int, ...]:
         """
         If defined, the struct will be versioned and values in the struct which are not supported in the version that is
         read will be skipped
 
-        :param struct_version:
         :param stream: The stream to read the struct version from
+        :param struct_version: The struct version of the parent
+        :param parent:
         :return: A tuple of ints indicating the version eg: v1.47 should return (1, 47)
         :raises VersionError: - When unimplemented
         """
@@ -133,10 +135,8 @@ class BaseStruct(Parseable):
         :param parent: If this struct is nested within another, define the containing struct as parent
         :return: An instance of a subtype of BaseStruct
         """
-        try:
-            struct_version = cls.get_version(stream, struct_version)
-        except VersionError:
-            pass
+        with suppress(VersionError):
+            struct_version = cls.get_version(stream, struct_version, parent)
 
         instance = cls(struct_version, parent, initialise_defaults = False)
         retriever_ls = cls._retrievers
