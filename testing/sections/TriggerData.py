@@ -220,7 +220,7 @@ class TriggerData(BaseStruct):
                 raise ValueError("trigger display order array out of sync")
             instance.trigger_display_orders.extend(range(highest_display_order+1, instance.num_triggers))
 
-    trigger_version: float = Retriever(float64, default = 3.2)
+    trigger_version: float = Retriever(float64, default = 3.5)
     trigger_instruction_start: int = Retriever(int8, default = 0)
     num_triggers: int = Retriever(uint32, default = 0, on_set = [set_triggers_repeat, set_display_orders_repeat], on_write = [update_num_triggers])
     """originally int32"""
