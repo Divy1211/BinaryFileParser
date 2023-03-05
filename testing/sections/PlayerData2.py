@@ -13,6 +13,8 @@ class AiFile(BaseStruct):
 
 
 class Resources(BaseStruct):
+    # todo: parents on list structs
+    # todo: corresponding index to be accessed/updated for individual structs in list
     @staticmethod
     def update_player_data4_gold(retriever: Retriever, instance: Resources):
         for i in range(8):
@@ -21,27 +23,27 @@ class Resources(BaseStruct):
     @staticmethod
     def update_player_data4_wood(retriever: Retriever, instance: Resources):
         for i in range(8):
-            instance.parent.parent.unit_data.player_data4[i].gold = instance.parent.resources[i].wood
+            instance.parent.parent.unit_data.player_data4[i].wood = instance.parent.resources[i].wood
 
     @staticmethod
     def update_player_data4_food(retriever: Retriever, instance: Resources):
         for i in range(8):
-            instance.parent.parent.unit_data.player_data4[i].gold = instance.parent.resources[i].food
+            instance.parent.parent.unit_data.player_data4[i].food = instance.parent.resources[i].food
 
     @staticmethod
     def update_player_data4_stone(retriever: Retriever, instance: Resources):
         for i in range(8):
-            instance.parent.parent.unit_data.player_data4[i].gold = instance.parent.resources[i].stone
+            instance.parent.parent.unit_data.player_data4[i].stone = instance.parent.resources[i].stone
 
     @staticmethod
     def update_player_data4_ore_x(retriever: Retriever, instance: Resources):
         for i in range(8):
-            instance.parent.parent.unit_data.player_data4[i].gold = instance.parent.resources[i].ore_x
+            instance.parent.parent.unit_data.player_data4[i].ore_x = instance.parent.resources[i].ore_x
 
     @staticmethod
     def update_player_data4_trade_goods(retriever: Retriever, instance: Resources):
         for i in range(8):
-            instance.parent.parent.unit_data.player_data4[i].gold = instance.parent.resources[i].trade_goods
+            instance.parent.parent.unit_data.player_data4[i].trade_goods = instance.parent.resources[i].trade_goods
 
     gold: int = Retriever(int32, default = 0, on_write = [update_player_data4_gold])
     wood: int = Retriever(int32, default = 0, on_write = [update_player_data4_wood])
