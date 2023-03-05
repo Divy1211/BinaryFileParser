@@ -14,6 +14,10 @@ class Parseable(ABC):
     def is_valid(value: T) -> tuple[bool, str]:
         return True, ""
 
+    @property
+    def is_struct(self) -> bool:
+        return False
+
     @abstractmethod
     def from_stream(self, stream: ByteStream, *, struct_version: tuple[int, ...] = (0,)) -> T:
         ...

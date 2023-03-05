@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 
-from abc import ABCMeta
 from copy import copy
 from typing import Type, Callable, TypeVar
 
@@ -37,7 +36,7 @@ class Retriever(MapValidate):
         default: T = None,
         repeat: int = 1,
         remaining_compressed: bool = False,
-        on_read: list[Callable[[RetrieverSub, BaseStructSub], None]] | None = None,
+        on_read: list[Callable[[RetrieverSub, BaseStructSub], None]] | None = None,  # todo: add implementations for common on_x operations
         on_write: list[Callable[[RetrieverSub, BaseStructSub], None]] | None = None,
         mappers: list[Callable[[RetrieverSub, BaseStructSub, T], T]] | None = None,
         validators: list[Callable[[RetrieverSub, BaseStructSub, T], tuple[bool, str]]] | None = None,
@@ -169,7 +168,7 @@ class Retriever(MapValidate):
             return None
 
         val = self.default
-        if type(self.dtype) is ABCMeta and issubclass(self.dtype, BaseStruct):
+        if self.dtype.is_struct:
             val = (
                 val.from_default(val.struct_version) if repeat == 1
                 else [val.from_default(val.struct_version) for _ in range(repeat)]
@@ -197,11 +196,13 @@ class Retriever(MapValidate):
             return
 
         def getobj():
-            if type(self.dtype) is ABCMeta and issubclass(self.dtype, BaseStruct):
+            if self.dtype.is_struct:
+                self.dtype: BaseStruct  # type: ignore
                 return self.dtype.from_stream(stream, struct_version = instance.struct_version, parent = instance)
             return self.dtype.from_stream(stream, struct_version = instance.struct_version)
 
-        if repeat == 1 and not hasattr(instance, self.r_name):
+        is_not_dynamic_repeat = not hasattr(instance, self.r_name)
+        if repeat == 1 and is_not_dynamic_repeat:
             setattr(instance, self.p_name, getobj())
             return
 
@@ -230,7 +231,8 @@ class Retriever(MapValidate):
         for func in self.on_write:
             func(self, instance)
 
-        if repeat == 1 and not hasattr(instance, self.r_name):
+        is_not_dynamic_repeat = not hasattr(instance, self.r_name)
+        if repeat == 1 and is_not_dynamic_repeat:
             return self.dtype.to_bytes(getattr(instance, self.p_name))
 
         ls: list = getattr(instance, self.p_name)

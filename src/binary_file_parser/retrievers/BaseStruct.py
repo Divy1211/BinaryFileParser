@@ -23,6 +23,10 @@ class BaseStruct(Parseable):
 
     _retrievers: list[Retriever] = []
 
+    @property
+    def is_struct(self) -> bool:
+        return True
+
     @classmethod
     def add_retriever(cls, retriever: Retriever):
         cls._retrievers.append(retriever)
