@@ -25,7 +25,16 @@ class FileHeader(BaseStruct):
     """always (?) 1k"""
     unknown2: int = Retriever(uint32, default = 1)
     """always (?) 1"""
-    unknowns: list[int] = Retriever(Array32[uint32], default = [2, 3, 4, 5, 6, 7])
+    required_dats: list[int] = Retriever(Array32[uint32], default = [2, 3, 4, 5, 6, 7])
+    # 2 - AoK
+    # 3 - AoC
+    # 4 - FE
+    # 5 - AK
+    # 6 - RoR
+    # 7 - TLK
+    # 8 - LotW
+    # 9 - DotD
+    # 10 - DI
     creator: str = Retriever(nt_str32, default = "AoE2SP")
     num_triggers: int = Retriever(uint32, default = 0, on_write = [update_num_triggers])
 
