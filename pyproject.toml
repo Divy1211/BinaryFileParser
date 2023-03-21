@@ -27,4 +27,4 @@ docs = ["mkdocs"]
 depl = ["build", "twine"]
 
 [project.urls]
-Homepage = "https://github.com/Divy1211/FileParser"
+Homepage = "https://github.com/Divy1211/BinaryFileParser"
