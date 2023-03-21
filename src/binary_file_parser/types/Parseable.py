@@ -12,10 +12,20 @@ class Parseable(ABC):
 
     @staticmethod
     def is_valid(value: T) -> tuple[bool, str]:
+        """
+        Unused atm
+        :param value:
+        :return:
+        """
         return True, ""
 
     @property
     def is_struct(self) -> bool:
+        """
+        If a class similar to BaseStruct implements the Parsable interface, this method must be overriden to return True
+
+        :return: True if the object has multiple retrievers, False otherwise
+        """
         return False
 
     @abstractmethod
