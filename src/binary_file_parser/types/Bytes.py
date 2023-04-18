@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from binary_file_parser.types.ByteStream import ByteStream
 from binary_file_parser.types.Parseable import Parseable
+from binary_file_parser.utils import Version
 
 
 class Bytes(Parseable):
@@ -12,10 +13,10 @@ class Bytes(Parseable):
             return True, ""
         return False, f"number of bytes in %s must equal {self.size}"
 
-    def from_stream(self, stream: ByteStream, *, struct_version: tuple[int, ...] = (0,)) -> bytes:
+    def from_stream(self, stream: ByteStream, *, struct_version: Version = Version((0,))) -> bytes:
         return stream.get(self.size)
 
-    def from_bytes(self, bytes_: bytes, *, struct_version: tuple[int, ...] = (0,)) -> bytes:
+    def from_bytes(self, bytes_: bytes, *, struct_version: Version = Version((0,))) -> bytes:
         return bytes_
 
     def to_bytes(self, value: bytes) -> bytes:

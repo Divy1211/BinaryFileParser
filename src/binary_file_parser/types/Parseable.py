@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import TypeVar
 
 from binary_file_parser.types.ByteStream import ByteStream
+from binary_file_parser.utils import Version
 
 T = TypeVar("T")
 class Parseable(ABC):
@@ -29,11 +30,11 @@ class Parseable(ABC):
         return False
 
     @abstractmethod
-    def from_stream(self, stream: ByteStream, *, struct_version: tuple[int, ...] = (0,)) -> T:
+    def from_stream(self, stream: ByteStream, *, struct_version: Version = Version((0,))) -> T:
         ...
 
     @abstractmethod
-    def from_bytes(self, bytes_: bytes, *, struct_version: tuple[int, ...] = (0,)) -> T:
+    def from_bytes(self, bytes_: bytes, *, struct_version: Version = Version((0,))) -> T:
         ...
 
     @abstractmethod

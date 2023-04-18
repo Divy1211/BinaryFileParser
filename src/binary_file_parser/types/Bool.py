@@ -2,6 +2,7 @@ import struct
 
 from binary_file_parser.types.ByteStream import ByteStream
 from binary_file_parser.types.Parseable import Parseable
+from binary_file_parser.utils import Version
 
 
 class Bool(Parseable):
@@ -11,10 +12,10 @@ class Bool(Parseable):
         super().__init__(size)
         self.struct_symbol = struct_symbol
 
-    def from_stream(self, stream: ByteStream, *, struct_version: tuple[int, ...] = (0,)) -> bool:
+    def from_stream(self, stream: ByteStream, *, struct_version: Version = Version((0,))) -> bool:
         return self.from_bytes(stream.get(self.size), struct_version = struct_version)
 
-    def from_bytes(self, bytes_: bytes, *, struct_version: tuple[int, ...] = (0,)) -> bool:
+    def from_bytes(self, bytes_: bytes, *, struct_version: Version = Version((0,))) -> bool:
         return not not struct.unpack(self.struct_symbol, bytes_)[0]
 
     def to_bytes(self, value: bool) -> bytes:

@@ -5,12 +5,13 @@ from abc import ABC
 
 from binary_file_parser.types.ByteStream import ByteStream
 from binary_file_parser.types.Parseable import Parseable
+from binary_file_parser.utils import Version
 
 
 class BaseStr(Parseable, ABC):
     __slots__ = ()
 
-    def from_bytes(self, bytes_: bytes, *, struct_version: tuple[int, ...] = (0,)) -> str:
+    def from_bytes(self, bytes_: bytes, *, struct_version: Version = Version((0,))) -> str:
         try:
             return bytes_.decode("utf-8")
         except UnicodeDecodeError:
@@ -29,7 +30,7 @@ class BaseStr(Parseable, ABC):
 class CStr(BaseStr):
     __slots__ = ()
 
-    def from_stream(self, stream: ByteStream, *, struct_version: tuple[int, ...] = (0,)) -> str:
+    def from_stream(self, stream: ByteStream, *, struct_version: Version = Version((0,))) -> str:
         bytes_ = b""
         while (byte := stream.get(1)) != b"\x00":
             bytes_ += byte
@@ -48,7 +49,7 @@ class Str(BaseStr):
         super().__init__(size)
         self.struct_symbol = struct_symbol
 
-    def from_stream(self, stream: ByteStream, *, struct_version: tuple[int, ...] = (0,)) -> str:
+    def from_stream(self, stream: ByteStream, *, struct_version: Version = Version((0,))) -> str:
         length: int = struct.unpack(self.struct_symbol, stream.get(self.size))[0]
         return self.from_bytes(stream.get(length))
 
@@ -61,7 +62,7 @@ class Str(BaseStr):
 class NullTermStr(Str):
     __slots__ = ()
 
-    def from_stream(self, stream: ByteStream, *, struct_version: tuple[int, ...] = (0,)) -> str:
+    def from_stream(self, stream: ByteStream, *, struct_version: Version = Version((0,))) -> str:
         return super().from_stream(stream, struct_version = struct_version)[:-1]
 
     def to_bytes(self, value: str) -> bytes:
@@ -82,7 +83,7 @@ class FixedLenStr(BaseStr):
             return True, ""
         return False, f"%s must have a fixed length of {value}"
 
-    def from_stream(self, stream: ByteStream, *, struct_version: tuple[int, ...] = (0,)) -> str:
+    def from_stream(self, stream: ByteStream, *, struct_version: Version = Version((0,))) -> str:
         return self.from_bytes(stream.get(self.length))
 
     def __class_getitem__(cls, item: int) -> FixedLenStr:

@@ -3,16 +3,13 @@ from __future__ import annotations
 from contextlib import suppress
 from typing import Type, TypeVar, Generic
 
-from binary_file_parser import Retriever
 from binary_file_parser.errors import VersionError
+
 from binary_file_parser.retrievers.BaseStruct import BaseStruct
+from binary_file_parser.retrievers.Retriever import Retriever
 
 
 T = TypeVar("T")
-
-
-def ver_str(ver: tuple[int, ...]) -> str:
-    return ".".join(map(str, ver))
 
 
 class RetrieverCombiner(Generic[T]):
@@ -34,7 +31,7 @@ class RetrieverCombiner(Generic[T]):
                 setattr(instance, retriever.p_name, value)
                 return
         raise VersionError(
-            f"{self.name!r} is not supported in your struct version {ver_str(instance.struct_version)!r}"
+            f"{self.name!r} is not supported in your struct version {instance.struct_version}"
         )
 
     def __get__(self, instance: BaseStruct, owner: Type[BaseStruct]) -> RetrieverCombiner | T:
@@ -44,5 +41,5 @@ class RetrieverCombiner(Generic[T]):
             with suppress(VersionError):
                 return getattr(instance, retriever.p_name)
         raise VersionError(
-            f"{self.name!r} is not supported in your struct version {ver_str(instance.struct_version)!r}"
+            f"{self.name!r} is not supported in your struct version {instance.struct_version}"
         )

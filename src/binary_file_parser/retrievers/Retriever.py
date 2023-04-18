@@ -10,11 +10,7 @@ from binary_file_parser.types import Parseable
 
 from binary_file_parser.retrievers.MapValidate import MapValidate
 from binary_file_parser.retrievers.BaseStruct import BaseStruct
-
-
-def ver_str(ver: tuple[int, ...]) -> str:
-    return ".".join(map(str, ver))
-
+from binary_file_parser.utils import Version
 
 T = TypeVar("T")
 RetrieverSub = TypeVar("RetrieverSub", bound = "Retriever")
@@ -30,8 +26,8 @@ class Retriever(MapValidate):
     def __init__(
         self,
         dtype: Parseable | Type[Parseable],
-        min_ver: tuple[int, ...] = (-1,),
-        max_ver: tuple[int, ...] = (1000,),
+        min_ver: Version = Version((-1,)),
+        max_ver: Version = Version((1000,)),
         *,
         default: T = None,
         repeat: int = 1,
@@ -89,7 +85,7 @@ class Retriever(MapValidate):
         # else:
         #     self.validators.append(lambda retriever, instance, iterable: all(map(dtype.is_valid, iterable)))
 
-    def supported(self, ver: tuple[int, ...]) -> bool:
+    def supported(self, ver: Version) -> bool:
         """
         Determine if this retriever property is supported in the specified version
 
@@ -105,7 +101,7 @@ class Retriever(MapValidate):
     def __set__(self, instance: BaseStruct, value: T) -> None:
         if not self.supported(instance.struct_version):
             raise VersionError(
-                f"{self.p_name!r} is not supported in your scenario version {ver_str(instance.struct_version)!r}"
+                f"{self.p_name!r} is not supported in your scenario version {instance.struct_version}"
             )
 
         def set_parent(obj):
@@ -124,7 +120,7 @@ class Retriever(MapValidate):
 
         if not self.supported(instance.struct_version):
             raise VersionError(
-                f"{self.p_name!r} is not supported in your struct version {ver_str(instance.struct_version)!r}"
+                f"{self.p_name!r} is not supported in your struct version {instance.struct_version}"
             )
         try:
             return super().__get__(instance, owner)

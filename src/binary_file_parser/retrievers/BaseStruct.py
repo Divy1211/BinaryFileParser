@@ -12,6 +12,7 @@ from binary_file_parser.errors import ParsingError
 from binary_file_parser.errors import VersionError
 from binary_file_parser.types import ByteStream
 from binary_file_parser.types import Parseable
+from binary_file_parser.utils import indentify, Version
 
 if TYPE_CHECKING:
     from binary_file_parser.retrievers.RetreiverRef import RetrieverRef
@@ -50,7 +51,7 @@ class BaseStruct(Parseable):
         cls._retrievers, BaseStruct._retrievers = cls._retrievers.copy(), []
 
     @classmethod
-    def from_default(cls, struct_version: tuple[int, ...] = None, instance: BaseStruct = None) -> BaseStruct:
+    def from_default(cls, struct_version: Version = Version((0,)), instance: BaseStruct = None) -> BaseStruct:
         """
         Create the object representing the file format using default values
 
@@ -68,7 +69,7 @@ class BaseStruct(Parseable):
 
     def __init__(
         self,
-        struct_version: tuple[int, ...] = (0,),
+        struct_version: Version = Version((0,)),
         parent: BaseStruct = None,
         initialise_defaults: bool = True,
         **retriever_inits,
@@ -97,7 +98,7 @@ class BaseStruct(Parseable):
         super().__init__(size)
 
     @classmethod
-    def get_version(cls, stream: ByteStream, struct_version: tuple[int, ...] = (0,), parent: BaseStruct = None) -> tuple[int, ...]:
+    def get_version(cls, stream: ByteStream, struct_version: Version = Version((0,)), parent: BaseStruct = None) -> Version:
         """
         If defined, the struct will be versioned and values in the struct which are not supported in the version that is
         read will be skipped
@@ -142,7 +143,7 @@ class BaseStruct(Parseable):
 
     @classmethod
     def from_stream(
-        cls, stream: ByteStream, *, struct_version: tuple[int, ...] = (0,), strict: bool = False,
+        cls, stream: ByteStream, *, struct_version: Version = Version((0,)), strict: bool = False,
         show_progress: bool = False, parent: BaseStruct = None
     ) -> BaseStruct:
         """
@@ -187,7 +188,7 @@ class BaseStruct(Parseable):
         return instance
 
     @classmethod
-    def from_bytes(cls, bytes_: bytes, *, struct_version: tuple[int, ...] = (0,), strict = False) -> BaseStruct:
+    def from_bytes(cls, bytes_: bytes, *, struct_version: Version = Version((0,)), strict = False) -> BaseStruct:
         """
         Create a struct object from bytes
 
@@ -200,7 +201,7 @@ class BaseStruct(Parseable):
         return cls.from_stream(stream, struct_version = struct_version, strict = strict)
 
     @classmethod
-    def from_file(cls, file_name: str, *, file_version: tuple[int, ...] = (0,), strict = True) -> BaseStruct:
+    def from_file(cls, file_name: str, *, file_version: Version = Version((0,)), strict = True) -> BaseStruct:
         """
         Create a struct object from file
 
@@ -288,6 +289,3 @@ class BaseStruct(Parseable):
     # todo: diff
     # todo: file/header/decompressed in both hex/val <-> data
     # todo: to_json
-
-def indentify(repr_str: str, indent = 4) -> str:
-    return f"\n{' '*indent}".join(repr_str.splitlines())

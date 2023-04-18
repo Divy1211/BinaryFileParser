@@ -5,6 +5,7 @@ from typing import Type
 
 from binary_file_parser.types.ByteStream import ByteStream
 from binary_file_parser.types.Parseable import Parseable
+from binary_file_parser.utils import Version
 
 ParseableType = Type[Parseable] | Parseable
 
@@ -17,13 +18,13 @@ class BaseArray(Parseable):
         self.struct_symbol = struct_symbol
         self.length = -1
 
-    def from_stream(self, stream: ByteStream, *, struct_version: tuple[int, ...] = (0,)) -> list:
+    def from_stream(self, stream: ByteStream, *, struct_version: Version = Version((0,))) -> list:
         ls = [None] * self.length
         for i in range(self.length):
             ls[i] = self.dtype.from_stream(stream, struct_version = struct_version)
         return ls
 
-    def from_bytes(self, bytes_: bytes, *, struct_version: tuple[int, ...] = (0,)) -> list:
+    def from_bytes(self, bytes_: bytes, *, struct_version: Version = Version((0,))) -> list:
         return self.from_stream(ByteStream.from_bytes(bytes_), struct_version = struct_version)
 
     def to_bytes(self, value: list) -> bytes:
@@ -36,7 +37,7 @@ class BaseArray(Parseable):
 class Array(BaseArray):
     __slots__ = ()
 
-    def from_stream(self, stream: ByteStream, *, struct_version: tuple[int, ...] = (0,)) -> list:
+    def from_stream(self, stream: ByteStream, *, struct_version: Version = Version((0,))) -> list:
         self.length = struct.unpack(self.struct_symbol, stream.get(self.size))[0]
         return super().from_stream(stream, struct_version = struct_version)
 
@@ -108,7 +109,7 @@ class StackedArrays(BaseArray):
             return True, ""
         return False, f"%s expected {self.num_arrays} but found {num_arrays} stacked arrays"
 
-    def from_stream(self, stream: ByteStream, *, struct_version: tuple[int, ...] = (0,)) -> list[list]:
+    def from_stream(self, stream: ByteStream, *, struct_version: Version = Version((0,))) -> list[list]:
         num_arrays = self.num_arrays
         if num_arrays == -1:
             num_arrays = struct.unpack(self.struct_symbol, stream.get(self.size))[0]
