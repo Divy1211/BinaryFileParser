@@ -76,11 +76,9 @@ class BaseStruct(Parseable):
             if not retriever.supported(struct_version):
                 continue
 
-            init = retriever_inits.get(retriever.p_name, False)
-            if init is not False:
-                setattr(self, retriever.p_name, init)
-            elif initialise_defaults:
-                setattr(self, retriever.p_name, retriever.from_default(self))
+            if initialise_defaults:
+                init = retriever_inits.get(retriever.p_name, False)
+                setattr(self, retriever.p_name, init if init is not False else retriever.from_default(self))
 
             if type(retriever.dtype) is ABCMeta and issubclass(retriever.dtype, BaseStruct):
                 size += retriever.default.size
