@@ -1,6 +1,6 @@
 import zlib
 
-from binary_file_parser import BaseStruct, Retriever
+from binary_file_parser import BaseStruct, Retriever, Version
 from binary_file_parser.types import Bytes, ByteStream
 from testing.sections.BackgroundImage import BackgroundImage
 from testing.sections.Cinematics import Cinematics
@@ -30,8 +30,8 @@ class ScenarioSections(BaseStruct):
     map_data: MapData = Retriever(MapData, default = MapData())
     unit_data: UnitData = Retriever(UnitData, default = UnitData())
     trigger_data: TriggerData = Retriever(TriggerData, default = TriggerData())
-    file_data: FileData = Retriever(FileData, default = FileData(), min_ver = (1, 40))
-    unknown1: bytes = Retriever(Bytes[8], default = b"\x00"*8, max_ver = (1, 37))
+    file_data: FileData = Retriever(FileData, default = FileData(), min_ver = Version((1, 40)))
+    unknown1: bytes = Retriever(Bytes[8], default = b"\x00"*8, max_ver = Version((1, 37)))
 
     @classmethod
     def decompress(cls, bytes_: bytes) -> bytes:
@@ -47,11 +47,11 @@ class ScenarioSections(BaseStruct):
     def get_version(
         cls,
         stream: ByteStream,
-        struct_version: tuple[int, ...] = (0,),
+        struct_version: Version = Version((0,)),
         parent: BaseStruct = None,
-    ) -> tuple[int, ...]:
+    ) -> Version:
         ver_str = stream.peek(4).decode("ASCII")
-        return tuple(map(int, ver_str.split(".")))
+        return Version(map(int, ver_str.split(".")))
 
-    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
+    def __init__(self, struct_version: Version = Version((1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
         super().__init__(struct_version, parent, initialise_defaults, **retriever_inits)

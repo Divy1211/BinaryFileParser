@@ -1,4 +1,4 @@
-from binary_file_parser import BaseStruct, Retriever
+from binary_file_parser import BaseStruct, Retriever, Version
 from binary_file_parser.types import bool32, bool8, Bytes, FixedLenArray, int8, uint32
 
 
@@ -13,5 +13,5 @@ class Diplomacy(BaseStruct):
     random_start_points: bool = Retriever(bool8, default = False)
     max_num_teams: int = Retriever(int8, default = 4)
 
-    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
+    def __init__(self, struct_version: Version = Version((1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
         super().__init__(struct_version, parent, initialise_defaults, **retriever_inits)

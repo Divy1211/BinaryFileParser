@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from binary_file_parser import BaseStruct, Retriever
+from binary_file_parser import BaseStruct, Retriever, Version
 from binary_file_parser.types import Bytes, int32, str16, str32, uint32, uint8
 
 
@@ -8,7 +8,7 @@ class AiFile(BaseStruct):
     unknown: bytes = Retriever(Bytes[8], default = b"\x00"*8)
     per_content: list[str] = Retriever(str32, default = "")
 
-    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
+    def __init__(self, struct_version: Version = Version((1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
         super().__init__(struct_version, parent, initialise_defaults, **retriever_inits)
 
 
@@ -55,7 +55,7 @@ class Resources(BaseStruct):
     """unused"""
     player_colour: int = Retriever(int32, default = 0)
 
-    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
+    def __init__(self, struct_version: Version = Version((1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
         super().__init__(struct_version, parent, initialise_defaults, **retriever_inits)
 
 
@@ -67,5 +67,5 @@ class PlayerData2(BaseStruct):
     separator: int = Retriever(uint32, default = 4294967197)
     resources: list[Resources] = Retriever(Resources, default = Resources(), repeat = 16)
 
-    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
+    def __init__(self, struct_version: Version = Version((1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
         super().__init__(struct_version, parent, initialise_defaults, **retriever_inits)

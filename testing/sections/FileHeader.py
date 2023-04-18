@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from binary_file_parser import BaseStruct, Retriever
+from binary_file_parser import BaseStruct, Retriever, Version
 from binary_file_parser.types import Array32, bool32, FixedLenStr, int32, nt_str32, uint32
 
 
@@ -19,7 +19,7 @@ class FileHeader(BaseStruct):
     savable: int = Retriever(int32, default = 6, on_set = [set_timestamp_of_last_save_repeat])
     timestamp_of_last_save: int = Retriever(uint32, default = 1610675127)
     scenario_instructions: str = Retriever(nt_str32, default = "")
-    individual_victories_used: bool = Retriever(bool32, default = False, max_ver = (1, 37))
+    individual_victories_used: bool = Retriever(bool32, default = False, max_ver = Version((1, 37)))
     num_players: int = Retriever(uint32, default = 2)
     unknown1: int = Retriever(uint32, default = 1000)
     """always (?) 1k"""
@@ -39,5 +39,5 @@ class FileHeader(BaseStruct):
     creator: str = Retriever(nt_str32, default = "AoE2SP")
     num_triggers: int = Retriever(uint32, default = 0, on_write = [update_num_triggers])
 
-    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
+    def __init__(self, struct_version: Version = Version((1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
         super().__init__(struct_version, parent, initialise_defaults, **retriever_inits)
