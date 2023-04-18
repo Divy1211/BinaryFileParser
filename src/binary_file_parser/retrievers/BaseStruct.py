@@ -29,6 +29,13 @@ class BaseStruct(Parseable):
     def is_struct(self) -> bool:
         return True
 
+    @property
+    def retriever_name_value_map(self) -> dict[str]:
+        map_ = {}
+        for retriever in self._retrievers:
+            map_[retriever.p_name] = getattr(self, retriever.p_name)
+        return map_
+
     @classmethod
     def add_retriever(cls, retriever: Retriever):
         cls._retrievers.append(retriever)
