@@ -5,5 +5,8 @@ class Version(tuple[int, ...]):
     def __str__(self):
         return "v"+'.'.join(map(str, self))
 
+    def __init__(self, tup: tuple[int, ...]):
+        ...
+
 def indentify(repr_str: str, indent = 4) -> str:
     return f"\n{' '*indent}".join(repr_str.splitlines())
