@@ -31,7 +31,7 @@ class RetrieverCombiner(Generic[T]):
                 setattr(instance, retriever.p_name, value)
                 return
         raise VersionError(
-            f"{self.name!r} is not supported in your struct version {instance.struct_version}"
+            f"{self.name!r} is not supported in your struct version {instance.struct_ver}"
         )
 
     def __get__(self, instance: BaseStruct, owner: Type[BaseStruct]) -> RetrieverCombiner | T:
@@ -41,5 +41,5 @@ class RetrieverCombiner(Generic[T]):
             with suppress(VersionError):
                 return getattr(instance, retriever.p_name)
         raise VersionError(
-            f"{self.name!r} is not supported in your struct version {instance.struct_version}"
+            f"{self.name!r} is not supported in your struct version {instance.struct_ver}"
         )

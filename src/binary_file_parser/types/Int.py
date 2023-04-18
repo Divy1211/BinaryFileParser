@@ -12,10 +12,10 @@ class Int(Parseable):
         super().__init__(size)
         self.struct_symbol = struct_symbol
 
-    def from_stream(self, stream: ByteStream, *, struct_version: Version = Version((0,))) -> int:
-        return self.from_bytes(stream.get(self.size), struct_version = struct_version)
+    def from_stream(self, stream: ByteStream, *, struct_ver: Version = Version((0,))) -> int:
+        return self.from_bytes(stream.get(self.size), struct_ver = struct_ver)
 
-    def from_bytes(self, bytes_: bytes, *, struct_version: Version = Version((0,))) -> int:
+    def from_bytes(self, bytes_: bytes, *, struct_ver: Version = Version((0,))) -> int:
         return struct.unpack(self.struct_symbol, bytes_)[0]
 
     def to_bytes(self, value: int) -> bytes:

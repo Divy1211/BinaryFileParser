@@ -13,10 +13,10 @@ class Bytes(Parseable):
             return True, ""
         return False, f"number of bytes in %s must equal {self.size}"
 
-    def from_stream(self, stream: ByteStream, *, struct_version: Version = Version((0,))) -> bytes:
+    def from_stream(self, stream: ByteStream, *, struct_ver: Version = Version((0,))) -> bytes:
         return stream.get(self.size)
 
-    def from_bytes(self, bytes_: bytes, *, struct_version: Version = Version((0,))) -> bytes:
+    def from_bytes(self, bytes_: bytes, *, struct_ver: Version = Version((0,))) -> bytes:
         return bytes_
 
     def to_bytes(self, value: bytes) -> bytes:

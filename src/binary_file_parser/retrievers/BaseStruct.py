@@ -23,7 +23,7 @@ class BaseStruct(Parseable):
     """
     Base class for defining a file format as a structure
     """
-    __slots__ = "struct_version", "parent"
+    __slots__ = "struct_ver", "parent"
 
     _retrievers: list[Retriever] = []
     _refs: list[RetrieverRef] = []
@@ -51,42 +51,42 @@ class BaseStruct(Parseable):
         cls._retrievers, BaseStruct._retrievers = cls._retrievers.copy(), []
 
     @classmethod
-    def from_default(cls, struct_version: Version = Version((0,)), instance: BaseStruct = None) -> BaseStruct:
+    def from_default(cls, struct_ver: Version = Version((0,)), instance: BaseStruct = None) -> BaseStruct:
         """
         Create the object representing the file format using default values
 
-        :param struct_version: This is the version of the format that will be created
+        :param struct_ver: This is the version of the format that will be created
         :param instance: Initialise this object from defaults
 
         :return: An instance of a subtype of BaseStruct
         """
-        instance = instance or cls() if not struct_version else cls(struct_version)
+        instance = instance or cls() if not struct_ver else cls(struct_ver)
         for retriever in cls._retrievers:
-            if not retriever.supported(instance.struct_version):
+            if not retriever.supported(instance.struct_ver):
                 continue
             setattr(instance, retriever.p_name, retriever.from_default(instance))
         return instance
 
     def __init__(
         self,
-        struct_version: Version = Version((0,)),
+        struct_ver: Version = Version((0,)),
         parent: BaseStruct = None,
         initialise_defaults: bool = True,
         **retriever_inits,
     ):
         """
-        :param struct_version: The struct version to create
+        :param struct_ver: The struct version to create
         :param parent: If this struct is nested within another, define the containing struct as parent
         :param initialise_defaults:
             If set to false, skip initialisation of struct values from default. This is only set to false when reading
             a file
         """
-        self.struct_version = struct_version
+        self.struct_ver = struct_ver
         self.parent = parent
 
         size = 0
         for retriever in self._retrievers:
-            if not retriever.supported(struct_version):
+            if not retriever.supported(struct_ver):
                 continue
 
             if initialise_defaults:
@@ -98,13 +98,13 @@ class BaseStruct(Parseable):
         super().__init__(size)
 
     @classmethod
-    def get_version(cls, stream: ByteStream, struct_version: Version = Version((0,)), parent: BaseStruct = None) -> Version:
+    def get_version(cls, stream: ByteStream, struct_ver: Version = Version((0,)), parent: BaseStruct = None) -> Version:
         """
         If defined, the struct will be versioned and values in the struct which are not supported in the version that is
         read will be skipped
 
         :param stream: The stream to read the struct version from
-        :param struct_version: The struct version of the parent
+        :param struct_ver: The struct version of the parent
         :param parent:
         :return: A tuple of ints indicating the version eg: v1.47 should return (1, 47)
         :raises VersionError: - When unimplemented
@@ -143,23 +143,23 @@ class BaseStruct(Parseable):
 
     @classmethod
     def from_stream(
-        cls, stream: ByteStream, *, struct_version: Version = Version((0,)), strict: bool = False,
+        cls, stream: ByteStream, *, struct_ver: Version = Version((0,)), strict: bool = False,
         show_progress: bool = False, parent: BaseStruct = None
     ) -> BaseStruct:
         """
         Create a struct object from a ByteStream
 
         :param stream: The stream to create the struct object from
-        :param struct_version: The version of the structure to create. Overwritten if `get_version` is defined
+        :param struct_ver: The version of the structure to create. Overwritten if `get_version` is defined
         :param strict: Raise an error if struct parsing finishes successfully but the stream has left over bytes
         :param show_progress: When true, display a progress bar
         :param parent: If this struct is nested within another, define the containing struct as parent
         :return: An instance of a subtype of BaseStruct
         """
         with suppress(VersionError):
-            struct_version = cls.get_version(stream, struct_version, parent)
+            struct_ver = cls.get_version(stream, struct_ver, parent)
 
-        instance = cls(struct_version, parent, initialise_defaults = False)
+        instance = cls(struct_ver, parent, initialise_defaults = False)
         retriever_ls = cls._retrievers
         if show_progress:
             retriever_ls = alive_it(
@@ -188,17 +188,17 @@ class BaseStruct(Parseable):
         return instance
 
     @classmethod
-    def from_bytes(cls, bytes_: bytes, *, struct_version: Version = Version((0,)), strict = False) -> BaseStruct:
+    def from_bytes(cls, bytes_: bytes, *, struct_ver: Version = Version((0,)), strict = False) -> BaseStruct:
         """
         Create a struct object from bytes
 
         :param bytes_: The bytes to create the struct object from
-        :param struct_version: The version of the structure to create. Overwritten if `get_version` is defined
+        :param struct_ver: The version of the structure to create. Overwritten if `get_version` is defined
         :param strict: Raise an error if struct parsing finishes successfully but there are unused bytes left over
         :return: An instance of a subtype of BaseStruct
         """
         stream = ByteStream.from_bytes(bytes_)
-        return cls.from_stream(stream, struct_version = struct_version, strict = strict)
+        return cls.from_stream(stream, struct_ver = struct_ver, strict = strict)
 
     @classmethod
     def from_file(cls, file_name: str, *, file_version: Version = Version((0,)), strict = True) -> BaseStruct:
@@ -211,7 +211,7 @@ class BaseStruct(Parseable):
         :return: An instance of a subtype of BaseStruct
         """
         stream = ByteStream.from_file(file_name)
-        return cls.from_stream(stream, struct_version = file_version, strict = strict, show_progress = True)
+        return cls.from_stream(stream, struct_ver = file_version, strict = strict, show_progress = True)
 
     @classmethod
     def to_bytes(cls, instance: BaseStruct, *, show_progress = False) -> bytes:
@@ -266,7 +266,7 @@ class BaseStruct(Parseable):
         repr_builder = StringIO()
         repr_builder.write(f"{self.__class__.__name__}(")
         for retriever in self._retrievers:
-            if not retriever.supported(self.struct_version):
+            if not retriever.supported(self.struct_ver):
                 continue
 
             obj = getattr(self, retriever.p_name)

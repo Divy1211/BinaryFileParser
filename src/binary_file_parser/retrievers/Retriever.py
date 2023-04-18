@@ -99,9 +99,9 @@ class Retriever(MapValidate):
         owner.add_retriever(self)
 
     def __set__(self, instance: BaseStruct, value: T) -> None:
-        if not self.supported(instance.struct_version):
+        if not self.supported(instance.struct_ver):
             raise VersionError(
-                f"{self.p_name!r} is not supported in your scenario version {instance.struct_version}"
+                f"{self.p_name!r} is not supported in your scenario version {instance.struct_ver}"
             )
 
         def set_parent(obj):
@@ -118,9 +118,9 @@ class Retriever(MapValidate):
         if instance is None:
             return self
 
-        if not self.supported(instance.struct_version):
+        if not self.supported(instance.struct_ver):
             raise VersionError(
-                f"{self.p_name!r} is not supported in your struct version {instance.struct_version}"
+                f"{self.p_name!r} is not supported in your struct version {instance.struct_ver}"
             )
         try:
             return super().__get__(instance, owner)
@@ -166,8 +166,8 @@ class Retriever(MapValidate):
         val = self.default
         if self.dtype.is_struct:
             val = (
-                val.from_default(val.struct_version) if repeat == 1
-                else [val.from_default(val.struct_version) for _ in range(repeat)]
+                val.from_default(val.struct_ver) if repeat == 1
+                else [val.from_default(val.struct_ver) for _ in range(repeat)]
             )
         elif isinstance(val, list):
             val = copy(val) if repeat == 1 else [copy(val) for _ in range(repeat)]
@@ -183,7 +183,7 @@ class Retriever(MapValidate):
         :param instance: The struct object to initialise the retriever property for
         :param stream: The stream to initialise the retriever property from
         """
-        if not self.supported(instance.struct_version):
+        if not self.supported(instance.struct_ver):
             return
 
         repeat = self.repeat(instance)
@@ -194,8 +194,8 @@ class Retriever(MapValidate):
         def getobj():
             if self.dtype.is_struct:
                 self.dtype: BaseStruct  # type: ignore
-                return self.dtype.from_stream(stream, struct_version = instance.struct_version, parent = instance)
-            return self.dtype.from_stream(stream, struct_version = instance.struct_version)
+                return self.dtype.from_stream(stream, struct_ver = instance.struct_ver, parent = instance)
+            return self.dtype.from_stream(stream, struct_ver = instance.struct_ver)
 
         is_not_dynamic_repeat = not hasattr(instance, self.r_name)
         if repeat == 1 and is_not_dynamic_repeat:
@@ -217,7 +217,7 @@ class Retriever(MapValidate):
         :param instance: The struct object to convert the retriever property from
         :return: The bytes of the retriever property
         """
-        if not self.supported(instance.struct_version):
+        if not self.supported(instance.struct_ver):
             return b""
 
         repeat = self.repeat(instance)

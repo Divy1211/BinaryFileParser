@@ -30,11 +30,11 @@ class Parseable(ABC):
         return False
 
     @abstractmethod
-    def from_stream(self, stream: ByteStream, *, struct_version: Version = Version((0,))) -> T:
+    def from_stream(self, stream: ByteStream, *, struct_ver: Version = Version((0,))) -> T:
         ...
 
     @abstractmethod
-    def from_bytes(self, bytes_: bytes, *, struct_version: Version = Version((0,))) -> T:
+    def from_bytes(self, bytes_: bytes, *, struct_ver: Version = Version((0,))) -> T:
         ...
 
     @abstractmethod

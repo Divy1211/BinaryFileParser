@@ -18,14 +18,14 @@ class BaseArray(Parseable):
         self.struct_symbol = struct_symbol
         self.length = -1
 
-    def from_stream(self, stream: ByteStream, *, struct_version: Version = Version((0,))) -> list:
+    def from_stream(self, stream: ByteStream, *, struct_ver: Version = Version((0,))) -> list:
         ls = [None] * self.length
         for i in range(self.length):
-            ls[i] = self.dtype.from_stream(stream, struct_version = struct_version)
+            ls[i] = self.dtype.from_stream(stream, struct_ver = struct_ver)
         return ls
 
-    def from_bytes(self, bytes_: bytes, *, struct_version: Version = Version((0,))) -> list:
-        return self.from_stream(ByteStream.from_bytes(bytes_), struct_version = struct_version)
+    def from_bytes(self, bytes_: bytes, *, struct_ver: Version = Version((0,))) -> list:
+        return self.from_stream(ByteStream.from_bytes(bytes_), struct_ver = struct_ver)
 
     def to_bytes(self, value: list) -> bytes:
         ls = [b""]*self.length
@@ -37,9 +37,9 @@ class BaseArray(Parseable):
 class Array(BaseArray):
     __slots__ = ()
 
-    def from_stream(self, stream: ByteStream, *, struct_version: Version = Version((0,))) -> list:
+    def from_stream(self, stream: ByteStream, *, struct_ver: Version = Version((0,))) -> list:
         self.length = struct.unpack(self.struct_symbol, stream.get(self.size))[0]
-        return super().from_stream(stream, struct_version = struct_version)
+        return super().from_stream(stream, struct_ver = struct_ver)
 
     def to_bytes(self, value: list) -> bytes:
         self.length = len(value)
@@ -109,7 +109,7 @@ class StackedArrays(BaseArray):
             return True, ""
         return False, f"%s expected {self.num_arrays} but found {num_arrays} stacked arrays"
 
-    def from_stream(self, stream: ByteStream, *, struct_version: Version = Version((0,))) -> list[list]:
+    def from_stream(self, stream: ByteStream, *, struct_ver: Version = Version((0,))) -> list[list]:
         num_arrays = self.num_arrays
         if num_arrays == -1:
             num_arrays = struct.unpack(self.struct_symbol, stream.get(self.size))[0]
@@ -119,7 +119,7 @@ class StackedArrays(BaseArray):
 
         for i, length in enumerate(lengths):
             self.length = length
-            ls[i] = super().from_stream(stream, struct_version = struct_version)
+            ls[i] = super().from_stream(stream, struct_ver = struct_ver)
 
         return ls
 
