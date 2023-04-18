@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from io import StringIO
-from abc import ABCMeta
 from contextlib import suppress
 from typing import TYPE_CHECKING
 
@@ -80,10 +79,7 @@ class BaseStruct(Parseable):
                 init = retriever_inits.get(retriever.p_name, False)
                 setattr(self, retriever.p_name, init if init is not False else retriever.from_default(self))
 
-            if type(retriever.dtype) is ABCMeta and issubclass(retriever.dtype, BaseStruct):
-                size += retriever.default.size
-            else:
-                size += retriever.dtype.size
+            size += retriever.default.size if retriever.dtype.is_struct else retriever.dtype.size
 
         super().__init__(size)
 
