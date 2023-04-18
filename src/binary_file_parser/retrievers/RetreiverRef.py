@@ -14,7 +14,13 @@ def ver_str(ver: tuple[int, ...]) -> str:
     return ".".join(map(str, ver))
 
 class RetrieverRef(Generic[T]):
+    """
+    Create a new reference to an existing retriever
+    """
     def __init__(self, retriever: Retriever):
+        """
+        :param retriever: The retriever to reference
+        """
         self.retriever = retriever
 
     def __set_name__(self, owner: Type[BaseStruct], name: str) -> None:
