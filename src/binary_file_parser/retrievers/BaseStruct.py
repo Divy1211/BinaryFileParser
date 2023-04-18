@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+from io import StringIO
 from abc import ABCMeta
 from contextlib import suppress
 from typing import TYPE_CHECKING
 
 from alive_progress import alive_it
+from toolz import compose
 
 from binary_file_parser.errors import CompressionError
 from binary_file_parser.errors import ParsingError
@@ -52,7 +54,13 @@ class BaseStruct(Parseable):
             setattr(instance, retriever.p_name, retriever.from_default(instance))
         return instance
 
-    def __init__(self, struct_version: tuple[int, ...] = (0,), parent: BaseStruct = None, initialise_defaults = True):
+    def __init__(
+        self,
+        struct_version: tuple[int, ...] = (0,),
+        parent: BaseStruct = None,
+        initialise_defaults: bool = True,
+        **retriever_inits,
+    ):
         """
         :param struct_version: The struct version to create
         :param parent: If this struct is nested within another, define the containing struct as parent
@@ -60,10 +68,19 @@ class BaseStruct(Parseable):
             If set to false, skip initialisation of struct values from default. This is only set to false when reading
             a file
         """
+        self.struct_version = struct_version
+        self.parent = parent
+
         size = 0
         for retriever in self._retrievers:
             if not retriever.supported(struct_version):
                 continue
+
+            init = retriever_inits.get(retriever.p_name, False)
+            if init is not False:
+                setattr(self, retriever.p_name, init)
+            elif initialise_defaults:
+                setattr(self, retriever.p_name, retriever.from_default(self))
 
             if type(retriever.dtype) is ABCMeta and issubclass(retriever.dtype, BaseStruct):
                 size += retriever.default.size
@@ -71,10 +88,6 @@ class BaseStruct(Parseable):
                 size += retriever.dtype.size
 
         super().__init__(size)
-        self.struct_version = struct_version
-        self.parent = parent
-        if initialise_defaults:
-            self.from_default(instance = self)
 
     @classmethod
     def get_version(cls, stream: ByteStream, struct_version: tuple[int, ...] = (0,), parent: BaseStruct = None) -> tuple[int, ...]:
@@ -243,18 +256,25 @@ class BaseStruct(Parseable):
 
     def __repr__(self) -> str:
         # todo: add support for retriever refs and version combiners
-        string = f"{self.__class__.__name__}("
+        repr_builder = StringIO()
+        repr_builder.write(f"{self.__class__.__name__}(")
         for retriever in self._retrievers:
-            if retriever.p_name.startswith("_"):
-                continue
             if not retriever.supported(self.struct_version):
                 continue
+
             obj = getattr(self, retriever.p_name)
-            stri = f"{obj!r}"
-            if isinstance(obj, BaseStruct):
-                stri = "\n    ".join(f"{obj}".splitlines())
-            string += f"\n    {retriever.p_name} = {stri},"
-        return string+"\n)"
+            if isinstance(obj, list):
+                sub_obj_repr_str = (
+                    "[\n    "
+                    + ",\n    ".join(map(compose(indentify, repr), obj))
+                    + ",\n]"
+                )
+            else:
+                sub_obj_repr_str = f"{obj!r}"
+
+            repr_builder.write(f"\n    {retriever.p_name} = {indentify(sub_obj_repr_str)},")
+        repr_builder.write("\n)")
+        return repr_builder.getvalue()
 
     # todo: write val <-> data (names) to file
     # todo: write hex (decompressed) to file
@@ -262,3 +282,6 @@ class BaseStruct(Parseable):
     # todo: diff
     # todo: file/header/decompressed in both hex/val <-> data
     # todo: to_json
+
+def indentify(repr_str: str, indent = 4) -> str:
+    return f"\n{' '*indent}".join(repr_str.splitlines())
