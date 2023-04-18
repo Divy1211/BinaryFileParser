@@ -76,8 +76,8 @@ class BaseStruct(Parseable):
                 continue
 
             if initialise_defaults:
-                init = retriever_inits.get(retriever.p_name, False)
-                setattr(self, retriever.p_name, init if init is not False else retriever.from_default(self))
+                init = retriever_inits.get(retriever.p_name, None)
+                setattr(self, retriever.p_name, init if init is not None else retriever.from_default(self))
 
             size += retriever.default.size if retriever.dtype.is_struct else retriever.dtype.size
 
