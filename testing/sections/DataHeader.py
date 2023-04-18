@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from binary_file_parser import Retriever, BaseStruct
-from binary_file_parser.types import bool32, Bytes, uint32, FixedLenStr, str16, float32
+from binary_file_parser import BaseStruct, Retriever
+from binary_file_parser.types import bool32, Bytes, FixedLenStr, float32, str16, uint32
 
 
 class PlayerData1(BaseStruct):
@@ -17,8 +17,8 @@ class PlayerData1(BaseStruct):
     architecture_set_1_46: int = Retriever(uint32, default = 43, min_ver = (1, 46))
     cty_mode: int = Retriever(uint32, default = 4)
 
-    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True):
-        super().__init__(struct_version, parent, initialise_defaults)
+    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
+        super().__init__(struct_version, parent, initialise_defaults, **retriever_inits)
 
 
 class DataHeader(BaseStruct):
@@ -32,5 +32,5 @@ class DataHeader(BaseStruct):
     unknown_1_46: bytes = Retriever(Bytes[9], default = b"\x01"+b"\x00"*8, min_ver = (1, 46))
     file_name: str = Retriever(str16, default = "MadeWithAoE2SP.aoe2scenario")
 
-    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True):
-        super().__init__(struct_version, parent, initialise_defaults)
+    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
+        super().__init__(struct_version, parent, initialise_defaults, **retriever_inits)

@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-from binary_file_parser import Retriever, BaseStruct
+from binary_file_parser import BaseStruct, Retriever
 from binary_file_parser.types import (
-    Array32, ByteStream, bool32, bool8, Bytes, int8, uint32, int32, nt_str32, str32,
-    float64,
+    Array32, bool32, bool8, Bytes, ByteStream, float64, int32, int8, nt_str32, str32, uint32,
 )
 
 attr_usage_ids = {
@@ -94,8 +93,8 @@ class Effect(BaseStruct):
     sound_name: str = Retriever(str32, default = "", on_read = [remove_null_term], on_write = [append_null_term_if_used])
     selected_object_ids: list[int] = Retriever(int32, default = -1, repeat = 0)
 
-    def __init__(self, struct_version: tuple[int, ...] = (3, 5, 1, 47), parent: BaseStruct = None, initialise_defaults = True):
-        super().__init__(struct_version, parent, initialise_defaults)
+    def __init__(self, struct_version: tuple[int, ...] = (3, 5, 1, 47), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
+        super().__init__(struct_version, parent, initialise_defaults, **retriever_inits)
 
 class Condition(BaseStruct):
     condition_type: int = Retriever(int32, default = 0)
@@ -132,8 +131,8 @@ class Condition(BaseStruct):
     include_changeable_weapon_objects: int = Retriever(int32, default = -1, min_ver = (3, 0, 1, 46))
     xs_function: str = Retriever(str32, default = "", min_ver = (2, 4, 1, 40))
 
-    def __init__(self, struct_version: tuple[int, ...] = (3, 5, 1, 47), parent: BaseStruct = None, initialise_defaults = True):
-        super().__init__(struct_version, parent, initialise_defaults)
+    def __init__(self, struct_version: tuple[int, ...] = (3, 5, 1, 47), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
+        super().__init__(struct_version, parent, initialise_defaults, **retriever_inits)
 
 
 class Trigger(BaseStruct):
@@ -199,16 +198,16 @@ class Trigger(BaseStruct):
     condition_display_orders: list[int] = Retriever(uint32, default = 0, repeat = 0)
     """originally int32"""
 
-    def __init__(self, struct_version: tuple[int, ...] = (3, 5, 1, 47), parent: BaseStruct = None, initialise_defaults = True):
-        super().__init__(struct_version, parent, initialise_defaults)
+    def __init__(self, struct_version: tuple[int, ...] = (3, 5, 1, 47), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
+        super().__init__(struct_version, parent, initialise_defaults, **retriever_inits)
 
 
 class Variable(BaseStruct):
     id: int = Retriever(uint32, default = 0)
     name: str = Retriever(nt_str32, default = "_Variable0")
 
-    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True):
-        super().__init__(struct_version, parent, initialise_defaults)
+    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
+        super().__init__(struct_version, parent, initialise_defaults, **retriever_inits)
 
 
 class VariableData(BaseStruct):
@@ -216,8 +215,8 @@ class VariableData(BaseStruct):
     unused: bytes = Retriever(Bytes[9], default = b"\x00"*9, min_ver = (3, 0, 1, 46))
     unknown: bytes = Retriever(Bytes[8], default = b"\x00"*8, min_ver = (3, 5, 1, 47))
 
-    def __init__(self, struct_version: tuple[int, ...] = (3, 5, 1, 47), parent: BaseStruct = None, initialise_defaults = True):
-        super().__init__(struct_version, parent, initialise_defaults)
+    def __init__(self, struct_version: tuple[int, ...] = (3, 5, 1, 47), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
+        super().__init__(struct_version, parent, initialise_defaults, **retriever_inits)
 
 
 
@@ -259,5 +258,5 @@ class TriggerData(BaseStruct):
         ver_str = str(float64.from_bytes(stream.peek(8)))
         return tuple(map(int, ver_str.split("."))) + struct_version
 
-    def __init__(self, struct_version: tuple[int, ...] = (3, 5, 1, 47), parent: BaseStruct = None, initialise_defaults = True):
-        super().__init__(struct_version, parent, initialise_defaults)
+    def __init__(self, struct_version: tuple[int, ...] = (3, 5, 1, 47), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
+        super().__init__(struct_version, parent, initialise_defaults, **retriever_inits)

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from binary_file_parser import Retriever, BaseStruct
-from binary_file_parser.types import uint32, int32, FixedLenStr, nt_str32, Array32, bool32
+from binary_file_parser import BaseStruct, Retriever
+from binary_file_parser.types import Array32, bool32, FixedLenStr, int32, nt_str32, uint32
 
 
 class FileHeader(BaseStruct):
@@ -26,6 +26,7 @@ class FileHeader(BaseStruct):
     unknown2: int = Retriever(uint32, default = 1)
     """always (?) 1"""
     required_dats: list[int] = Retriever(Array32[uint32], default = [2, 3, 4, 5, 6, 7])
+    # todo: update this list with proper default versioning
     # 2 - AoK
     # 3 - AoC
     # 4 - FE
@@ -38,5 +39,5 @@ class FileHeader(BaseStruct):
     creator: str = Retriever(nt_str32, default = "AoE2SP")
     num_triggers: int = Retriever(uint32, default = 0, on_write = [update_num_triggers])
 
-    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True):
-        super().__init__(struct_version, parent, initialise_defaults)
+    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
+        super().__init__(struct_version, parent, initialise_defaults, **retriever_inits)

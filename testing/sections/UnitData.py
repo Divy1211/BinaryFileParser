@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from binary_file_parser import Retriever, BaseStruct
+from binary_file_parser import BaseStruct, Retriever
 from binary_file_parser.types import (
-    bool8, Bytes, uint32, uint8, int16, uint16, int32, nt_str16, Array16, FixedLenArray, Array32, float32
+    Array16, Array32, bool8, Bytes, FixedLenArray, float32, int16, int32, nt_str16, uint16, uint32, uint8,
 )
 
 
@@ -20,23 +20,23 @@ class PlayerData4(BaseStruct):
     trade_goods: float = Retriever(float32, default = 0.0)
     population_limit: float = Retriever(float32, default = 200.0)
 
-    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True):
-        super().__init__(struct_version, parent, initialise_defaults)
+    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
+        super().__init__(struct_version, parent, initialise_defaults, **retriever_inits)
 
 
 class ViewF(BaseStruct):
     x: float = Retriever(float32, default = 60.0)
     y: float = Retriever(float32, default = 60.0)
 
-    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True):
-        super().__init__(struct_version, parent, initialise_defaults)
+    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
+        super().__init__(struct_version, parent, initialise_defaults, **retriever_inits)
 
 class ViewI(BaseStruct):
     x: int = Retriever(int16, default = 60)
     y: int = Retriever(int16, default = 60)
 
-    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True):
-        super().__init__(struct_version, parent, initialise_defaults)
+    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
+        super().__init__(struct_version, parent, initialise_defaults, **retriever_inits)
 
 
 class PlayerData3(BaseStruct):
@@ -83,8 +83,8 @@ class PlayerData3(BaseStruct):
     """unknown structure"""
     unknown4: int = Retriever(int32, default = -1)
 
-    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True):
-        super().__init__(struct_version, parent, initialise_defaults)
+    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
+        super().__init__(struct_version, parent, initialise_defaults, **retriever_inits)
 
 
 class Unit(BaseStruct):
@@ -98,8 +98,8 @@ class Unit(BaseStruct):
     initial_animation_frame: int = Retriever(uint16, default = 0)
     garrisoned_in_reference_id: int = Retriever(int32, default = -1)
 
-    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True):
-        super().__init__(struct_version, parent, initialise_defaults)
+    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
+        super().__init__(struct_version, parent, initialise_defaults, **retriever_inits)
 
 
 class UnitData(BaseStruct):
@@ -118,5 +118,5 @@ class UnitData(BaseStruct):
     player_data3: list[PlayerData3] = Retriever(PlayerData3, default = PlayerData3(), repeat = 8)
     units: list[list[Unit]] = Retriever(Array32[Unit], default = [])
 
-    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True):
-        super().__init__(struct_version, parent, initialise_defaults)
+    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
+        super().__init__(struct_version, parent, initialise_defaults, **retriever_inits)

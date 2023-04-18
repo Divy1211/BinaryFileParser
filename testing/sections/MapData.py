@@ -1,15 +1,15 @@
 from __future__ import annotations
 
-from binary_file_parser import Retriever, BaseStruct
-from binary_file_parser.types import bool8, Bytes, uint32, uint8, int16, str16, int32
+from binary_file_parser import BaseStruct, Retriever
+from binary_file_parser.types import bool8, Bytes, int16, int32, str16, uint32, uint8
 
 
 class View(BaseStruct):
     x: int = Retriever(int32, default = -1)
     y: int = Retriever(int32, default = -1)
 
-    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True):
-        super().__init__(struct_version, parent, initialise_defaults)
+    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
+        super().__init__(struct_version, parent, initialise_defaults, **retriever_inits)
 
 
 class Terrain(BaseStruct):
@@ -18,8 +18,8 @@ class Terrain(BaseStruct):
     unused: bytes = Retriever(Bytes[3], default = b"\x00\xff\xff")
     layer: int = Retriever(int16, default = -1)
 
-    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True):
-        super().__init__(struct_version, parent, initialise_defaults)
+    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
+        super().__init__(struct_version, parent, initialise_defaults, **retriever_inits)
 
 
 class MapData(BaseStruct):
@@ -56,5 +56,5 @@ class MapData(BaseStruct):
     height: int = Retriever(uint32, default = 120, on_set = [set_terrain_data_repeat])
     tiles: list[Terrain] = Retriever(Terrain, default = Terrain(), repeat = 14_400)
 
-    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True):
-        super().__init__(struct_version, parent, initialise_defaults)
+    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
+        super().__init__(struct_version, parent, initialise_defaults, **retriever_inits)

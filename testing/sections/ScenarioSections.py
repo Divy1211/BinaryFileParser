@@ -1,7 +1,7 @@
 import zlib
 
-from binary_file_parser import Retriever, BaseStruct
-from binary_file_parser.types import ByteStream, Bytes
+from binary_file_parser import BaseStruct, Retriever
+from binary_file_parser.types import Bytes, ByteStream
 from testing.sections.BackgroundImage import BackgroundImage
 from testing.sections.Cinematics import Cinematics
 from testing.sections.DataHeader import DataHeader
@@ -53,5 +53,5 @@ class ScenarioSections(BaseStruct):
         ver_str = stream.peek(4).decode("ASCII")
         return tuple(map(int, ver_str.split(".")))
 
-    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True):
-        super().__init__(struct_version, parent, initialise_defaults)
+    def __init__(self, struct_version: tuple[int, ...] = (1, 47), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
+        super().__init__(struct_version, parent, initialise_defaults, **retriever_inits)
