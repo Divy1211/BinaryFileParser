@@ -253,7 +253,6 @@ class BaseStruct(Parseable):
             file.write(self.to_bytes(self, show_progress = True))
 
     def __repr__(self) -> str:
-        # todo: add support for retriever refs and version combiners
         repr_builder = StringIO()
         repr_builder.write(f"{self.__class__.__name__}(")
         for retriever in self._retrievers:
