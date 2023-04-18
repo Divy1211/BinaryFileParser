@@ -14,6 +14,7 @@ from binary_file_parser.types import ByteStream
 from binary_file_parser.types import Parseable
 
 if TYPE_CHECKING:
+    from binary_file_parser.retrievers.RetreiverRef import RetrieverRef
     from binary_file_parser.retrievers.Retriever import Retriever
 
 
@@ -24,6 +25,7 @@ class BaseStruct(Parseable):
     __slots__ = "struct_version", "parent"
 
     _retrievers: list[Retriever] = []
+    _refs: list[RetrieverRef] = []
 
     @property
     def is_struct(self) -> bool:
@@ -39,6 +41,10 @@ class BaseStruct(Parseable):
     @classmethod
     def add_retriever(cls, retriever: Retriever):
         cls._retrievers.append(retriever)
+
+    @classmethod
+    def add_ref(cls, ref: RetrieverRef):
+        cls._refs.append(ref)
 
     def __init_subclass__(cls, **kwargs):
         cls._retrievers, BaseStruct._retrievers = cls._retrievers.copy(), []

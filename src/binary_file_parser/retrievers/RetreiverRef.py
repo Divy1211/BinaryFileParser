@@ -25,6 +25,7 @@ class RetrieverRef(Generic[T]):
 
     def __set_name__(self, owner: Type[BaseStruct], name: str) -> None:
         self.name = name
+        owner.add_ref(self)
 
     def __set__(self, instance: BaseStruct, value: T) -> None:
         with suppress(VersionError):
