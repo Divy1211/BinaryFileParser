@@ -5,6 +5,7 @@ from typing import Type
 
 from binary_file_parser.types.ByteStream import ByteStream
 from binary_file_parser.types.Parseable import Parseable
+from binary_file_parser.types.RefList import RefList
 from binary_file_parser.utils import Version
 
 ParseableType = Type[Parseable] | Parseable
@@ -12,9 +13,14 @@ ParseableType = Type[Parseable] | Parseable
 class BaseArray(Parseable):
     __slots__ = ("dtype", "struct_symbol", "length")
 
-    def __init__(self, size: int, dtype: ParseableType, struct_symbol: str):
+    @property
+    def is_iterable(self) -> bool:
+        return True
+
+    def __init__(self, size: int, dtype: ParseableType, struct_symbol: str, atype: Type[list] = RefList):
         super().__init__(size)
         self.dtype = dtype
+        self.atype = atype
         self.struct_symbol = struct_symbol
         self.length = -1
 

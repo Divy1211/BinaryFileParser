@@ -29,6 +29,15 @@ class Parseable(ABC):
         """
         return False
 
+    @property
+    def is_iterable(self) -> bool:
+        """
+        If the datatype is an iterator (container)
+
+        :return: True if the object is an iterator , False otherwise
+        """
+        return False
+
     @abstractmethod
     def from_stream(self, stream: ByteStream, *, struct_ver: Version = Version((0,))) -> T:
         ...

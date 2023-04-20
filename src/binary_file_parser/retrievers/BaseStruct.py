@@ -12,21 +12,23 @@ from binary_file_parser.errors import ParsingError
 from binary_file_parser.errors import VersionError
 from binary_file_parser.types import ByteStream
 from binary_file_parser.types import Parseable
-from binary_file_parser.utils import indentify, Version
+from binary_file_parser.utils import indentify, powers_of_two, Version
 
 if TYPE_CHECKING:
-    from binary_file_parser.retrievers.RetreiverRef import RetrieverRef
     from binary_file_parser.retrievers.Retriever import Retriever
+    from binary_file_parser.retrievers.RetreiverCombiner import RetrieverCombiner
+    from binary_file_parser.retrievers.RetreiverRef import RetrieverRef
 
 
 class BaseStruct(Parseable):
     """
     Base class for defining a file format as a structure
     """
-    __slots__ = "struct_ver", "parent"
+    __slots__ = "_struct_ver", "_parent"
 
     _retrievers: list[Retriever] = []
     _refs: list[RetrieverRef] = []
+    _combiners: list[RetrieverCombiner]
 
     @property
     def is_struct(self) -> bool:
@@ -47,8 +49,47 @@ class BaseStruct(Parseable):
     def add_ref(cls, ref: RetrieverRef):
         cls._refs.append(ref)
 
+    @classmethod
+    def add_combiner(cls, combiner: RetrieverCombiner):
+        cls._combiners.append(combiner)
+
     def __init_subclass__(cls, **kwargs):
         cls._retrievers, BaseStruct._retrievers = cls._retrievers.copy(), []
+
+    def _update_struct_vars(self, new_struct_ver: Version):
+        # todo: finish this
+        self._struct_ver = new_struct_ver
+
+    @property
+    def struct_ver(self):
+        return self._struct_ver
+
+    @struct_ver.setter
+    def struct_ver(self, new_struct_ver: Version):
+        for retriever in self._retrievers:
+            if not retriever.dtype.is_struct and not retriever.dtype.is_iterable:
+                continue
+            for i in powers_of_two(8):
+                try:
+                    retriever.dtype.__class__.get_version(stream = ByteStream.from_bytes(b"\x00"*i))
+                except EOFError:
+                    continue
+                except VersionError:
+                    getattr(self, retriever.p_name).struct_ver = new_struct_ver
+                break
+        self._update_struct_vars(new_struct_ver)
+
+    @property
+    def parent(self):
+        return self._parent
+
+    @parent.setter
+    def parent(self, new_parent: BaseStruct):
+        for retriever in self._retrievers:
+            if not retriever.dtype.is_struct and not retriever.dtype.is_iterable:
+                continue
+            getattr(self, retriever.p_name).parent = new_parent
+        self._parent = new_parent
 
     @classmethod
     def from_default(cls, struct_ver: Version = Version((0,)), instance: BaseStruct = None) -> BaseStruct:
@@ -81,7 +122,7 @@ class BaseStruct(Parseable):
             If set to false, skip initialisation of struct values from default. This is only set to false when reading
             a file
         """
-        self.struct_ver = struct_ver
+        self._struct_ver = struct_ver
         self.parent = parent
 
         size = 0
@@ -270,7 +311,7 @@ class BaseStruct(Parseable):
                 continue
 
             obj = getattr(self, retriever.p_name)
-            if isinstance(obj, list):
+            if retriever.dtype.is_iterable:
                 sub_obj_repr_str = (
                     "[\n    "
                     + ",\n    ".join(map(compose(indentify, repr), obj))
