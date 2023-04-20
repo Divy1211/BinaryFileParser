@@ -303,6 +303,35 @@ class BaseStruct(Parseable):
         with open(file_name, "wb") as file:
             file.write(self.to_bytes(self, show_progress = True))
 
+    def diff(self, other: BaseStruct) -> list[Retriever]:
+        """
+        Recursively builds a list of retrievers that have different values for the two objects.
+
+        :param other: The object to diff with
+        :return: list of retrievers that have different values for the two objects
+        """
+        if (
+            not isinstance(other, BaseStruct)
+            or type(self) is not type(other)
+        ):
+            raise TypeError(f"Cannot diff '{type(self)}' with an object of type '{type(other)}'")
+        if self.struct_ver != other.struct_ver:
+            raise VersionError(
+                f"Cannot diff structs with different versions '{self.struct_ver}' and '{other.struct_ver}'"
+            )
+
+        diff_retrievers: list[Retriever] = []
+        for retriever in self._retrievers:
+            if not retriever.supported(self.struct_ver):
+                continue
+            if (val1 := getattr(self, retriever.p_name)) == (val2 := getattr(other, retriever.p_name)):
+                continue
+            if retriever.dtype.is_struct:
+                diff_retrievers.extend(val1.diff(val2))
+            else:
+                diff_retrievers.append(retriever)
+        return diff_retrievers
+
     def __repr__(self) -> str:
         repr_builder = StringIO()
         repr_builder.write(f"{self.__class__.__name__}(")
@@ -324,9 +353,22 @@ class BaseStruct(Parseable):
         repr_builder.write("\n)")
         return repr_builder.getvalue()
 
+    def __eq__(self, other: object) -> bool:
+        if (
+            not isinstance(other, BaseStruct)
+            or type(self) is not type(other)
+            or self.struct_ver != other.struct_ver
+        ):
+            return False
+
+        for retriever in self._retrievers:
+            if not retriever.supported(self.struct_ver):
+                continue
+            if getattr(self, retriever.p_name) != getattr(other, retriever.p_name):
+                return False
+        return True
+
     # todo: write val <-> data (names) to file
     # todo: write hex (decompressed) to file
-    # todo: str, eq, neq
-    # todo: diff
     # todo: file/header/decompressed in both hex/val <-> data
     # todo: to_json
