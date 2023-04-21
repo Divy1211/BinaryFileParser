@@ -10,7 +10,7 @@ from toolz import compose
 from binary_file_parser.errors import CompressionError
 from binary_file_parser.errors import ParsingError
 from binary_file_parser.errors import VersionError
-from binary_file_parser.types import ByteStream
+from binary_file_parser.types import ByteStream, RefList
 from binary_file_parser.types import Parseable
 from binary_file_parser.utils import indentify, powers_of_two, Version
 
@@ -67,15 +67,23 @@ class BaseStruct(Parseable):
     @struct_ver.setter
     def struct_ver(self, new_struct_ver: Version):
         for retriever in self._retrievers:
-            if not retriever.dtype.is_struct and not retriever.dtype.is_iterable:
+            if (
+                not retriever.supported(self.struct_ver)
+                or not (retriever.dtype.is_struct or retriever.dtype.is_iterable)
+            ):
                 continue
             for i in powers_of_two(8):
                 try:
                     retriever.dtype.__class__.get_version(stream = ByteStream.from_bytes(b"\x00"*i))
                 except EOFError:
                     continue
-                except VersionError:
-                    getattr(self, retriever.p_name).struct_ver = new_struct_ver
+                except (VersionError, AttributeError):
+                    try:
+                        if (obj := getattr(self, retriever.p_name)) is not None:
+                            obj.struct_ver = new_struct_ver
+                    except:
+                        print(retriever.p_name)
+                        raise
                 break
         self._update_struct_vars(new_struct_ver)
 
@@ -86,27 +94,14 @@ class BaseStruct(Parseable):
     @parent.setter
     def parent(self, new_parent: BaseStruct):
         for retriever in self._retrievers:
-            if not retriever.dtype.is_struct and not retriever.dtype.is_iterable:
+            if (
+                not retriever.supported(self.struct_ver)
+                or not (retriever.dtype.is_struct or retriever.dtype.is_iterable)
+            ):
                 continue
-            getattr(self, retriever.p_name).parent = new_parent
+            if (obj := getattr(self, retriever.p_name)) is not None:
+                obj.parent = new_parent
         self._parent = new_parent
-
-    @classmethod
-    def from_default(cls, struct_ver: Version = Version((0,)), instance: BaseStruct = None) -> BaseStruct:
-        """
-        Create the object representing the file format using default values
-
-        :param struct_ver: This is the version of the format that will be created
-        :param instance: Initialise this object from defaults
-
-        :return: An instance of a subtype of BaseStruct
-        """
-        instance = instance or cls() if not struct_ver else cls(struct_ver)
-        for retriever in cls._retrievers:
-            if not retriever.supported(instance.struct_ver):
-                continue
-            setattr(instance, retriever.p_name, retriever.from_default(instance))
-        return instance
 
     def __init__(
         self,
@@ -123,7 +118,7 @@ class BaseStruct(Parseable):
             a file
         """
         self._struct_ver = struct_ver
-        self.parent = parent
+        self._parent = parent
 
         size = 0
         for retriever in self._retrievers:
@@ -135,7 +130,6 @@ class BaseStruct(Parseable):
                 setattr(self, retriever.p_name, init if init is not None else retriever.from_default(self))
 
             size += retriever.default.size if retriever.dtype.is_struct else retriever.dtype.size
-
         super().__init__(size)
 
     @classmethod
@@ -326,7 +320,7 @@ class BaseStruct(Parseable):
                 continue
             if (val1 := getattr(self, retriever.p_name)) == (val2 := getattr(other, retriever.p_name)):
                 continue
-            if retriever.dtype.is_struct:
+            if retriever.dtype.is_struct and not isinstance(val1, RefList): # todo: implement a diff on reflists
                 diff_retrievers.extend(val1.diff(val2))
             else:
                 diff_retrievers.append(retriever)
@@ -340,7 +334,7 @@ class BaseStruct(Parseable):
                 continue
 
             obj = getattr(self, retriever.p_name)
-            if retriever.dtype.is_iterable:
+            if isinstance(obj, list):
                 sub_obj_repr_str = (
                     "[\n    "
                     + ",\n    ".join(map(compose(indentify, repr), obj))

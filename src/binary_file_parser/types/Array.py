@@ -11,13 +11,13 @@ from binary_file_parser.utils import Version
 ParseableType = Type[Parseable] | Parseable
 
 class BaseArray(Parseable):
-    __slots__ = ("dtype", "struct_symbol", "length")
+    __slots__ = ("atype", "dtype", "struct_symbol", "length")
 
     @property
     def is_iterable(self) -> bool:
         return True
 
-    def __init__(self, size: int, dtype: ParseableType, struct_symbol: str, atype: Type[list] = RefList):
+    def __init__(self, size: int, dtype: ParseableType, struct_symbol: str, atype: Type[RefList] = RefList):
         super().__init__(size)
         self.dtype = dtype
         self.atype = atype
@@ -28,7 +28,7 @@ class BaseArray(Parseable):
         ls = [None] * self.length
         for i in range(self.length):
             ls[i] = self.dtype.from_stream(stream, struct_ver = struct_ver)
-        return ls
+        return self.atype(ls)
 
     def from_bytes(self, bytes_: bytes, *, struct_ver: Version = Version((0,))) -> list:
         return self.from_stream(ByteStream.from_bytes(bytes_), struct_ver = struct_ver)
@@ -80,8 +80,8 @@ class Array64(Array):
 class FixedLenArray(BaseArray):
     __slots__ = ()
 
-    def __init__(self, size: int, dtype: ParseableType, struct_symbol: str, length: int):
-        super().__init__(size, dtype, struct_symbol)
+    def __init__(self, size: int, dtype: ParseableType, struct_symbol: str, length: int, atype: Type[RefList] = RefList):
+        super().__init__(size, dtype, struct_symbol, atype)
         self.length = length
 
     def is_valid(self, value: list) -> tuple[bool, str]:
@@ -102,8 +102,8 @@ class FixedLenArray(BaseArray):
 class StackedArrays(BaseArray):
     __slots__ = "num_arrays"
 
-    def __init__(self, size: int, dtype: ParseableType, struct_symbol: str, num_arrays: int = -1):
-        super().__init__(size, dtype, struct_symbol)
+    def __init__(self, size: int, dtype: ParseableType, struct_symbol: str, num_arrays: int = -1, atype: Type[RefList] = RefList):
+        super().__init__(size, dtype, struct_symbol, atype)
         self.num_arrays = num_arrays
 
     def is_valid(self, value: list[list]) -> tuple[bool, str]:
@@ -127,7 +127,7 @@ class StackedArrays(BaseArray):
             self.length = length
             ls[i] = super().from_stream(stream, struct_ver = struct_ver)
 
-        return ls
+        return self.atype(ls)
 
     def to_bytes(self, value: list[list]) -> bytes:
         valid, msg = self.is_valid(value)

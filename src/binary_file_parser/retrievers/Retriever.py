@@ -2,6 +2,7 @@ from __future__ import annotations
 
 
 from copy import copy
+from io import BytesIO
 from typing import Type, Callable, TypeVar
 
 from binary_file_parser.errors import VersionError
@@ -9,7 +10,8 @@ from binary_file_parser.types import ByteStream
 from binary_file_parser.types import Parseable
 
 from binary_file_parser.retrievers.MapValidate import MapValidate
-from binary_file_parser.retrievers.BaseStruct import BaseStruct
+from binary_file_parser.retrievers.base_struct import BaseStruct
+from binary_file_parser.types.RefList import RefList
 from binary_file_parser.utils import Version
 
 T = TypeVar("T")
@@ -21,7 +23,7 @@ class Retriever(MapValidate):
     """
     Represents a binary object in a struct and the restrictions/dependencies associated with it
     """
-    __slots__ = "dtype", "min_ver", "max_ver", "default", "_repeat", "remaining_compressed", "on_read", "on_write"
+    __slots__ = "atype", "dtype", "min_ver", "max_ver", "default", "_repeat", "remaining_compressed", "on_read", "on_write"
 
     def __init__(
         self,
@@ -31,6 +33,7 @@ class Retriever(MapValidate):
         *,
         default: T = None,
         repeat: int = 1,
+        atype: Type[RefList] = RefList,
         remaining_compressed: bool = False,
         on_read: list[Callable[[RetrieverSub, BaseStructSub], None]] | None = None,  # todo: add implementations for common on_x operations
         on_write: list[Callable[[RetrieverSub, BaseStructSub], None]] | None = None,
@@ -57,6 +60,8 @@ class Retriever(MapValidate):
                 0: skips reading value entirely, set property to []
                 1: single value is read and assigned to the property
                 >1: a list of values is read and assigned to the property
+        :param atype:
+            The array like type to use when constructing lists for retrievers with dynamic repeats
         :param remaining_compressed:
             If set to true, the decompress/compress methods are used on the remaining bytes before reading/writing the
             remaining retriever properties
@@ -72,6 +77,7 @@ class Retriever(MapValidate):
         """
         super().__init__(mappers, validators, on_get, on_set)
         self.dtype = dtype
+        self.atype = atype
         self.min_ver = min_ver
         self.max_ver = max_ver
         self.default = default
@@ -104,14 +110,14 @@ class Retriever(MapValidate):
                 f"{self.p_name!r} is not supported in your scenario version {instance.struct_ver}"
             )
 
-        def set_parent(obj):
-            if isinstance(obj, BaseStruct):
-                obj.parent = instance
-            elif isinstance(obj, list):
-                for sub_obj in obj:
-                    set_parent(sub_obj)
-
-        set_parent(value)
+        # def set_parent(obj):
+        #     if isinstance(obj, BaseStruct):
+        #         obj.parent = instance
+        #     elif isinstance(obj, list):
+        #         for sub_obj in obj:
+        #             set_parent(sub_obj)
+        #
+        # set_parent(value)
         super().__set__(instance, value)
 
     def __get__(self, instance: BaseStruct, owner: Type[BaseStruct]) -> Retriever | T:
@@ -153,7 +159,7 @@ class Retriever(MapValidate):
             return repeat
         return self._repeat
 
-    def from_default(self, instance: BaseStruct) -> None:
+    def from_default(self, instance: BaseStruct):
         """
         Initialise this retriever property from its default value
 
@@ -166,13 +172,16 @@ class Retriever(MapValidate):
         val = self.default
         if self.dtype.is_struct:
             val = (
-                val.from_default(val.struct_ver) if repeat == 1
-                else [val.from_default(val.struct_ver) for _ in range(repeat)]
+                val.__class__(instance.struct_ver, instance) if repeat == 1
+                else [val.__class__(instance.struct_ver, instance) for _ in range(repeat)]
             )
-        elif isinstance(val, list):
+        elif isinstance(val, list): # todo: this should probably be a deepcopy
             val = copy(val) if repeat == 1 else [copy(val) for _ in range(repeat)]
-        elif repeat != 1:
-            val = [val] * repeat
+        elif repeat != 1: # todo: this should probably be a deepcopy too
+            val = [copy(val) for _ in range(repeat)]
+
+        if isinstance(val, list):
+            val = self.atype(val, instance.struct_ver, instance)
 
         return val
 
@@ -205,7 +214,7 @@ class Retriever(MapValidate):
         ls: list = [None] * repeat
         for i in range(repeat):
             ls[i] = getobj()
-        setattr(instance, self.p_name, ls)
+        setattr(instance, self.p_name, self.atype(ls, instance.struct_ver, instance))
 
         for func in self.on_read:
             func(self, instance)
@@ -235,8 +244,8 @@ class Retriever(MapValidate):
         if len(ls) != repeat:
             raise ValueError(f"length of {self.p_name!r} is not the same as {repeat = }")
 
-        bytes_: list[bytes] = [b""] * repeat
-        for j, value in enumerate(getattr(instance, self.p_name)):
-            bytes_[j] = self.dtype.to_bytes(value)
+        bytes_ = BytesIO()
+        for value in getattr(instance, self.p_name):
+            bytes_.write(self.dtype.to_bytes(value))
 
-        return b"".join(bytes_)
+        return bytes_.getvalue()

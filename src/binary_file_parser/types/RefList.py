@@ -1,21 +1,23 @@
 from __future__ import annotations
 
-from typing import Generic, Iterable, overload, TypeVar, SupportsIndex
+from typing import Generic, Iterable, overload, TYPE_CHECKING, TypeVar, SupportsIndex
 
-from binary_file_parser.retrievers import BaseStruct
 from binary_file_parser.utils import Version
+
+if TYPE_CHECKING:
+    from binary_file_parser.retrievers import BaseStruct
 
 T = TypeVar("T")
 
 
 class RefList(list, Generic[T]):
-    def __init__(self, iterable: Iterable[T], parent: BaseStruct = None, struct_ver = Version((0,))):
+    def __init__(self, iterable: Iterable[T], struct_ver = Version((0,)), parent: BaseStruct = None):
         super().__init__(iterable)
-        self.parent = parent
         self.struct_ver = struct_ver
+        self.parent = parent
 
     def set_sub_attrs(self, obj: T):
-        if isinstance(obj, (BaseStruct, RefList)):
+        if getattr(obj, 'is_struct', False) or isinstance(obj, RefList):
             obj.parent = self.parent
             obj.struct_ver = self.struct_ver
 
@@ -27,7 +29,8 @@ class RefList(list, Generic[T]):
     def struct_ver(self, new_struct_ver: Version):
         self._struct_ver = new_struct_ver
         for obj in self:
-            self.set_sub_attrs(obj)
+            if getattr(obj, 'is_struct', False) or isinstance(obj, RefList):
+                obj.struct_ver = self.struct_ver
 
     @property
     def parent(self) -> BaseStruct:
@@ -37,7 +40,8 @@ class RefList(list, Generic[T]):
     def parent(self, new_parent: BaseStruct):
         self._parent = new_parent
         for obj in self:
-            self.set_sub_attrs(obj)
+            if getattr(obj, 'is_struct', False) or isinstance(obj, RefList):
+                obj.parent = self.parent
 
     def append(self, obj: T) -> None:
         super().append(obj)
@@ -63,11 +67,10 @@ class RefList(list, Generic[T]):
         super().__setitem__(i, o)
 
     def __add__(self, x: RefList[T]) -> RefList[T]:
-        for obj in x:
-            self.set_sub_attrs(obj)
-        return RefList(super().__add__(x))
+        return RefList(super().__add__(x), self.struct_ver, self.parent)
 
     def __iadd__(self: RefList[T], x: Iterable[T]) -> RefList[T]:
-        for obj in x:
-            self.set_sub_attrs(obj)
-        return RefList(super().__iadd__(x))
+        return RefList(super().__iadd__(x), self.struct_ver, self.parent)
+
+    def __radd__(self, other: RefList[T]) -> RefList[T]:
+        return self.__add__(other)

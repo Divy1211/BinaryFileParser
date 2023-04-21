@@ -23,7 +23,7 @@ class Parseable(ABC):
     @property
     def is_struct(self) -> bool:
         """
-        If a class similar to BaseStruct implements the Parsable interface, this method must be overriden to return True
+        If a class has its own retrievers and implements a from_default method, then this should return True
 
         :return: True if the object has multiple retrievers, False otherwise
         """
@@ -32,9 +32,9 @@ class Parseable(ABC):
     @property
     def is_iterable(self) -> bool:
         """
-        If the datatype is an iterator (container)
+        If the datatype is an iterator (container) like datatype
 
-        :return: True if the object is an iterator , False otherwise
+        :return: True if the object is an iterator, False otherwise
         """
         return False
 
