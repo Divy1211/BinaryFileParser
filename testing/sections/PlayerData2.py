@@ -13,7 +13,6 @@ class AiFile(BaseStruct):
 
 
 class Resources(BaseStruct):
-    # todo: parents on list structs
     # todo: corresponding index to be accessed/updated for individual structs in list
     @staticmethod
     def update_player_data4_gold(retriever: Retriever, instance: Resources):

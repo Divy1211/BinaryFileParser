@@ -30,17 +30,6 @@ class BaseStruct(Parseable):
     _refs: list[RetrieverRef] = []
     _combiners: list[RetrieverCombiner]
 
-    @property
-    def is_struct(self) -> bool:
-        return True
-
-    @property
-    def retriever_name_value_map(self) -> dict[str]:
-        map_ = {}
-        for retriever in self._retrievers:
-            map_[retriever.p_name] = getattr(self, retriever.p_name)
-        return map_
-
     @classmethod
     def add_retriever(cls, retriever: Retriever):
         cls._retrievers.append(retriever)
@@ -53,8 +42,41 @@ class BaseStruct(Parseable):
     def add_combiner(cls, combiner: RetrieverCombiner):
         cls._combiners.append(combiner)
 
+    def __init__(
+        self,
+        struct_ver: Version = Version((0,)),
+        parent: BaseStruct = None,
+        initialise_defaults: bool = True,
+        **retriever_inits,
+    ):
+        """
+        :param struct_ver: The struct version to create
+        :param parent: If this struct is nested within another, define the containing struct as parent
+        :param initialise_defaults:
+            If set to false, skip initialisation of struct values from default. This is only set to false when reading
+            a file
+        """
+        self._struct_ver = struct_ver
+        self._parent = parent
+
+        size = 0
+        for retriever in self._retrievers:
+            if not retriever.supported(struct_ver):
+                continue
+
+            if initialise_defaults:
+                init = retriever_inits.get(retriever.p_name, None)
+                setattr(self, retriever.p_name, init if init is not None else retriever.from_default(self))
+
+            size += retriever.default.size if retriever.dtype.is_struct else retriever.dtype.size
+        super().__init__(size)
+
     def __init_subclass__(cls, **kwargs):
         cls._retrievers, BaseStruct._retrievers = cls._retrievers.copy(), []
+
+    @property
+    def is_struct(self) -> bool:
+        return True
 
     def _update_struct_vars(self, new_struct_ver: Version):
         # todo: finish this
@@ -103,34 +125,12 @@ class BaseStruct(Parseable):
                 obj.parent = new_parent
         self._parent = new_parent
 
-    def __init__(
-        self,
-        struct_ver: Version = Version((0,)),
-        parent: BaseStruct = None,
-        initialise_defaults: bool = True,
-        **retriever_inits,
-    ):
-        """
-        :param struct_ver: The struct version to create
-        :param parent: If this struct is nested within another, define the containing struct as parent
-        :param initialise_defaults:
-            If set to false, skip initialisation of struct values from default. This is only set to false when reading
-            a file
-        """
-        self._struct_ver = struct_ver
-        self._parent = parent
-
-        size = 0
+    @property
+    def retriever_name_value_map(self) -> dict[str]:
+        map_ = {}
         for retriever in self._retrievers:
-            if not retriever.supported(struct_ver):
-                continue
-
-            if initialise_defaults:
-                init = retriever_inits.get(retriever.p_name, None)
-                setattr(self, retriever.p_name, init if init is not None else retriever.from_default(self))
-
-            size += retriever.default.size if retriever.dtype.is_struct else retriever.dtype.size
-        super().__init__(size)
+            map_[retriever.p_name] = getattr(self, retriever.p_name)
+        return map_
 
     @classmethod
     def get_version(cls, stream: ByteStream, struct_ver: Version = Version((0,)), parent: BaseStruct = None) -> Version:
