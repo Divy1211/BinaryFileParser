@@ -8,8 +8,8 @@ class View(BaseStruct):
     x: int = Retriever(int32, default = -1)
     y: int = Retriever(int32, default = -1)
 
-    def __init__(self, struct_version: Version = Version((1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
-        super().__init__(struct_version, parent, initialise_defaults, **retriever_inits)
+    def __init__(self, struct_ver: Version = Version((1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
+        super().__init__(struct_ver, parent, initialise_defaults, **retriever_inits)
 
 
 class Terrain(BaseStruct):
@@ -18,8 +18,8 @@ class Terrain(BaseStruct):
     unused: bytes = Retriever(Bytes[3], default = b"\x00\xff\xff")
     layer: int = Retriever(int16, default = -1)
 
-    def __init__(self, struct_version: Version = Version((1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
-        super().__init__(struct_version, parent, initialise_defaults, **retriever_inits)
+    def __init__(self, struct_ver: Version = Version((1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
+        super().__init__(struct_ver, parent, initialise_defaults, **retriever_inits)
 
 
 class MapData(BaseStruct):
@@ -56,5 +56,5 @@ class MapData(BaseStruct):
     height: int = Retriever(uint32, default = 120, on_set = [set_terrain_data_repeat])
     tiles: list[Terrain] = Retriever(Terrain, default = Terrain(), repeat = 14_400)
 
-    def __init__(self, struct_version: Version = Version((1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
-        super().__init__(struct_version, parent, initialise_defaults, **retriever_inits)
+    def __init__(self, struct_ver: Version = Version((1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
+        super().__init__(struct_ver, parent, initialise_defaults, **retriever_inits)

@@ -13,5 +13,5 @@ class Diplomacy(BaseStruct):
     random_start_points: bool = Retriever(bool8, default = False)
     max_num_teams: int = Retriever(int8, default = 4)
 
-    def __init__(self, struct_version: Version = Version((1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
-        super().__init__(struct_version, parent, initialise_defaults, **retriever_inits)
+    def __init__(self, struct_ver: Version = Version((1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
+        super().__init__(struct_ver, parent, initialise_defaults, **retriever_inits)

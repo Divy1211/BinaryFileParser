@@ -47,11 +47,11 @@ class ScenarioSections(BaseStruct):
     def get_version(
         cls,
         stream: ByteStream,
-        struct_version: Version = Version((0,)),
+        struct_ver: Version = Version((0,)),
         parent: BaseStruct = None,
     ) -> Version:
         ver_str = stream.peek(4).decode("ASCII")
         return Version(map(int, ver_str.split(".")))
 
-    def __init__(self, struct_version: Version = Version((1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
-        super().__init__(struct_version, parent, initialise_defaults, **retriever_inits)
+    def __init__(self, struct_ver: Version = Version((1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
+        super().__init__(struct_ver, parent, initialise_defaults, **retriever_inits)

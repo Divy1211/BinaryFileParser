@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from binary_file_parser import BaseStruct, Retriever, Version
-from binary_file_parser.types import Bytes, int16, int32, str16, uint32
+from binary_file_parser.types import Bytes, FixedLenArray, int16, int32, str16, uint32
 
 
 class BitMapInfoHeader(BaseStruct):
@@ -26,8 +26,8 @@ class BitMapInfoHeader(BaseStruct):
     num_important_colours: int = Retriever(uint32, default = 0)
     colours: list[int] = Retriever(uint32, default = 0, repeat = 0)
 
-    def __init__(self, struct_version: Version = Version((1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
-        super().__init__(struct_version, parent, initialise_defaults, **retriever_inits)
+    def __init__(self, struct_ver: Version = Version((1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
+        super().__init__(struct_ver, parent, initialise_defaults, **retriever_inits)
 
 
 class BackgroundImage(BaseStruct):
@@ -47,5 +47,5 @@ class BackgroundImage(BaseStruct):
     info_header: BitMapInfoHeader = Retriever(BitMapInfoHeader, default = BitMapInfoHeader())
     data: list[bytes] = Retriever(Bytes[1], default = b"\x00")
 
-    def __init__(self, struct_version: Version = Version((1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
-        super().__init__(struct_version, parent, initialise_defaults, **retriever_inits)
+    def __init__(self, struct_ver: Version = Version((1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
+        super().__init__(struct_ver, parent, initialise_defaults, **retriever_inits)
