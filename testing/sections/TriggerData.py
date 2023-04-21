@@ -94,7 +94,7 @@ class Effect(BaseStruct):
     selected_object_ids: list[int] = Retriever(int32, default = -1, repeat = 0)
 
     def __init__(self, struct_ver: Version = Version((3, 5, 1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
-        super().__init__(struct_ver, parent, initialise_defaults, **retriever_inits)
+        super().__init__(struct_ver, parent, initialise_defaults = initialise_defaults, **retriever_inits)
 
 class Condition(BaseStruct):
     condition_type: int = Retriever(int32, default = 0)
@@ -132,7 +132,7 @@ class Condition(BaseStruct):
     xs_function: str = Retriever(str32, default = "", min_ver = Version((2, 4, 1, 40)))
 
     def __init__(self, struct_ver: Version = Version((3, 5, 1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
-        super().__init__(struct_ver, parent, initialise_defaults, **retriever_inits)
+        super().__init__(struct_ver, parent, initialise_defaults = initialise_defaults, **retriever_inits)
 
 
 class Trigger(BaseStruct):
@@ -199,7 +199,7 @@ class Trigger(BaseStruct):
     """originally int32"""
 
     def __init__(self, struct_ver: Version = Version((3, 5, 1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
-        super().__init__(struct_ver, parent, initialise_defaults, **retriever_inits)
+        super().__init__(struct_ver, parent, initialise_defaults = initialise_defaults, **retriever_inits)
 
 
 class Variable(BaseStruct):
@@ -207,7 +207,7 @@ class Variable(BaseStruct):
     name: str = Retriever(nt_str32, default = "_Variable0")
 
     def __init__(self, struct_ver: Version = Version((1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
-        super().__init__(struct_ver, parent, initialise_defaults, **retriever_inits)
+        super().__init__(struct_ver, parent, initialise_defaults = initialise_defaults, **retriever_inits)
 
 
 class VariableData(BaseStruct):
@@ -216,7 +216,7 @@ class VariableData(BaseStruct):
     unknown: bytes = Retriever(Bytes[8], default = b"\x00"*8, min_ver = Version((3, 5, 1, 47)))
 
     def __init__(self, struct_ver: Version = Version((3, 5, 1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
-        super().__init__(struct_ver, parent, initialise_defaults, **retriever_inits)
+        super().__init__(struct_ver, parent, initialise_defaults = initialise_defaults, **retriever_inits)
 
 
 
@@ -259,4 +259,4 @@ class TriggerData(BaseStruct):
         return Version(map(int, ver_str.split("."))) + struct_ver
 
     def __init__(self, struct_ver: Version = Version((3, 5, 1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
-        super().__init__(struct_ver, parent, initialise_defaults, **retriever_inits)
+        super().__init__(struct_ver, parent, initialise_defaults = initialise_defaults, **retriever_inits)

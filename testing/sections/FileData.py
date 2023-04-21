@@ -9,7 +9,7 @@ class AiFile2(BaseStruct):
     per_content: str = Retriever(nt_str32, default = "")
 
     def __init__(self, struct_ver: Version = Version((1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
-        super().__init__(struct_ver, parent, initialise_defaults, **retriever_inits)
+        super().__init__(struct_ver, parent, initialise_defaults = initialise_defaults, **retriever_inits)
 
 class FileData(BaseStruct):
     @staticmethod
@@ -29,4 +29,4 @@ class FileData(BaseStruct):
     ai_files: list[AiFile2] = Retriever(Array32[AiFile2], default = [], repeat = 0)
 
     def __init__(self, struct_ver: Version = Version((1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
-        super().__init__(struct_ver, parent, initialise_defaults, **retriever_inits)
+        super().__init__(struct_ver, parent, initialise_defaults = initialise_defaults, **retriever_inits)

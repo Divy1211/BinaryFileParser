@@ -9,7 +9,7 @@ class View(BaseStruct):
     y: int = Retriever(int32, default = -1)
 
     def __init__(self, struct_ver: Version = Version((1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
-        super().__init__(struct_ver, parent, initialise_defaults, **retriever_inits)
+        super().__init__(struct_ver, parent, initialise_defaults = initialise_defaults, **retriever_inits)
 
 
 class Terrain(BaseStruct):
@@ -19,7 +19,7 @@ class Terrain(BaseStruct):
     layer: int = Retriever(int16, default = -1)
 
     def __init__(self, struct_ver: Version = Version((1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
-        super().__init__(struct_ver, parent, initialise_defaults, **retriever_inits)
+        super().__init__(struct_ver, parent, initialise_defaults = initialise_defaults, **retriever_inits)
 
 
 class MapData(BaseStruct):
@@ -57,4 +57,4 @@ class MapData(BaseStruct):
     tiles: list[Terrain] = Retriever(Terrain, default = Terrain(), repeat = 14_400)
 
     def __init__(self, struct_ver: Version = Version((1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
-        super().__init__(struct_ver, parent, initialise_defaults, **retriever_inits)
+        super().__init__(struct_ver, parent, initialise_defaults = initialise_defaults, **retriever_inits)

@@ -46,10 +46,11 @@ class BaseStruct(Parseable):
         self,
         struct_ver: Version = Version((0,)),
         parent: BaseStruct = None,
-        initialise_defaults: bool = True,
-        **retriever_inits,
+        idx: int = -1,
+        initialise_defaults: bool = True, **retriever_inits
     ):
         """
+        :param idx:
         :param struct_ver: The struct version to create
         :param parent: If this struct is nested within another, define the containing struct as parent
         :param initialise_defaults:
@@ -58,6 +59,7 @@ class BaseStruct(Parseable):
         """
         self._struct_ver = struct_ver
         self._parent = parent
+        self.idx = idx
 
         size = 0
         for retriever in self._retrievers:

@@ -21,7 +21,7 @@ class PlayerData4(BaseStruct):
     population_limit: float = Retriever(float32, default = 200.0)
 
     def __init__(self, struct_ver: Version = Version((1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
-        super().__init__(struct_ver, parent, initialise_defaults, **retriever_inits)
+        super().__init__(struct_ver, parent, initialise_defaults = initialise_defaults, **retriever_inits)
 
 
 class ViewF(BaseStruct):
@@ -29,14 +29,14 @@ class ViewF(BaseStruct):
     y: float = Retriever(float32, default = 60.0)
 
     def __init__(self, struct_ver: Version = Version((1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
-        super().__init__(struct_ver, parent, initialise_defaults, **retriever_inits)
+        super().__init__(struct_ver, parent, initialise_defaults = initialise_defaults, **retriever_inits)
 
 class ViewI(BaseStruct):
     x: int = Retriever(int16, default = 60)
     y: int = Retriever(int16, default = 60)
 
     def __init__(self, struct_ver: Version = Version((1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
-        super().__init__(struct_ver, parent, initialise_defaults, **retriever_inits)
+        super().__init__(struct_ver, parent, initialise_defaults = initialise_defaults, **retriever_inits)
 
 
 class PlayerData3(BaseStruct):
@@ -84,7 +84,7 @@ class PlayerData3(BaseStruct):
     unknown4: int = Retriever(int32, default = -1)
 
     def __init__(self, struct_ver: Version = Version((1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
-        super().__init__(struct_ver, parent, initialise_defaults, **retriever_inits)
+        super().__init__(struct_ver, parent, initialise_defaults = initialise_defaults, **retriever_inits)
 
 
 class Unit(BaseStruct):
@@ -99,7 +99,7 @@ class Unit(BaseStruct):
     garrisoned_in_reference_id: int = Retriever(int32, default = -1)
 
     def __init__(self, struct_ver: Version = Version((1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
-        super().__init__(struct_ver, parent, initialise_defaults, **retriever_inits)
+        super().__init__(struct_ver, parent, initialise_defaults = initialise_defaults, **retriever_inits)
 
 
 class UnitData(BaseStruct):
@@ -119,4 +119,4 @@ class UnitData(BaseStruct):
     units: list[list[Unit]] = Retriever(Array32[Unit], default = [])
 
     def __init__(self, struct_ver: Version = Version((1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
-        super().__init__(struct_ver, parent, initialise_defaults, **retriever_inits)
+        super().__init__(struct_ver, parent, initialise_defaults = initialise_defaults, **retriever_inits)
