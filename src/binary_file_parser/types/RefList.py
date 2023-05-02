@@ -13,6 +13,7 @@ T = TypeVar("T")
 class RefList(list, Generic[T]):
     def __init__(self, iterable: Iterable[T], struct_ver = Version((0,)), parent: BaseStruct = None):
         # todo: set idxs on structs where relevant
+        # todo: set own idx for nested lists
         super().__init__(iterable)
         self.struct_ver = struct_ver
         self.parent = parent

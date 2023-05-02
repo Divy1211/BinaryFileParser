@@ -12,7 +12,7 @@ from binary_file_parser.errors import ParsingError
 from binary_file_parser.errors import VersionError
 from binary_file_parser.types import ByteStream, RefList
 from binary_file_parser.types import Parseable
-from binary_file_parser.utils import indentify, powers_of_two, Version
+from binary_file_parser.utils import indentify, Version
 
 if TYPE_CHECKING:
     from binary_file_parser.retrievers.Retriever import Retriever
@@ -47,7 +47,8 @@ class BaseStruct(Parseable):
         struct_ver: Version = Version((0,)),
         parent: BaseStruct = None,
         idx: int = -1,
-        initialise_defaults: bool = True, **retriever_inits
+        initialise_defaults: bool = True,
+        **retriever_inits,
     ):
         """
         :param idx:
@@ -56,6 +57,8 @@ class BaseStruct(Parseable):
         :param initialise_defaults:
             If set to false, skip initialisation of struct values from default. This is only set to false when reading
             a file
+        :param retriever_inits:
+            Use this to provide initial values to retrievers
         """
         self._struct_ver = struct_ver
         self._parent = parent
@@ -68,7 +71,9 @@ class BaseStruct(Parseable):
 
             if initialise_defaults:
                 init = retriever_inits.get(retriever.p_name, None)
-                setattr(self, retriever.p_name, init if init is not None else retriever.from_default(self))
+                if init is None:
+                    init = retriever.from_default(self)
+                setattr(self, retriever.p_name, init)
 
             size += retriever.default.size if retriever.dtype.is_struct else retriever.dtype.size
         super().__init__(size)
@@ -82,9 +87,28 @@ class BaseStruct(Parseable):
     def is_struct(self) -> bool:
         return True
 
-    def _update_struct_vars(self, new_struct_ver: Version):
-        # todo: finish this
-        self._struct_ver = new_struct_ver
+    @property
+    def root(self) -> BaseStruct:
+        """
+        The top level object of which this struct is a part of
+        """
+        child = self
+        while child.parent is not None:
+            child = self.parent
+        return child
+
+    def on_struct_ver_change(self, new_struct_ver: Version):
+        """
+        This method is called when a struct's version is changed. Use this to implement any custom logic required to
+        support a version change on a struct. The default method implements a trial and error algorithm where if an
+        unsupported retriever after the version change used to have the same value as its default, then it is discarded
+        without any errors, However, if a value other than the default was assigned to it, an error is raised
+
+        :param new_struct_ver: The new struct version (the self.struct_ver attribute will automatically be updated)
+
+        :raises VersionError: When the version change causes a non default valued retriever to become unsupported
+        """
+        ...
 
     @property
     def struct_ver(self):
@@ -96,22 +120,13 @@ class BaseStruct(Parseable):
             if (
                 not retriever.supported(self.struct_ver)
                 or not (retriever.dtype.is_struct or retriever.dtype.is_iterable)
+                or retriever.is_self_versioned
             ):
                 continue
-            for i in powers_of_two(8):
-                try:
-                    retriever.dtype.__class__.get_version(stream = ByteStream.from_bytes(b"\x00"*i))
-                except EOFError:
-                    continue
-                except (VersionError, AttributeError):
-                    try:
-                        if (obj := getattr(self, retriever.p_name)) is not None:
-                            obj.struct_ver = new_struct_ver
-                    except:
-                        print(retriever.p_name)
-                        raise
-                break
-        self._update_struct_vars(new_struct_ver)
+            if (obj := getattr(self, retriever.p_name)) is not None:
+                obj.struct_ver = new_struct_ver
+        self.on_struct_ver_change(new_struct_ver)
+        self._struct_ver = new_struct_ver
 
     @property
     def parent(self):

@@ -14,9 +14,3 @@ class Version(tuple[int, ...]):
 
 def indentify(repr_str: str, indent = 4) -> str:
     return f"\n{' '*indent}".join(repr_str.splitlines())
-
-def powers_of_two(init: int = 1):
-    c = init
-    while True:
-        yield c
-        c *= 2

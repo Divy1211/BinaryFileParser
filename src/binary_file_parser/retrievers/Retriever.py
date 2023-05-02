@@ -91,6 +91,19 @@ class Retriever(MapValidate):
         # else:
         #     self.validators.append(lambda retriever, instance, iterable: all(map(dtype.is_valid, iterable)))
 
+    @property
+    def is_self_versioned(self) -> bool:
+        """
+        True if the dtype of this retriever is a struct that implements its own versioning.
+        """
+        try:
+            self.dtype.__class__.get_version(stream = ByteStream.from_bytes(b"\x00"*8))
+            return True
+        except EOFError:
+            return True
+        except (VersionError, AttributeError):
+            return False
+
     def supported(self, ver: Version) -> bool:
         """
         Determine if this retriever property is supported in the specified version
