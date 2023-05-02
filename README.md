@@ -43,6 +43,78 @@ file.eggs = 20
 file.to_file("path/to/write/to")
 ```
 
+## A Slightly More Complex Example
+The main magic of this library is that:
+
+1. You can use your own structs within another struct
+2. Event hooks help you keep any interdependencies in the file structure synchronised:
+
+```py
+from __future__ import annotations
+
+from binary_file_parser import BaseStruct, Retriever
+from binary_file_parser.types import FixedLenArray, int32
+
+
+class Pixel(BaseStruct):
+    red: int = Retriever(int32, default = 0)
+    green: int = Retriever(int32, default = 0)
+    blue: int = Retriever(int32, default = 0)
+    alpha: int = Retriever(int32, default = 0)
+
+    def __init__(
+        self,
+        red: int,
+        green: int,
+        blue: int,
+        alpha: int = 0,
+    ):
+        super().__init__(initialise_defaults = False)
+        self.red = red
+        self.green = green
+        self.blue = blue
+        self.alpha = alpha
+
+class Img(BaseStruct):
+    @property
+    def width(self) -> int:
+        return len(self.pixels[0])
+
+    @property
+    def height(self) -> int:
+        return len(self.pixels)
+
+    @staticmethod
+    def _set_width(retriever: Retriever, obj: Img):
+        # here Img.pixels.dtype refers to FixedLenArray
+        Img.pixels.dtype.length = obj._width
+
+    @staticmethod
+    def _set_height(retriever: Retriever, obj: Img):
+        # The repeat value defines how many times a single retriever should read data
+        Retriever.set_repeat(Img.pixels, obj, obj._height)
+
+    @staticmethod
+    def _update_dims(retriever: Retriever, obj: Img):
+        # this ensures that when the file is written back, the height and width being written back to file are
+        # up to date
+        obj._height = obj.height
+        Img.pixels.dtype.length = obj._width = obj.pixels
+
+    _width: int = Retriever(int32, default = 100, on_read = [_set_width], on_write = [_update_dims])
+    _height: int = Retriever(int32, default = 200, on_set = [_set_height])
+    pixels: list[list[Pixel]] = Retriever(
+        FixedLenArray[Pixel, 100], default = [Pixel(0, 0, 0) for _ in range(100)], repeat = 200
+    )
+
+# Make a new image from all defaults
+a = Img()
+# Note: Mutable defaults will be shallow copied, (this means all rows of pixels in the above example are the same!)
+# If you have larger structs or nested structs, use default_factory (coming soon:tm:) instead
+```
+
+Note: the static methods above must be defined before the struct attributes in actual code, the order in the example above is reversed purely for better readability.
+
 ## About the Author
 
 If you have any questions, suggestions or feedback regarding the library, feel free to send me a message on discord!
