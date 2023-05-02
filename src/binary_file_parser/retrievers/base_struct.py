@@ -28,18 +28,18 @@ class BaseStruct(Parseable):
 
     _retrievers: list[Retriever] = []
     _refs: list[RetrieverRef] = []
-    _combiners: list[RetrieverCombiner]
+    _combiners: list[RetrieverCombiner] = []
 
     @classmethod
-    def add_retriever(cls, retriever: Retriever):
+    def _add_retriever(cls, retriever: Retriever):
         cls._retrievers.append(retriever)
 
     @classmethod
-    def add_ref(cls, ref: RetrieverRef):
+    def _add_ref(cls, ref: RetrieverRef):
         cls._refs.append(ref)
 
     @classmethod
-    def add_combiner(cls, combiner: RetrieverCombiner):
+    def _add_combiner(cls, combiner: RetrieverCombiner):
         cls._combiners.append(combiner)
 
     def __init__(
@@ -75,6 +75,8 @@ class BaseStruct(Parseable):
 
     def __init_subclass__(cls, **kwargs):
         cls._retrievers, BaseStruct._retrievers = cls._retrievers.copy(), []
+        cls._refs, BaseStruct._refs = cls._refs.copy(), []
+        cls._combiners, BaseStruct._combiners = cls._combiners.copy(), []
 
     @property
     def is_struct(self) -> bool:

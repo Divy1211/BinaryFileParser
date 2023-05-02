@@ -7,6 +7,7 @@ from binary_file_parser.errors import VersionError
 
 from binary_file_parser.retrievers.base_struct import BaseStruct
 from binary_file_parser.retrievers.Retriever import Retriever
+from binary_file_parser.retrievers.RetreiverCombiner import RetrieverCombiner
 
 
 T = TypeVar("T")
@@ -16,7 +17,7 @@ class RetrieverRef(Generic[T]):
     """
     Create a new reference to an existing retriever
     """
-    def __init__(self, retriever: Retriever):
+    def __init__(self, retriever: Retriever | RetrieverCombiner):
         """
         :param retriever: The retriever to reference
         """
@@ -24,7 +25,7 @@ class RetrieverRef(Generic[T]):
 
     def __set_name__(self, owner: Type[BaseStruct], name: str) -> None:
         self.name = name
-        owner.add_ref(self)
+        owner._add_ref(self)
 
     def __set__(self, instance: BaseStruct, value: T) -> None:
         with suppress(VersionError):

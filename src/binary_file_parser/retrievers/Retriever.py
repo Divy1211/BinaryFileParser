@@ -102,7 +102,7 @@ class Retriever(MapValidate):
 
     def __set_name__(self, owner: Type[BaseStruct], name: str) -> None:
         super().__set_name__(owner, name)
-        owner.add_retriever(self)
+        owner._add_retriever(self)
 
     def __set__(self, instance: BaseStruct, value: T) -> None:
         if not self.supported(instance.struct_ver):
