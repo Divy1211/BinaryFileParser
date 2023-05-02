@@ -76,6 +76,12 @@ class Pixel(BaseStruct):
         self.alpha = alpha
 
 class Img(BaseStruct):
+    _width: int = Retriever(int32, default = 100, on_read = [_set_width], on_write = [_update_dims])
+    _height: int = Retriever(int32, default = 200, on_set = [_set_height])
+    pixels: list[list[Pixel]] = Retriever(
+        FixedLenArray[Pixel, 100], default = [Pixel(0, 0, 0) for _ in range(100)], repeat = 200
+    )
+
     @property
     def width(self) -> int:
         return len(self.pixels[0])
@@ -100,12 +106,6 @@ class Img(BaseStruct):
         # up to date
         obj._height = obj.height
         Img.pixels.dtype.length = obj._width = obj.pixels
-
-    _width: int = Retriever(int32, default = 100, on_read = [_set_width], on_write = [_update_dims])
-    _height: int = Retriever(int32, default = 200, on_set = [_set_height])
-    pixels: list[list[Pixel]] = Retriever(
-        FixedLenArray[Pixel, 100], default = [Pixel(0, 0, 0) for _ in range(100)], repeat = 200
-    )
 
 # Make a new image from all defaults
 a = Img()
