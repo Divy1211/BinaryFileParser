@@ -5,7 +5,6 @@ from contextlib import suppress
 from typing import TYPE_CHECKING
 
 from alive_progress import alive_it
-from toolz import compose
 
 from binary_file_parser.errors import CompressionError
 from binary_file_parser.errors import ParsingError
@@ -356,7 +355,7 @@ class BaseStruct(Parseable):
             if isinstance(obj, list):
                 sub_obj_repr_str = (
                     "[\n    "
-                    + ",\n    ".join(map(compose(indentify, repr), obj))
+                    + ",\n    ".join(map(lambda x: indentify(repr(x)), obj))
                     + ",\n]"
                 )
             else:

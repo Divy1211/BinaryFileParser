@@ -1,2 +1,1 @@
 alive-progress>=2.4.1
-toolz
