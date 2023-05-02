@@ -105,7 +105,7 @@ class Img(BaseStruct):
         # this ensures that when the file is written back, the height and width being written back to file are
         # up to date
         obj._height = obj.height
-        Img.pixels.dtype.length = obj._width = obj.pixels
+        Img.pixels.dtype.length = obj._width = obj.width
 
 # Make a new image from all defaults
 a = Img()
