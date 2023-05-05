@@ -24,7 +24,7 @@ This is a very basic script to give you an idea of how to use this library. Chec
 
 ```py
 from binary_file_parser import BaseStruct, Retriever
-from binary_file_parser.types import int32, uint64, str32, FixedLenStr
+from binary_file_parser.types import uint32, uint64, str32, FixedLenStr
 
 class Spam(BaseStruct):
     file_version: str = Retriever(FixedLenStr[4], default = 0)
@@ -76,8 +76,8 @@ class Pixel(BaseStruct):
         self.alpha = alpha
 
 class Img(BaseStruct):
-    _width: int = Retriever(int32, default = 100, on_read = [_set_width], on_write = [_update_dims])
-    _height: int = Retriever(int32, default = 200, on_set = [_set_height])
+    _width: int = Retriever(uint32, default = 100, on_read = [_set_width], on_write = [_update_dims])
+    _height: int = Retriever(uint32, default = 200, on_set = [_set_height])
     pixels: list[list[Pixel]] = Retriever(
         FixedLenArray[Pixel, 100], default = [Pixel(0, 0, 0) for _ in range(100)], repeat = 200
     )
