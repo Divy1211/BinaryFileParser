@@ -53,14 +53,14 @@ The main magic of this library is that:
 from __future__ import annotations
 
 from binary_file_parser import BaseStruct, Retriever
-from binary_file_parser.types import FixedLenArray, int32
+from binary_file_parser.types import FixedLenArray, uint8
 
 
 class Pixel(BaseStruct):
-    red: int = Retriever(int32, default = 0)
-    green: int = Retriever(int32, default = 0)
-    blue: int = Retriever(int32, default = 0)
-    alpha: int = Retriever(int32, default = 0)
+    red: int = Retriever(uint8, default = 0)
+    green: int = Retriever(uint8, default = 0)
+    blue: int = Retriever(uint8, default = 0)
+    alpha: int = Retriever(uint8, default = 0)
 
     def __init__(
         self,
