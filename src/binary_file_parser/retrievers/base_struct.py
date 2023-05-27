@@ -78,6 +78,9 @@ class BaseStruct(Parseable):
         super().__init__(size)
 
     def __init_subclass__(cls, **kwargs):
+        """
+        Note: subclasses of BaseStruct which intend to act as ABCs need to override this
+        """
         cls._retrievers, BaseStruct._retrievers = cls._retrievers.copy(), []
         cls._refs, BaseStruct._refs = cls._refs.copy(), []
         cls._combiners, BaseStruct._combiners = cls._combiners.copy(), []
@@ -147,7 +150,8 @@ class BaseStruct(Parseable):
     def retriever_name_value_map(self) -> dict[str]:
         map_ = {}
         for retriever in self._retrievers:
-            map_[retriever.p_name] = getattr(self, retriever.p_name)
+            if retriever.supported(self.struct_ver):
+                map_[retriever.p_name] = getattr(self, retriever.p_name)
         return map_
 
     @classmethod
@@ -194,6 +198,14 @@ class BaseStruct(Parseable):
             "A Structure with compressed section needs to implement 'compress' classmethod."
         )
 
+    def map(self) -> BaseStruct:
+        """
+        This method is called after a struct is read from bytes to allow any modifications post reading
+
+        :return: A BaseStruct instance
+        """
+        return self
+
     @classmethod
     def from_stream(
         cls, stream: ByteStream, *, struct_ver: Version = Version((0,)), strict: bool = False,
@@ -238,7 +250,7 @@ class BaseStruct(Parseable):
                 f"{stream.remaining()}"
             )
 
-        return instance
+        return instance.map()
 
     @classmethod
     def from_bytes(cls, bytes_: bytes, *, struct_ver: Version = Version((0,)), strict = False) -> BaseStruct:
