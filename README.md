@@ -76,20 +76,6 @@ class Pixel(BaseStruct):
         self.alpha = alpha
 
 class Img(BaseStruct):
-    _width: int = Retriever(uint32, default = 100, on_read = [_set_width], on_write = [_update_dims])
-    _height: int = Retriever(uint32, default = 200, on_set = [_set_height])
-    pixels: list[list[Pixel]] = Retriever(
-        FixedLenArray[Pixel, 100], default = [Pixel(0, 0, 0) for _ in range(100)], repeat = 200
-    )
-
-    @property
-    def width(self) -> int:
-        return len(self.pixels[0])
-
-    @property
-    def height(self) -> int:
-        return len(self.pixels)
-
     @staticmethod
     def _set_width(retriever: Retriever, obj: Img):
         # here Img.pixels.dtype refers to FixedLenArray
@@ -106,14 +92,26 @@ class Img(BaseStruct):
         # up to date
         obj._height = obj.height
         Img.pixels.dtype.length = obj._width = obj.width
+    
+    _width: int = Retriever(uint32, default = 100, on_read = [_set_width], on_write = [_update_dims])
+    _height: int = Retriever(uint32, default = 200, on_set = [_set_height])
+    pixels: list[list[Pixel]] = Retriever(
+        FixedLenArray[Pixel, 100], default = [Pixel(0, 0, 0) for _ in range(100)], repeat = 200
+    )
+
+    @property
+    def width(self) -> int:
+        return len(self.pixels[0])
+
+    @property
+    def height(self) -> int:
+        return len(self.pixels)
 
 # Make a new image from all defaults
 a = Img()
 # Note: Mutable defaults will be shallow copied, (this means all rows of pixels in the above example are the same!)
 # If you have larger structs or nested structs, use default_factory (coming soon:tm:) instead
 ```
-
-Note: the static methods above must be defined before the struct attributes in actual code, the order in the example above is reversed purely for better readability.
 
 ## About the Author
 
