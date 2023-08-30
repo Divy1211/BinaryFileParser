@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 
-from copy import copy
 from io import BytesIO
-from typing import Type, Callable, TypeVar
+from typing import Any, Type, Callable, TypeVar
 
-from binary_file_parser.errors import VersionError
+from binary_file_parser.errors import VersionError, DefaultValueError
 from binary_file_parser.types import ByteStream
 from binary_file_parser.types import Parseable
 
@@ -23,7 +22,10 @@ class Retriever(MapValidate):
     """
     Represents a binary object in a struct and the restrictions/dependencies associated with it
     """
-    __slots__ = "atype", "dtype", "min_ver", "max_ver", "default", "_repeat", "remaining_compressed", "on_read", "on_write"
+    __slots__ = (
+        "atype", "dtype", "min_ver", "max_ver", "default", "default_factory",
+        "_repeat", "remaining_compressed", "on_read", "on_write"
+    )
 
     def __init__(
         self,
@@ -31,7 +33,8 @@ class Retriever(MapValidate):
         min_ver: Version = Version((-1,)),
         max_ver: Version = Version((1000,)),
         *,
-        default: T = None,
+        default = None,
+        default_factory: Callable[[Version, BaseStruct], Any] = None,
         repeat: int = 1,
         atype: Type[RefList] = RefList,
         remaining_compressed: bool = False,
@@ -54,6 +57,8 @@ class Retriever(MapValidate):
             is greater than max_ver, reading this retriever property is skipped and a version error is raised if an
             attempt to access or assign it is made
         :param default: A default value for this retriever property
+        :param default_factory:
+            A function that takes in a version and a base struct instance, should
         :param repeat:
             The number of times this value is repeated. Possible values for this parameter include:
                 -1: skips reading value entirely, set property to None
@@ -74,13 +79,26 @@ class Retriever(MapValidate):
             A ValueError is raised if validation from any one of these functions fails
         :param on_get: A list of functions that are called when this retriever property is accessed
         :param on_set: A list of functions that are called when this retriever property is set
+
+        :raises DefaultValueError: If a mutable type is used for providing default values instead of default_factory
         """
         super().__init__(mappers, validators, on_get, on_set)
         self.dtype = dtype
         self.atype = atype
         self.min_ver = min_ver
         self.max_ver = max_ver
+
+        if (
+            isinstance(default, list)
+            or default is not None
+            and isinstance(default, BaseStruct)
+        ):
+            raise DefaultValueError(
+                "Using mutable types for default values is not allowed. Use a default_factory instead!"
+            )
+
         self.default = default
+        self.default_factory = default_factory
         self._repeat = repeat
         self.remaining_compressed = remaining_compressed
         self.on_read = on_read or []
@@ -182,21 +200,36 @@ class Retriever(MapValidate):
         if repeat == -1:
             return None
 
-        val = self.default
-        if self.dtype.is_struct:
-            val = (
-                val.__class__(instance.struct_ver, instance) if repeat == 1
-                else [val.__class__(instance.struct_ver, instance) for _ in range(repeat)]
+        if self.default is not None:
+            if repeat == 1:
+                return self.default
+            return self.atype(
+                [self.default]*repeat,
+                instance.struct_ver, instance
             )
-        elif isinstance(val, list): # todo: this should probably be a deepcopy
-            val = copy(val) if repeat == 1 else [copy(val) for _ in range(repeat)]
-        elif repeat != 1: # todo: this should probably be a deepcopy too
-            val = [copy(val) for _ in range(repeat)]
 
-        if isinstance(val, list):
-            val = self.atype(val, instance.struct_ver, instance)
+        if self.default_factory is not None:
+            if repeat == 1:
+                val = self.default_factory(instance.struct_ver, instance)
+                if isinstance(val, list):
+                    return self.atype(val, instance.struct_ver, instance)
+                return val
+            return self.atype(
+                (self.default_factory(instance.struct_ver, instance) for _ in range(repeat)),
+                instance.struct_ver, instance
+            )
 
-        return val
+        if self.dtype.is_struct:
+            if repeat == 1:
+                return self.dtype(struct_ver = instance.struct_ver, parent = instance).map()
+            return self.atype(
+                (self.dtype(struct_ver = instance.struct_ver, parent = instance).map() for _ in range(repeat)),
+                instance.struct_ver, instance
+            )
+
+        raise DefaultValueError(
+            f"Unable to auto-initialise '{self.p_name}' as a default value is not provided"
+        )
 
     def from_stream(self, instance: BaseStruct, stream: ByteStream) -> None:
         """

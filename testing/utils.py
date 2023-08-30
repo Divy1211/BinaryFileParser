@@ -26,7 +26,7 @@ def ignored(*errors, msg: str = "", show_traceback: bool = False, callback: Call
 
 exec_time = {}
 @contextmanager
-def timed(name: str = "", /, *, print_time: bool = False) -> Generator:
+def timed(name: str = "", /, *, print_time: bool = True) -> Generator:
     """
     Records the execution time of the context manager block.
 

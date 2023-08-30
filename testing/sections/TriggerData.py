@@ -6,16 +6,16 @@ from binary_file_parser.types import (
 )
 
 attr_usage_ids = {
-    "message": {3, 20, 26, 37, 44, 45, 48, 51, 55, 56, 59, 60, 65, 66},
-    "sound_name": {3, 4, 20},
+    "_message": {3, 20, 26, 37, 44, 45, 48, 51, 55, 56, 59, 60, 65, 66},
+    "_sound_name": {3, 4, 20},
 }
 
 
 class Effect(BaseStruct):
     @staticmethod
     def set_sel_obj_ids_repeat(retriever: Retriever, instance: Effect):
-        repeat = 0 if instance.num_objects_selected == -1 else instance.num_objects_selected
-        Effect.selected_object_ids.set_repeat(instance, repeat)
+        repeat = 0 if instance._num_objects_selected == -1 else instance._num_objects_selected
+        Effect._selected_object_ids.set_repeat(instance, repeat)
 
     @staticmethod
     def remove_null_term(retriever: Retriever, instance: Effect):
@@ -30,68 +30,72 @@ class Effect(BaseStruct):
 
     @staticmethod
     def update_num_obj_sel(retreiver: Retriever, instance: Effect):
-        instance.num_objects_selected = len(instance.selected_object_ids)
+        instance.num_objects_selected = len(instance._selected_object_ids)
 
     type: int = Retriever(int32, default = -1)
-    static_value_2_2_1_36: int = Retriever(int32, default = 46, max_ver = Version((2, 2, 1, 37)))
-    static_value_2_4_1_40: int = Retriever(int32, default = 48, min_ver = Version((2, 4, 1, 40)), max_ver = Version((2, 4, 1, 41)))
-    static_value_2_4_1_42: int = Retriever(int32, default = 49, min_ver = Version((2, 4, 1, 42)), max_ver = Version((2, 4, 1, 43)))
-    static_value_2_4_1_44: int = Retriever(int32, default = 52, min_ver = Version((2, 4, 1, 44)))
-    ai_script_goal: int = Retriever(int32, default = -1)
-    quantity: int = Retriever(int32, default = -1)
-    tribute_list: int = Retriever(int32, default = -1)
-    diplomacy: int = Retriever(int32, default = -1)
-    num_objects_selected: int = Retriever(int32, default = -1, on_set = [set_sel_obj_ids_repeat], on_write = [update_num_obj_sel])
-    legacy_location_object_reference: int = Retriever(int32, default = -1)
-    object_list_unit_id: int = Retriever(int32, default = -1)
-    source_player: int = Retriever(int32, default = -1)
-    target_player: int = Retriever(int32, default = -1)
-    technology: int = Retriever(int32, default = -1)
-    string_id: int = Retriever(int32, default = -1)
-    unknown2: int = Retriever(int32, default = -1)
-    display_time: int = Retriever(int32, default = -1)
-    trigger_id: int = Retriever(int32, default = -1)
-    location_x: int = Retriever(int32, default = -1)
-    location_y: int = Retriever(int32, default = -1)
-    area_x1: int = Retriever(int32, default = -1)
-    area_y1: int = Retriever(int32, default = -1)
-    area_x2: int = Retriever(int32, default = -1)
-    area_y2: int = Retriever(int32, default = -1)
-    object_group: int = Retriever(int32, default = -1)
-    object_type: int = Retriever(int32, default = -1)
-    instruction_panel_position: int = Retriever(int32, default = -1)
-    attack_stance: int = Retriever(int32, default = -1)
-    time_unit: int = Retriever(int32, default = -1)
-    enabled: int = Retriever(int32, default = -1)
-    food: int = Retriever(int32, default = -1)
-    wood: int = Retriever(int32, default = -1)
-    stone: int = Retriever(int32, default = -1)
-    gold: int = Retriever(int32, default = -1)
-    item_id: int = Retriever(int32, default = -1)
-    flash_object: int = Retriever(int32, default = -1)
-    force_research_technology: int = Retriever(int32, default = -1)
-    visibility_state: int = Retriever(int32, default = -1)
-    scroll: int = Retriever(int32, default = -1)
-    operation: int = Retriever(int32, default = -1)
-    object_list_unit_id2: int = Retriever(int32, default = -1)
-    button_location: int = Retriever(int32, default = -1)
-    ai_signal_value: int = Retriever(int32, default = -1)
-    unknown3: int = Retriever(int32, default = -1)
-    object_attributes: int = Retriever(int32, default = -1)
-    variable: int = Retriever(int32, default = -1)
-    timer: int = Retriever(int32, default = -1)
-    facet: int = Retriever(int32, default = -1)
-    location_object_reference: int = Retriever(int32, default = -1)
-    play_sound: int = Retriever(int32, default = -1)
-    player_colour: int = Retriever(int32, default = -1, min_ver = Version((2, 4, 1, 40)))
-    unknown4: int = Retriever(int32, default = -1, min_ver = Version((2, 4, 1, 40)))
-    colour_mood: int = Retriever(int32, default = -1, min_ver = Version((2, 4, 1, 42)))
-    reset_timer: int = Retriever(int32, default = -1, min_ver = Version((2, 4, 1, 44)))
-    object_state: int = Retriever(int32, default = -1, min_ver = Version((2, 4, 1, 44)))
-    action_type: int = Retriever(int32, default = -1, min_ver = Version((2, 4, 1, 44)))
-    message: str = Retriever(str32, default = "", on_read = [remove_null_term], on_write = [append_null_term_if_used])
-    sound_name: str = Retriever(str32, default = "", on_read = [remove_null_term], on_write = [append_null_term_if_used])
-    selected_object_ids: list[int] = Retriever(int32, default = -1, repeat = 0)
+    _static_value_2_2_1_36: int = Retriever(int32, default = 46, max_ver = Version((2, 2, 1, 37)))
+    _static_value_2_4_1_40: int = Retriever(int32, default = 48, min_ver = Version((2, 4, 1, 40)), max_ver = Version((2, 4, 1, 41)))
+    _static_value_2_4_1_42: int = Retriever(int32, default = 49, min_ver = Version((2, 4, 1, 42)), max_ver = Version((2, 4, 1, 43)))
+    _static_value_2_4_1_44: int = Retriever(int32, default = 52, min_ver = Version((2, 4, 1, 44)))
+    _ai_script_goal: int = Retriever(int32, default = -1)
+    _quantity: int = Retriever(int32, default = -1)
+    _tribute_list: int = Retriever(int32, default = -1)
+    _diplomacy: int = Retriever(int32, default = -1)
+    _num_objects_selected: int = Retriever(int32, default = -1, on_set = [set_sel_obj_ids_repeat], on_write = [update_num_obj_sel])
+    _legacy_location_object_reference: int = Retriever(int32, default = -1)
+    _object_list_unit_id: int = Retriever(int32, default = -1)
+    _source_player: int = Retriever(int32, default = -1)
+    _target_player: int = Retriever(int32, default = -1)
+    _technology: int = Retriever(int32, default = -1)
+    _string_id: int = Retriever(int32, default = -1)
+    _unknown2: int = Retriever(int32, default = -1)
+    _display_time: int = Retriever(int32, default = -1)
+    _trigger_id: int = Retriever(int32, default = -1)
+    _location_x: int = Retriever(int32, default = -1)
+    _location_y: int = Retriever(int32, default = -1)
+    _area_x1: int = Retriever(int32, default = -1)
+    _area_y1: int = Retriever(int32, default = -1)
+    _area_x2: int = Retriever(int32, default = -1)
+    _area_y2: int = Retriever(int32, default = -1)
+    _object_group: int = Retriever(int32, default = -1)
+    _object_type: int = Retriever(int32, default = -1)
+    _instruction_panel_position: int = Retriever(int32, default = -1)
+    _attack_stance: int = Retriever(int32, default = -1)
+    _time_unit: int = Retriever(int32, default = -1)
+    _enabled: int = Retriever(int32, default = -1)
+    _food: int = Retriever(int32, default = -1)
+    _wood: int = Retriever(int32, default = -1)
+    _stone: int = Retriever(int32, default = -1)
+    _gold: int = Retriever(int32, default = -1)
+    _item_id: int = Retriever(int32, default = -1)
+    _flash_object: int = Retriever(int32, default = -1)
+    _force_research_technology: int = Retriever(int32, default = -1)
+    _visibility_state: int = Retriever(int32, default = -1)
+    _scroll: int = Retriever(int32, default = -1)
+    _operation: int = Retriever(int32, default = -1)
+    _object_list_unit_id2: int = Retriever(int32, default = -1)
+    _button_location: int = Retriever(int32, default = -1)
+    _ai_signal_value: int = Retriever(int32, default = -1)
+    _unknown3: int = Retriever(int32, default = -1)
+    _object_attributes: int = Retriever(int32, default = -1)
+    _variable: int = Retriever(int32, default = -1)
+    _timer: int = Retriever(int32, default = -1)
+    _facet: int = Retriever(int32, default = -1)
+    _location_object_reference: int = Retriever(int32, default = -1)
+    _play_sound: int = Retriever(int32, default = -1)
+    _player_colour: int = Retriever(int32, default = -1, min_ver = Version((2, 4, 1, 40)))
+    _unknown4: int = Retriever(int32, default = -1, min_ver = Version((2, 4, 1, 40)))
+    _colour_mood: int = Retriever(int32, default = -1, min_ver = Version((2, 4, 1, 42)))
+    _reset_timer: int = Retriever(int32, default = -1, min_ver = Version((2, 4, 1, 44)))
+    _object_state: int = Retriever(int32, default = -1, min_ver = Version((2, 4, 1, 44)))
+    _action_type: int = Retriever(int32, default = -1, min_ver = Version((2, 4, 1, 44)))
+    _message: str = Retriever(str32, default = "", on_read = [remove_null_term], on_write = [append_null_term_if_used])
+    _sound_name: str = Retriever(str32, default = "", on_read = [remove_null_term], on_write = [append_null_term_if_used])
+    _selected_object_ids: list[int] = Retriever(int32, default = -1, repeat = 0)
+
+    # def map(self) -> BaseStruct:
+    #     from testing.sections.effects import Effect as EffectCls
+    #     return EffectCls._make_effect(self)
 
     def __init__(self, struct_ver: Version = Version((3, 5, 1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
         super().__init__(struct_ver, parent, initialise_defaults = initialise_defaults, **retriever_inits)
@@ -189,12 +193,12 @@ class Trigger(BaseStruct):
     short_description: str = Retriever(nt_str32, default = "")
     num_effects: int = Retriever(uint32, default = 0, on_set = [set_effects_repeat, set_effect_display_orders_repeat], on_write = [update_num_effects])
     """originally int32"""
-    effects: list[Effect] = Retriever(Effect, default = Effect(), repeat = 0)
+    effects: list[Effect] = Retriever(Effect, default_factory = lambda sv, p: Effect(sv, p), repeat = 0)
     effect_display_orders: list[int] = Retriever(uint32, default = 0, repeat = 0)
     """originally int32"""
     num_conditions: int = Retriever(uint32, default = 0, on_set = [set_conditions_repeat, set_condition_display_orders_repeat], on_write = [update_num_conditions])
     """originally int32"""
-    conditions: list[Condition] = Retriever(Condition, default = Condition(), repeat = 0)
+    conditions: list[Condition] = Retriever(Condition, default_factory = lambda sv, p: Condition(sv, p), repeat = 0)
     condition_display_orders: list[int] = Retriever(uint32, default = 0, repeat = 0)
     """originally int32"""
 
@@ -211,7 +215,7 @@ class Variable(BaseStruct):
 
 
 class VariableData(BaseStruct):
-    variables: list[Variable] = Retriever(Array32[Variable], default = [])
+    variables: list[Variable] = Retriever(Array32[Variable], default_factory = lambda sv, p: Variable(sv, p))
     unused: bytes = Retriever(Bytes[9], default = b"\x00"*9, min_ver = Version((3, 0, 1, 46)))
     unknown: bytes = Retriever(Bytes[8], default = b"\x00"*8, min_ver = Version((3, 5, 1, 47)))
 
@@ -243,10 +247,10 @@ class TriggerData(BaseStruct):
     trigger_instruction_start: int = Retriever(int8, default = 0)
     num_triggers: int = Retriever(uint32, default = 0, on_set = [set_triggers_repeat, set_display_orders_repeat], on_write = [update_num_triggers])
     """originally int32"""
-    triggers: list[Trigger] = Retriever(Trigger, default = Trigger(), repeat = 0)
+    triggers: list[Trigger] = Retriever(Trigger, default_factory = lambda sv, p: Trigger(sv, p), repeat = 0)
     trigger_display_orders: list[int] = Retriever(uint32, default = 0, repeat = 0)
     unknown: bytes = Retriever(Bytes[1028], default = b"\x00"*1028)
-    variable_data: VariableData = Retriever(VariableData, default = VariableData())
+    variable_data: VariableData = Retriever(VariableData, default_factory = lambda sv, p: VariableData(sv, p))
 
     @classmethod
     def get_version(

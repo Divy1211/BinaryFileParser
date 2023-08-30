@@ -3,7 +3,7 @@ from binary_file_parser.types import bool32, bool8, Bytes, FixedLenArray, int8, 
 
 
 class Diplomacy(BaseStruct):
-    player_stances: list[list[int]] = Retriever(FixedLenArray[uint32, 16], default = [3]*16, repeat = 16)
+    player_stances: list[list[int]] = Retriever(FixedLenArray[uint32, 16], default_factory = lambda _, __: [3]*16, repeat = 16)
     individual_victories: bytes = Retriever(Bytes[11520], default = b"\x00" * 11520)
     """unused (?)"""
     separator: int = Retriever(uint32, default = 4294967197)

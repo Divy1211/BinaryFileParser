@@ -23,7 +23,7 @@ class BaseStruct(Parseable):
     """
     Base class for defining a file format as a structure
     """
-    __slots__ = "_struct_ver", "_parent"
+    __slots__ = "_struct_ver", "_parent", "idx"
 
     _retrievers: list[Retriever] = []
     _refs: list[RetrieverRef] = []
@@ -74,7 +74,7 @@ class BaseStruct(Parseable):
                     init = retriever.from_default(self)
                 setattr(self, retriever.p_name, init)
 
-            size += retriever.default.size if retriever.dtype.is_struct else retriever.dtype.size
+            # size += retriever.default.size if retriever.dtype.is_struct else retriever.dtype.size
         super().__init__(size)
 
     def __init_subclass__(cls, **kwargs):
@@ -110,7 +110,7 @@ class BaseStruct(Parseable):
 
         :raises VersionError: When the version change causes a non default valued retriever to become unsupported
         """
-        ...
+        pass
 
     @property
     def struct_ver(self):
@@ -224,15 +224,15 @@ class BaseStruct(Parseable):
         with suppress(VersionError):
             struct_ver = cls.get_version(stream, struct_ver, parent)
 
-        instance = cls(struct_ver, parent, initialise_defaults = False)
+        instance = cls(struct_ver = struct_ver, parent = parent, initialise_defaults = False)
         retriever_ls = cls._retrievers
         if show_progress:
             retriever_ls = alive_it(
                 retriever_ls,
                 dual_line = True,
-                title = f"         Reading File",
+                title = "         Reading File",
                 stats = False,
-                finalize = lambda bar: bar.title(f"Finished Reading File")
+                finalize = lambda bar: bar.title("Finished Reading File")
             )
 
         for retriever in retriever_ls:
@@ -296,9 +296,9 @@ class BaseStruct(Parseable):
             retriever_ls = alive_it(
                 retriever_ls,
                 dual_line = True,
-                title = f"         Writing File",
+                title = "         Writing File",
                 stats = False,
-                finalize = lambda bar: bar.title(f"Finished Writing File")
+                finalize = lambda bar: bar.title("Finished Writing File")
             )
 
         for i, retriever in enumerate(retriever_ls):

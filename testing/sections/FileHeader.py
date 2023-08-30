@@ -25,7 +25,7 @@ class FileHeader(BaseStruct):
     """always (?) 1k"""
     unknown2: int = Retriever(uint32, default = 1)
     """always (?) 1"""
-    required_dats: list[int] = Retriever(Array32[uint32], default = [2, 3, 4, 5, 6, 7])
+    required_dats: list[int] = Retriever(Array32[uint32], default_factory = lambda _, __: [2, 3, 4, 5, 6, 7])
     # todo: update this list with proper default versioning
     # 2 - AoK
     # 3 - AoC

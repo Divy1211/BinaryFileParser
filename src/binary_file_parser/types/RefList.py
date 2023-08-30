@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Generic, Iterable, overload, TYPE_CHECKING, TypeVar, SupportsIndex
+from typing import Callable, Generic, Iterable, overload, Type, TYPE_CHECKING, TypeVar, SupportsIndex
 
 from binary_file_parser.utils import Version
 
@@ -10,10 +10,21 @@ if TYPE_CHECKING:
 T = TypeVar("T")
 
 
+def ref_listify(cls: Type[RefList], struct_ver: Version, parent: BaseStruct) -> Callable[[T], T]:
+    def listify(i):
+        if not isinstance(i, list):
+            return i
+        return cls(i, struct_ver, parent)
+
+    return listify
+
+
 class RefList(list, Generic[T]):
     def __init__(self, iterable: Iterable[T], struct_ver = Version((0,)), parent: BaseStruct = None):
         # todo: set idxs on structs where relevant
         # todo: set own idx for nested lists
+        # todo: stop recursive set struct vers and parents if same
+        iterable = map(ref_listify(self.__class__, struct_ver, parent), iterable)
         super().__init__(iterable)
         self.struct_ver = struct_ver
         self.parent = parent

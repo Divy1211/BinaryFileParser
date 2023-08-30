@@ -26,7 +26,13 @@ class BitMapInfoHeader(BaseStruct):
     num_important_colours: int = Retriever(uint32, default = 0)
     colours: list[int] = Retriever(uint32, default = 0, repeat = 0)
 
-    def __init__(self, struct_ver: Version = Version((1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
+    def __init__(
+        self,
+        struct_ver: Version = Version((1, 47)),
+        parent: BaseStruct = None,
+        initialise_defaults = True,
+        **retriever_inits
+    ):
         super().__init__(struct_ver, parent, initialise_defaults = initialise_defaults, **retriever_inits)
 
 
@@ -44,8 +50,14 @@ class BackgroundImage(BaseStruct):
     width: int = Retriever(uint32, default = 0, on_set = [set_bmp_header_repeat, set_img_repeat])
     height: int = Retriever(int32, default = 0, on_set = [set_bmp_header_repeat, set_img_repeat])
     orientation: int = Retriever(int16, default = 1)
-    info_header: BitMapInfoHeader = Retriever(BitMapInfoHeader, default = BitMapInfoHeader())
+    info_header: BitMapInfoHeader = Retriever(BitMapInfoHeader, default_factory = lambda sv, p: BitMapInfoHeader(sv, p))
     data: list[bytes] = Retriever(Bytes[1], default = b"\x00")
 
-    def __init__(self, struct_ver: Version = Version((1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
+    def __init__(
+        self,
+        struct_ver: Version = Version((1, 47)),
+        parent: BaseStruct = None,
+        initialise_defaults = True,
+        **retriever_inits
+    ):
         super().__init__(struct_ver, parent, initialise_defaults = initialise_defaults, **retriever_inits)

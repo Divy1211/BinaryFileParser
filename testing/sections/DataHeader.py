@@ -26,7 +26,7 @@ class DataHeader(BaseStruct):
     version: float = Retriever(float32, default = 1.4700000286102295)
     tribe_names: list[str] = Retriever(FixedLenStr[256], default = "0"*256, repeat = 16)
     player_name_str_ids: list[int] = Retriever(uint32, default = 4294967294, repeat = 16)
-    player_data1: list[PlayerData1] = Retriever(PlayerData1, default = PlayerData1(), repeat = 16)
+    player_data1: list[PlayerData1] = Retriever(PlayerData1, default_factory = lambda sv, p: PlayerData1(sv, p), repeat = 16)
     lock_civilizations: list[bool] = Retriever(bool32, default = False, repeat = 16)
     unknown: bytes = Retriever(Bytes[9], default = b"\x00"+b"\x00"*8, max_ver = Version((1, 45)))
     unknown_1_46: bytes = Retriever(Bytes[9], default = b"\x01"+b"\x00"*8, min_ver = Version((1, 46)))
