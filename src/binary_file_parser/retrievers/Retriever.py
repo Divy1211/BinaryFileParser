@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-
+import sys
 from io import BytesIO
 from typing import Any, Type, Callable, TypeVar
 
@@ -31,7 +31,7 @@ class Retriever(MapValidate):
         self,
         dtype: Parseable | Type[Parseable],
         min_ver: Version = Version((-1,)),
-        max_ver: Version = Version((1000,)),
+        max_ver: Version = Version((sys.maxsize,)),
         *,
         default = None,
         default_factory: Callable[[Version, BaseStruct], Any] = None,
@@ -45,17 +45,16 @@ class Retriever(MapValidate):
         on_get: list[Callable[[RetrieverSub, BaseStructSub], None]] | None = None,
         on_set: list[Callable[[RetrieverSub, BaseStructSub], None]] | None = None,
     ):
-        # todo: default factories and deep copies
         """
         :param dtype: The type of the value to read
         :param min_ver:
             The minimum struct version which supports this retriever property. If the version of the struct being read
             is less than min_ver, reading this retriever property is skipped and a version error is raised if an attempt
-            to access or assign it is made
+            to access or assign it is made. Using SemVer is recommended: https://semver.org/
         :param max_ver:
             The maximum struct version which supports this retriever property. If the version of the struct being read
             is greater than max_ver, reading this retriever property is skipped and a version error is raised if an
-            attempt to access or assign it is made
+            attempt to access or assign it is made. Using SemVer is recommended: https://semver.org/
         :param default: A default value for this retriever property
         :param default_factory:
             A function that takes in a version and a base struct instance, should

@@ -1,3 +1,8 @@
+from __future__ import annotations
+
+from typing import Iterable
+
+
 class Version(tuple[int, ...]):
     """
     - Functions equivalently to ``tuple[int, ...]``, e.g.: ``Version((1, 2, 3))`` is exactly the same as ``(1, 2, 3)``
@@ -9,7 +14,15 @@ class Version(tuple[int, ...]):
     def __str__(self):
         return "v"+'.'.join(map(str, self))
 
-    def __init__(self, tup: tuple[int, ...]):
+    @classmethod
+    def from_ints(cls, *ints: int) -> Version:
+        return Version(ints)
+
+    @classmethod
+    def from_str(cls, version_str: str) -> Version:
+        return Version(map(int, version_str.split('.')))
+
+    def __init__(self, tup: Iterable[int]):
         ...
 
 def indentify(repr_str: str, indent = 4) -> str:
