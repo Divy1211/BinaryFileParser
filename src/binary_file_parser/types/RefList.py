@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 from typing import Callable, Generic, Iterable, overload, Type, TYPE_CHECKING, TypeVar, SupportsIndex
 
 from binary_file_parser.utils import Version
@@ -28,6 +29,16 @@ class RefList(list, Generic[T]):
         super().__init__(iterable)
         self.struct_ver = struct_ver
         self.parent = parent
+
+    def __deepcopy__(self, memo):
+        cls = self.__class__
+
+        cloned_list = copy.deepcopy(list(self), memo)
+
+        reflist = cls(cloned_list, copy.deepcopy(self.struct_ver), self._parent)
+        memo[id(self)] = reflist
+
+        return reflist
 
     def set_sub_attrs(self, obj: T):
         if getattr(obj, 'is_struct', False) or isinstance(obj, RefList):

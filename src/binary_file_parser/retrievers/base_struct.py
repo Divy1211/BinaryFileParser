@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 from io import StringIO
 from contextlib import suppress
 from typing import TYPE_CHECKING
@@ -84,6 +85,20 @@ class BaseStruct(Parseable):
         cls._retrievers, BaseStruct._retrievers = cls._retrievers.copy(), []
         cls._refs, BaseStruct._refs = cls._refs.copy(), []
         cls._combiners, BaseStruct._combiners = cls._combiners.copy(), []
+
+    def __deepcopy__(self, memo):
+        cls = self.__class__
+        cloned_struct = cls.__new__(cls)
+        memo[id(self)] = cloned_struct
+
+        for attr in list(self.__slots__) + list(self.__dict__):
+            if attr == '_parent':
+                value = getattr(self, attr)
+            else:
+                value = copy.deepcopy(getattr(self, attr), memo)
+            setattr(cloned_struct, attr, value)
+
+        return cloned_struct
 
     @property
     def is_struct(self) -> bool:
