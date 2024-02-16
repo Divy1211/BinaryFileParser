@@ -93,7 +93,7 @@ class BaseStruct(Parseable):
 
         for attr in list(self.__slots__) + list(self.__dict__):
             if attr == '_parent':
-                value = getattr(self, attr)
+                value = None
             else:
                 value = copy.deepcopy(getattr(self, attr), memo)
             setattr(cloned_struct, attr, value)

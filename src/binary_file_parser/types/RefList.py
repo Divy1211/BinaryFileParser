@@ -35,7 +35,7 @@ class RefList(list, Generic[T]):
 
         cloned_list = copy.deepcopy(list(self), memo)
 
-        reflist = cls(cloned_list, copy.deepcopy(self.struct_ver), self._parent)
+        reflist = cls(cloned_list, copy.deepcopy(self.struct_ver), None)
         memo[id(self)] = reflist
 
         return reflist
