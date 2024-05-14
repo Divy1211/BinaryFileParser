@@ -65,15 +65,18 @@ class BaseStruct(Parseable):
         self.idx = idx
 
         size = 0
+        if not initialise_defaults:
+            super().__init__(size)
+            return
+
         for retriever in self._retrievers:
             if not retriever.supported(struct_ver):
                 continue
 
-            if initialise_defaults:
-                init = retriever_inits.get(retriever.p_name, None)
-                if init is None:
-                    init = retriever.from_default(self)
-                setattr(self, retriever.p_name, init)
+            init = retriever_inits.get(retriever.p_name, None)
+            if init is None:
+                init = retriever.from_default(self)
+            setattr(self, retriever.p_name, init)
 
             # size += retriever.default.size if retriever.dtype.is_struct else retriever.dtype.size
         super().__init__(size)
@@ -195,7 +198,7 @@ class BaseStruct(Parseable):
         """
         raise CompressionError(
             "Unable to read object from file. "
-            "A Structure with compressed section needs to implement 'decompress' classmethod."
+            "A Structure with a compressed section needs to implement 'decompress' classmethod."
         )
 
     @classmethod
@@ -210,7 +213,7 @@ class BaseStruct(Parseable):
         """
         raise CompressionError(
             "Unable to write object to file. "
-            "A Structure with compressed section needs to implement 'compress' classmethod."
+            "A Structure with a compressed section needs to implement 'compress' classmethod."
         )
 
     def map(self) -> BaseStruct:

@@ -27,8 +27,8 @@ class RefList(list, Generic[T]):
         # todo: stop recursive set struct vers and parents if same
         iterable = map(ref_listify(self.__class__, struct_ver, parent), iterable)
         super().__init__(iterable)
-        self.struct_ver = struct_ver
-        self.parent = parent
+        self._struct_ver = struct_ver
+        self._parent = parent
 
     def __deepcopy__(self, memo):
         cls = self.__class__

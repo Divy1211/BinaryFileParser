@@ -24,7 +24,7 @@ class ScenarioSections(BaseStruct):
     cinematics: Cinematics = Retriever(Cinematics, default_factory = lambda sv, p: Cinematics(sv, p))
     background_image: BackgroundImage = Retriever(BackgroundImage, default_factory = lambda sv, p: BackgroundImage(sv, p))
     player_data2: PlayerData2 = Retriever(PlayerData2, default_factory = lambda sv, p: PlayerData2(sv, p))
-    global_victory  : GlobalVictory = Retriever(GlobalVictory, default_factory = lambda sv, p: GlobalVictory(sv, p))
+    global_victory: GlobalVictory = Retriever(GlobalVictory, default_factory = lambda sv, p: GlobalVictory(sv, p))
     diplomacy: Diplomacy = Retriever(Diplomacy, default_factory = lambda sv, p: Diplomacy(sv, p))
     options: Options = Retriever(Options, default_factory = lambda sv, p: Options(sv, p))
     map_data: MapData = Retriever(MapData, default_factory = lambda sv, p: MapData(sv, p))

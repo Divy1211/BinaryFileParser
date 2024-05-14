@@ -140,14 +140,11 @@ class Retriever(MapValidate):
                 f"{self.p_name!r} is not supported in your scenario version {instance.struct_ver}"
             )
 
-        # def set_parent(obj):
-        #     if isinstance(obj, BaseStruct):
-        #         obj.parent = instance
-        #     elif isinstance(obj, list):
-        #         for sub_obj in obj:
-        #             set_parent(sub_obj)
-        #
-        # set_parent(value)
+        if not isinstance(value, list):
+            super().__set__(instance, value)
+            return
+
+        value = self.atype(value, instance.struct_ver, instance.parent)
         super().__set__(instance, value)
 
     def __get__(self, instance: BaseStruct, owner: Type[BaseStruct]) -> Retriever | T:
