@@ -8,8 +8,8 @@ class View(BaseStruct):
     x: int = Retriever(int32, default = -1)
     y: int = Retriever(int32, default = -1)
 
-    def __init__(self, struct_ver: Version = Version((1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
-        super().__init__(struct_ver, parent, initialise_defaults = initialise_defaults, **retriever_inits)
+    def __init__(self, struct_ver: Version = Version((1, 47)), initialise_defaults = True, **retriever_inits):
+        super().__init__(struct_ver, initialise_defaults = initialise_defaults, **retriever_inits)
 
 
 class Terrain(BaseStruct):
@@ -18,18 +18,14 @@ class Terrain(BaseStruct):
     unused: bytes = Retriever(Bytes[3], default = b"\x00\xff\xff")
     layer: int = Retriever(int16, default = -1)
 
-    def __init__(self, struct_ver: Version = Version((1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
-        super().__init__(struct_ver, parent, initialise_defaults = initialise_defaults, **retriever_inits)
+    def __init__(self, struct_ver: Version = Version((1, 47)), initialise_defaults = True, **retriever_inits):
+        super().__init__(struct_ver, initialise_defaults = initialise_defaults, **retriever_inits)
 
 
 class MapData(BaseStruct):
     @staticmethod
     def set_terrain_data_repeat(retriever: Retriever, instance: MapData):
         MapData.tiles.set_repeat(instance, instance.width * instance.height)
-
-    @staticmethod
-    def update_script_file_path(retriever: Retriever, instance: MapData):
-        instance.parent.file_data.script_file_path = instance.script_name+".xs" if instance.script_name else ""
 
     @staticmethod
     def update_width_height(retriever: Retriever, instance: MapData):
@@ -40,7 +36,7 @@ class MapData(BaseStruct):
     string_starter2: bytes = Retriever(Bytes[2], default = b"\x60\x0a")
     colour_mood: str = Retriever(str16, default = "Empty")
     string_starter3: bytes = Retriever(Bytes[2], default = b"\x60\x0a", min_ver = Version((1, 40)))
-    script_name: str = Retriever(str16, default = "", on_write = [update_script_file_path], min_ver = Version((1, 40)))
+    script_name: str = Retriever(str16, default = "", min_ver = Version((1, 40)))
     lock_coop_alliances_1_41: bool = Retriever(bool8, default = False, min_ver = Version((1, 41)), max_ver = Version((1, 41)))
     collide_and_correct: bool = Retriever(bool8, default = False)
     villager_force_drop: bool = Retriever(bool8, default = False, min_ver = Version((1, 37)))
@@ -56,5 +52,5 @@ class MapData(BaseStruct):
     height: int = Retriever(uint32, default = 120, on_set = [set_terrain_data_repeat])
     tiles: list[Terrain] = Retriever(Terrain, default_factory = lambda sv, p: Terrain(sv, p), repeat = 14_400)
 
-    def __init__(self, struct_ver: Version = Version((1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
-        super().__init__(struct_ver, parent, initialise_defaults = initialise_defaults, **retriever_inits)
+    def __init__(self, struct_ver: Version = Version((1, 47)), initialise_defaults = True, **retriever_inits):
+        super().__init__(struct_ver, initialise_defaults = initialise_defaults, **retriever_inits)

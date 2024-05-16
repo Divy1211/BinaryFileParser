@@ -2,16 +2,11 @@ from __future__ import annotations
 
 import sys
 from io import BytesIO
-from typing import Any, Type, Callable, TypeVar
+from typing import Any, Callable, Type, TypeVar
 
-from binary_file_parser.errors import VersionError, DefaultValueError
-from binary_file_parser.types import ByteStream
-from binary_file_parser.types import Parseable
-
-from binary_file_parser.retrievers.MapValidate import MapValidate
-from binary_file_parser.retrievers.base_struct import BaseStruct
-from binary_file_parser.types.RefList import RefList
-from binary_file_parser.utils import Version
+from binary_file_parser.errors import DefaultValueError, VersionError
+from binary_file_parser.types import BaseStruct, ByteStream, Parseable, Version
+from binary_file_parser.retrievers.map_validate import MapValidate
 
 T = TypeVar("T")
 RetrieverSub = TypeVar("RetrieverSub", bound = "Retriever")
@@ -23,7 +18,7 @@ class Retriever(MapValidate):
     Represents a binary object in a struct and the restrictions/dependencies associated with it
     """
     __slots__ = (
-        "atype", "dtype", "min_ver", "max_ver", "default", "default_factory",
+        "dtype", "min_ver", "max_ver", "default", "default_factory",
         "_repeat", "remaining_compressed", "on_read", "on_write"
     )
 
@@ -36,7 +31,7 @@ class Retriever(MapValidate):
         default = None,
         default_factory: Callable[[Version, BaseStruct], Any] = None,
         repeat: int = 1,
-        atype: Type[RefList] = RefList,
+        # atype: Type[RefList] = RefList,
         remaining_compressed: bool = False,
         on_read: list[Callable[[RetrieverSub, BaseStructSub], None]] | None = None,  # todo: add implementations for common on_x operations
         on_write: list[Callable[[RetrieverSub, BaseStructSub], None]] | None = None,
@@ -83,7 +78,7 @@ class Retriever(MapValidate):
         """
         super().__init__(mappers, validators, on_get, on_set)
         self.dtype = dtype
-        self.atype = atype
+        # self.atype = atype
         self.min_ver = min_ver
         self.max_ver = max_ver
 
@@ -140,11 +135,22 @@ class Retriever(MapValidate):
                 f"{self.p_name!r} is not supported in your scenario version {instance.struct_ver}"
             )
 
-        if not isinstance(value, list):
-            super().__set__(instance, value)
-            return
+        # if not isinstance(value, list):
+        #     super().__set__(instance, value)
+        #     return
+        #
+        # if not isinstance(value, RefList):
+        #     value = self.atype(value, instance.struct_ver, instance.parent)
+        #
+        # if len(value) == 0:
+        #     super().__set__(instance, value)
+        #     return
+        #
+        # if id(getattr(value[0], "parent", instance.parent)) != id(instance.parent):
+        #     value.parent = instance.parent
+        # if getattr(value[0], "struct_ver", instance.struct_ver) != instance.struct_ver:
+        #     value.struct_ver = instance.struct_ver
 
-        value = self.atype(value, instance.struct_ver, instance.parent)
         super().__set__(instance, value)
 
     def __get__(self, instance: BaseStruct, owner: Type[BaseStruct]) -> Retriever | T:
@@ -199,29 +205,32 @@ class Retriever(MapValidate):
         if self.default is not None:
             if repeat == 1:
                 return self.default
-            return self.atype(
-                [self.default]*repeat,
-                instance.struct_ver, instance
-            )
+            return [self.default]*repeat
+
+            # return self.atype(
+            #     [self.default]*repeat,
+            #     instance.struct_ver, instance
+            # )
 
         if self.default_factory is not None:
             if repeat == 1:
                 val = self.default_factory(instance.struct_ver, instance)
-                if isinstance(val, list):
-                    return self.atype(val, instance.struct_ver, instance)
+                # if isinstance(val, list):
+                #     return self.atype(val, instance.struct_ver, instance)
                 return val
-            return self.atype(
-                (self.default_factory(instance.struct_ver, instance) for _ in range(repeat)),
-                instance.struct_ver, instance
-            )
+            return [self.default_factory(instance.struct_ver, instance) for _ in range(repeat)]
+            # return self.atype(
+            #     (self.default_factory(instance.struct_ver, instance) for _ in range(repeat)),
+            #     instance.struct_ver, instance
+            # )
 
-        if self.dtype.is_struct:
-            if repeat == 1:
-                return self.dtype(struct_ver = instance.struct_ver, parent = instance).map()
-            return self.atype(
-                (self.dtype(struct_ver = instance.struct_ver, parent = instance).map() for _ in range(repeat)),
-                instance.struct_ver, instance
-            )
+        # if self.dtype.is_struct:
+        #     if repeat == 1:
+        #         return self.dtype(struct_ver = instance.struct_ver, parent = instance).map()
+        #     return self.atype(
+        #         (self.dtype(struct_ver = instance.struct_ver, parent = instance).map() for _ in range(repeat)),
+        #         instance.struct_ver, instance
+        #     )
 
         raise DefaultValueError(
             f"Unable to auto-initialise '{self.p_name}' as a default value is not provided"
@@ -243,9 +252,6 @@ class Retriever(MapValidate):
             return
 
         def getobj():
-            if self.dtype.is_struct:
-                self.dtype: BaseStruct  # type: ignore
-                return self.dtype.from_stream(stream, struct_ver = instance.struct_ver, parent = instance)
             return self.dtype.from_stream(stream, struct_ver = instance.struct_ver)
 
         is_not_dynamic_repeat = not hasattr(instance, self.r_name)
@@ -256,7 +262,8 @@ class Retriever(MapValidate):
         ls: list = [None] * repeat
         for i in range(repeat):
             ls[i] = getobj()
-        setattr(instance, self.p_name, self.atype(ls, instance.struct_ver, instance))
+        # setattr(instance, self.p_name, self.atype(ls, instance.struct_ver, instance))
+        setattr(instance, self.p_name, ls)
 
         for func in self.on_read:
             func(self, instance)

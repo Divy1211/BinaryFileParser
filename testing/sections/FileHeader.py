@@ -5,9 +5,6 @@ from binary_file_parser.types import Array32, bool32, FixedLenStr, int32, nt_str
 
 
 class FileHeader(BaseStruct):
-    @staticmethod
-    def update_num_triggers(retriever: Retriever, instance: FileHeader):
-        instance.num_triggers = len(instance.parent.trigger_data.triggers)
 
     @staticmethod
     def set_timestamp_of_last_save_repeat(retriever: Retriever, instance: FileHeader):
@@ -37,7 +34,7 @@ class FileHeader(BaseStruct):
     # 9 - DotD
     # 10 - DI
     creator: str = Retriever(nt_str32, default = "AoE2SP")
-    num_triggers: int = Retriever(uint32, default = 0, on_write = [update_num_triggers])
+    num_triggers: int = Retriever(uint32, default = 0)
 
-    def __init__(self, struct_ver: Version = Version((1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
-        super().__init__(struct_ver, parent, initialise_defaults = initialise_defaults, **retriever_inits)
+    def __init__(self, struct_ver: Version = Version((1, 47)), initialise_defaults = True, **retriever_inits):
+        super().__init__(struct_ver, initialise_defaults = initialise_defaults, **retriever_inits)

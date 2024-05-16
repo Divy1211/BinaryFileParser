@@ -1,30 +1,28 @@
 from __future__ import annotations
 
 import copy
-from io import StringIO
 from contextlib import suppress
+from io import StringIO
 from typing import TYPE_CHECKING
 
 from alive_progress import alive_it
 
-from binary_file_parser.errors import CompressionError
-from binary_file_parser.errors import ParsingError
-from binary_file_parser.errors import VersionError
-from binary_file_parser.types import ByteStream, RefList
-from binary_file_parser.types import Parseable
-from binary_file_parser.utils import indentify, Version
+from binary_file_parser.errors import CompressionError, ParsingError, VersionError
+from binary_file_parser.types.parseable import Parseable
+from binary_file_parser.types.byte_stream import ByteStream
+# from binary_file_parser.types.ref_list import RefList
+from binary_file_parser.types.version import Version
+from binary_file_parser.utils import indentify
 
 if TYPE_CHECKING:
-    from binary_file_parser.retrievers.Retriever import Retriever
-    from binary_file_parser.retrievers.RetreiverCombiner import RetrieverCombiner
-    from binary_file_parser.retrievers.RetreiverRef import RetrieverRef
+    from binary_file_parser.retrievers import Retriever, RetrieverCombiner, RetrieverRef
 
 
 class BaseStruct(Parseable):
     """
     Base class for defining a file format as a structure
     """
-    __slots__ = "_struct_ver", "_parent", "idx"
+    __slots__ = "_struct_ver", "idx"
 
     _retrievers: list[Retriever] = []
     _refs: list[RetrieverRef] = []
@@ -42,18 +40,9 @@ class BaseStruct(Parseable):
     def _add_combiner(cls, combiner: RetrieverCombiner):
         cls._combiners.append(combiner)
 
-    def __init__(
-        self,
-        struct_ver: Version = Version((0,)),
-        parent: BaseStruct = None,
-        idx: int = -1,
-        initialise_defaults: bool = True,
-        **retriever_inits,
-    ):
+    def __init__(self, struct_ver: Version = Version((0,)), initialise_defaults: bool = True, **retriever_inits):
         """
-        :param idx:
         :param struct_ver: The struct version to create
-        :param parent: If this struct is nested within another, define the containing struct as parent
         :param initialise_defaults:
             If set to false, skip initialisation of struct values from default. This is only set to false when reading
             a file
@@ -61,8 +50,6 @@ class BaseStruct(Parseable):
             Use this to provide initial values to retrievers
         """
         self._struct_ver = struct_ver
-        self._parent = parent
-        self.idx = idx
 
         size = 0
         if not initialise_defaults:
@@ -95,10 +82,7 @@ class BaseStruct(Parseable):
         memo[id(self)] = cloned_struct
 
         for attr in list(self.__slots__) + list(self.__dict__):
-            if attr == '_parent':
-                value = None
-            else:
-                value = copy.deepcopy(getattr(self, attr), memo)
+            value = copy.deepcopy(getattr(self, attr), memo)
             setattr(cloned_struct, attr, value)
 
         return cloned_struct
@@ -107,15 +91,15 @@ class BaseStruct(Parseable):
     def is_struct(self) -> bool:
         return True
 
-    @property
-    def root(self) -> BaseStruct:
-        """
-        The top level object of which this struct is a part of
-        """
-        child = self
-        while child.parent is not None:
-            child = self.parent
-        return child
+    # @property
+    # def root(self) -> BaseStruct:
+    #     """
+    #     The top level object of which this struct is a part of
+    #     """
+    #     child = self
+    #     while child.parent is not None:
+    #         child = self.parent
+    #     return child
 
     def on_struct_ver_change(self, new_struct_ver: Version):
         """
@@ -131,38 +115,46 @@ class BaseStruct(Parseable):
         pass
 
     @property
-    def struct_ver(self):
+    def struct_ver(self) -> Version:
         return self._struct_ver
 
-    @struct_ver.setter
-    def struct_ver(self, new_struct_ver: Version):
-        for retriever in self._retrievers:
-            if (
-                not retriever.supported(self.struct_ver)
-                or not (retriever.dtype.is_struct or retriever.dtype.is_iterable)
-                or retriever.is_self_versioned
-            ):
-                continue
-            if (obj := getattr(self, retriever.p_name)) is not None:
-                obj.struct_ver = new_struct_ver
-        self.on_struct_ver_change(new_struct_ver)
-        self._struct_ver = new_struct_ver
+    # @struct_ver.setter
+    # def struct_ver(self, value: Version):
+    #     self._struct_ver = value
 
-    @property
-    def parent(self):
-        return self._parent
-
-    @parent.setter
-    def parent(self, new_parent: BaseStruct):
-        for retriever in self._retrievers:
-            if (
-                not retriever.supported(self.struct_ver)
-                or not (retriever.dtype.is_struct or retriever.dtype.is_iterable)
-            ):
-                continue
-            if (obj := getattr(self, retriever.p_name)) is not None:
-                obj.parent = new_parent
-        self._parent = new_parent
+    # @property
+    # def struct_ver(self):
+    #     return self._struct_ver
+    #
+    # @struct_ver.setter
+    # def struct_ver(self, new_struct_ver: Version):
+    #     for retriever in self._retrievers:
+    #         if (
+    #             not retriever.supported(self.struct_ver)
+    #             or not (retriever.dtype.is_struct or retriever.dtype.is_iterable)
+    #             or retriever.is_self_versioned
+    #         ):
+    #             continue
+    #         if (obj := getattr(self, retriever.p_name)) is not None:
+    #             obj.struct_ver = new_struct_ver
+    #     self.on_struct_ver_change(new_struct_ver)
+    #     self._struct_ver = new_struct_ver
+    #
+    # @property
+    # def parent(self):
+    #     return self._parent
+    #
+    # @parent.setter
+    # def parent(self, new_parent: BaseStruct):
+    #     for retriever in self._retrievers:
+    #         if (
+    #             not retriever.supported(self.struct_ver)
+    #             or not (retriever.dtype.is_struct or retriever.dtype.is_iterable)
+    #         ):
+    #             continue
+    #         if (obj := getattr(self, retriever.p_name)) is not None:
+    #             obj.parent = new_parent
+    #     self._parent = new_parent
 
     @property
     def retriever_name_value_map(self) -> dict[str]:
@@ -173,7 +165,7 @@ class BaseStruct(Parseable):
         return map_
 
     @classmethod
-    def get_version(cls, stream: ByteStream, struct_ver: Version = Version((0,)), parent: BaseStruct = None) -> Version:
+    def get_version(cls, stream: ByteStream, struct_ver: Version = Version((0,))) -> Version:
         """
         If defined, the struct will be versioned and values in the struct which are not supported in the version that is
         read will be skipped
@@ -227,7 +219,7 @@ class BaseStruct(Parseable):
     @classmethod
     def from_stream(
         cls, stream: ByteStream, *, struct_ver: Version = Version((0,)), strict: bool = False,
-        show_progress: bool = False, parent: BaseStruct = None
+        show_progress: bool = False
     ) -> BaseStruct:
         """
         Create a struct object from a ByteStream
@@ -236,13 +228,12 @@ class BaseStruct(Parseable):
         :param struct_ver: The version of the structure to create. Overwritten if `get_version` is defined
         :param strict: Raise an error if struct parsing finishes successfully but the stream has left over bytes
         :param show_progress: When true, display a progress bar
-        :param parent: If this struct is nested within another, define the containing struct as parent
         :return: An instance of a subtype of BaseStruct
         """
         with suppress(VersionError):
-            struct_ver = cls.get_version(stream, struct_ver, parent)
+            struct_ver = cls.get_version(stream, struct_ver)
 
-        instance = cls(struct_ver = struct_ver, parent = parent, initialise_defaults = False)
+        instance = cls(struct_ver = struct_ver, initialise_defaults = False)
         retriever_ls = cls._retrievers
         if show_progress:
             retriever_ls = alive_it(
@@ -368,7 +359,7 @@ class BaseStruct(Parseable):
                 continue
             if (val1 := getattr(self, retriever.p_name)) == (val2 := getattr(other, retriever.p_name)):
                 continue
-            if retriever.dtype.is_struct and not isinstance(val1, RefList): # todo: implement a diff on reflists
+            if isinstance(val1, BaseStruct):
                 diff_retrievers.extend(val1.diff(val2))
             else:
                 diff_retrievers.append(retriever)

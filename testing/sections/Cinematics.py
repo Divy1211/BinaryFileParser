@@ -9,5 +9,5 @@ class Cinematics(BaseStruct):
     victory: str = Retriever(str16, default = "")
     loss: str = Retriever(str16, default = "")
 
-    def __init__(self, struct_ver: Version = Version((1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
-        super().__init__(struct_ver, parent, initialise_defaults = initialise_defaults, **retriever_inits)
+    def __init__(self, struct_ver: Version = Version((1, 47)), initialise_defaults = True, **retriever_inits):
+        super().__init__(struct_ver, initialise_defaults = initialise_defaults, **retriever_inits)

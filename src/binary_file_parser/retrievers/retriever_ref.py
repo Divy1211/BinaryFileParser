@@ -5,9 +5,9 @@ from typing import Type, TypeVar, Generic
 
 from binary_file_parser.errors import VersionError
 
-from binary_file_parser.retrievers.base_struct import BaseStruct
-from binary_file_parser.retrievers.Retriever import Retriever
-from binary_file_parser.retrievers.RetreiverCombiner import RetrieverCombiner
+from binary_file_parser.types.base_struct import BaseStruct
+from binary_file_parser.retrievers.retriever import Retriever
+from binary_file_parser.retrievers.retriever_combiner import RetrieverCombiner
 
 
 T = TypeVar("T")

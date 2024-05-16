@@ -1,14 +1,12 @@
 from __future__ import annotations
 
 from contextlib import suppress
-from typing import Type, TypeVar, Generic
+from typing import Generic, Type, TypeVar
 
-from binary_file_parser.utils import Version
 from binary_file_parser.errors import VersionError
-
-from binary_file_parser.retrievers.base_struct import BaseStruct
-from binary_file_parser.retrievers.Retriever import Retriever
-
+from binary_file_parser.retrievers.retriever import Retriever
+from binary_file_parser.types.base_struct import BaseStruct
+from binary_file_parser.types.version import Version
 
 T = TypeVar("T")
 

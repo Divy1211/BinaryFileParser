@@ -6,10 +6,6 @@ from testing.sections.MapData import View
 
 
 class Options(BaseStruct):
-    @staticmethod
-    def update_num_triggers(retriever: Retriever, instance: Options):
-        instance.num_triggers = len(instance.parent.trigger_data.triggers)
-
     disabled_tech_ids: list[list[int]] = Retriever(StackedArray32s[uint32, 16], default_factory = lambda _, __: [[] for _ in range(16)])
     disabled_unit_ids: list[list[int]] = Retriever(StackedArray32s[uint32, 16], default_factory = lambda _, __: [[] for _ in range(16)])
     disabled_building_ids: list[list[int]] = Retriever(StackedArray32s[uint32, 16], default_factory = lambda _, __: [[] for _ in range(16)])
@@ -25,7 +21,7 @@ class Options(BaseStruct):
     unknown3: bytes = Retriever(Bytes[1], default = b"\x00")
     base_priorities: list[int] = Retriever(uint8, default = 0, repeat = 8)
     unknown2: bytes = Retriever(Bytes[7], default = b"\x00"*7)
-    num_triggers: int = Retriever(uint32, default = 0, on_write = [update_num_triggers])
+    num_triggers: int = Retriever(uint32, default = 0)
 
-    def __init__(self, struct_ver: Version = Version((1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
-        super().__init__(struct_ver, parent, initialise_defaults = initialise_defaults, **retriever_inits)
+    def __init__(self, struct_ver: Version = Version((1, 47)), initialise_defaults = True, **retriever_inits):
+        super().__init__(struct_ver, initialise_defaults = initialise_defaults, **retriever_inits)

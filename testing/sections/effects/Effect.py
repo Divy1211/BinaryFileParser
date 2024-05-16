@@ -3,7 +3,7 @@ from __future__ import annotations
 from io import StringIO
 from typing import Type
 
-from binary_file_parser import BaseStruct, Retriever, Version
+from binary_file_parser import Retriever, Version
 from binary_file_parser.utils import indentify
 from testing.sections.TriggerData import Effect as EffectStruct
 
@@ -11,12 +11,11 @@ class Effect(EffectStruct):
     def __init__(
         self,
         struct_version: Version = Version((3, 5, 1, 47)),
-        parent: BaseStruct = None,
         local_vars = None,
         **retriever_inits,
     ):
         if len(retriever_inits) > 1:
-            super().__init__(struct_version, parent, **retriever_inits)
+            super().__init__(struct_version, **retriever_inits)
             return
 
         for ref in self._refs:
@@ -26,7 +25,7 @@ class Effect(EffectStruct):
                 else ref.retriever.get_p_name(struct_version)
             )
             retriever_inits[name] = local_vars[ref.name]
-        super().__init__(struct_version, parent, **retriever_inits)
+        super().__init__(struct_version, **retriever_inits)
 
     @staticmethod
     def _make_effect(struct: EffectStruct) -> Effect:
@@ -40,7 +39,6 @@ class Effect(EffectStruct):
         return effect_cls(
             **{ref.name: None for ref in effect_cls._refs},
             struct_version = struct.struct_ver,
-            parent = struct.parent,
             **struct.retriever_name_value_map,
         )
 

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from binary_file_parser.types.ByteStream import ByteStream
-from binary_file_parser.types.Parseable import Parseable
-from binary_file_parser.utils import Version
+from binary_file_parser.types.byte_stream import ByteStream
+from binary_file_parser.types.parseable import Parseable
+from binary_file_parser.types.version import Version
 
 
 class Bytes(Parseable):

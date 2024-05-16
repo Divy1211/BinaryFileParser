@@ -24,11 +24,11 @@ This is a very basic script to give you an idea of how to use this library. Chec
 
 ```py
 from binary_file_parser import BaseStruct, Retriever
-from binary_file_parser.types import uint32, uint64, str32, FixedLenStr
+from binary_file_parser.types import int32, uint64, str32, FixedLenStr
 
 class Spam(BaseStruct):
-    file_version: str = Retriever(FixedLenStr[4], default = 0)
-    creator_name: str = Retriever(str32, default = 0)
+    file_version: str = Retriever(FixedLenStr[4], default = "1.00")
+    creator_name: str = Retriever(str32, default = "bfp")
     saved_timestamp: int = Retriever(uint64, default = 0)
     eggs: int = Retriever(int32, default = 0)
 
@@ -53,7 +53,7 @@ The main magic of this library is that:
 from __future__ import annotations
 
 from binary_file_parser import BaseStruct, Retriever
-from binary_file_parser.types import FixedLenArray, uint8
+from binary_file_parser.types import FixedLenArray, uint32, uint8
 
 
 class Pixel(BaseStruct):
@@ -75,6 +75,7 @@ class Pixel(BaseStruct):
         self.blue = blue
         self.alpha = alpha
 
+
 class Img(BaseStruct):
     @staticmethod
     def _set_width(retriever: Retriever, obj: Img):
@@ -92,11 +93,11 @@ class Img(BaseStruct):
         # up to date
         obj._height = obj.height
         Img.pixels.dtype.length = obj._width = obj.width
-    
+
     _width: int = Retriever(uint32, default = 100, on_read = [_set_width], on_write = [_update_dims])
     _height: int = Retriever(uint32, default = 200, on_set = [_set_height])
     pixels: list[list[Pixel]] = Retriever(
-        FixedLenArray[Pixel, 100], default = [Pixel(0, 0, 0) for _ in range(100)], repeat = 200
+        FixedLenArray[Pixel, 100], default_factory = lambda _, __: [Pixel(0, 0, 0) for _ in range(100)], repeat = 200
     )
 
     @property
@@ -107,10 +108,10 @@ class Img(BaseStruct):
     def height(self) -> int:
         return len(self.pixels)
 
+
 # Make a new image from all defaults
 a = Img()
-# Note: Mutable defaults will be shallow copied, (this means all rows of pixels in the above example are the same!)
-# If you have larger structs or nested structs, use default_factory (coming soon:tm:) instead
+# Note: Mutable defaults will be shallow copied, use default_factory when such is not intended
 ```
 
 ## About the Author

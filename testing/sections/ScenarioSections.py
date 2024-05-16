@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import zlib
 
-from binary_file_parser import BaseStruct, Retriever, Version
-from binary_file_parser.types import Bytes, ByteStream
+from binary_file_parser import BaseStruct, ByteStream, Retriever, Version
+from binary_file_parser.types import Bytes
 from testing.sections.BackgroundImage import BackgroundImage
 from testing.sections.Cinematics import Cinematics
 from testing.sections.DataHeader import DataHeader
@@ -18,7 +20,25 @@ from testing.sections.UnitData import UnitData
 
 
 class ScenarioSections(BaseStruct):
-    file_header: FileHeader = Retriever(FileHeader, default_factory = lambda sv, p: FileHeader(sv, p))
+    @staticmethod
+    def sync_script_file_path(retriever: Retriever, instance: ScenarioSections):
+        instance.file_data.script_file_path = instance.map_data.script_name+".xs" if instance.map_data.script_name else ""
+
+    @staticmethod
+    def sync_num_triggers(retriever: Retriever, instance: ScenarioSections):
+        instance.file_header.num_triggers = instance.options.num_triggers = len(instance.trigger_data.triggers)
+
+    @staticmethod
+    def sync_resources(retriever: Retriever, instance: ScenarioSections):
+        for i in range(8):
+            instance.unit_data.player_data4[i].food = instance.player_data2.resources[i].food
+            instance.unit_data.player_data4[i].wood = instance.player_data2.resources[i].wood
+            instance.unit_data.player_data4[i].stone = instance.player_data2.resources[i].stone
+            instance.unit_data.player_data4[i].gold = instance.player_data2.resources[i].gold
+            instance.unit_data.player_data4[i].ore_x = instance.player_data2.resources[i].ore_x
+            instance.unit_data.player_data4[i].trade_goods = instance.player_data2.resources[i].trade_goods
+
+    file_header: FileHeader = Retriever(FileHeader, default_factory = lambda sv, p: FileHeader(sv, p), on_write = [sync_num_triggers])
     data_header: DataHeader = Retriever(DataHeader, default_factory = lambda sv, p: DataHeader(sv, p), remaining_compressed = True)
     messages: Messages = Retriever(Messages, default_factory = lambda sv, p: Messages(sv, p))
     cinematics: Cinematics = Retriever(Cinematics, default_factory = lambda sv, p: Cinematics(sv, p))
@@ -28,9 +48,9 @@ class ScenarioSections(BaseStruct):
     diplomacy: Diplomacy = Retriever(Diplomacy, default_factory = lambda sv, p: Diplomacy(sv, p))
     options: Options = Retriever(Options, default_factory = lambda sv, p: Options(sv, p))
     map_data: MapData = Retriever(MapData, default_factory = lambda sv, p: MapData(sv, p))
-    unit_data: UnitData = Retriever(UnitData, default_factory = lambda sv, p: UnitData(sv, p))
+    unit_data: UnitData = Retriever(UnitData, default_factory = lambda sv, p: UnitData(sv, p), on_write = [sync_resources])
     trigger_data: TriggerData = Retriever(TriggerData, default_factory = lambda sv, p: TriggerData(sv, p))
-    file_data: FileData = Retriever(FileData, default_factory = lambda sv, p: FileData(sv, p), min_ver = Version((1, 40)))
+    file_data: FileData = Retriever(FileData, default_factory = lambda sv, p: FileData(sv, p), min_ver = Version((1, 40)), on_write = [sync_script_file_path])
     unknown1: bytes = Retriever(Bytes[8], default = b"\x00"*8, max_ver = Version((1, 37)))
 
     @classmethod
@@ -48,10 +68,9 @@ class ScenarioSections(BaseStruct):
         cls,
         stream: ByteStream,
         struct_ver: Version = Version((0,)),
-        parent: BaseStruct = None,
     ) -> Version:
         ver_str = stream.peek(4).decode("ASCII")
         return Version(map(int, ver_str.split(".")))
 
-    def __init__(self, struct_ver: Version = Version((1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
-        super().__init__(struct_ver, parent, initialise_defaults = initialise_defaults, **retriever_inits)
+    def __init__(self, struct_ver: Version = Version((1, 47)), initialise_defaults = True, **retriever_inits):
+        super().__init__(struct_ver, initialise_defaults = initialise_defaults, **retriever_inits)

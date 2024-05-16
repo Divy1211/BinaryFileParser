@@ -1,8 +1,8 @@
 import struct
 
-from binary_file_parser.types.ByteStream import ByteStream
-from binary_file_parser.types.Parseable import Parseable
-from binary_file_parser.utils import Version
+from binary_file_parser.types.parseable import Parseable
+from binary_file_parser.types.byte_stream import ByteStream
+from binary_file_parser.types.version import Version
 
 
 class Float(Parseable):
@@ -21,6 +21,6 @@ class Float(Parseable):
     def to_bytes(self, value: float) -> bytes:
         return struct.pack(self.struct_symbol, value)
 
-float16 = Float(2, "e")
-float32 = Float(4, "f")
-float64 = Float(8, "d")
+float16 = Float(2, "<e")
+float32 = Float(4, "<f")
+float64 = Float(8, "<d")

@@ -1,5 +1,5 @@
-from .base_struct import BaseStruct
-from .MapValidate import MapValidate
-from .Retriever import Retriever
-from .RetreiverRef import RetrieverRef
-from .RetreiverCombiner import RetrieverCombiner
+
+from .map_validate import MapValidate
+from .retriever import Retriever
+from .retriever_ref import RetrieverRef
+from .retriever_combiner import RetrieverCombiner

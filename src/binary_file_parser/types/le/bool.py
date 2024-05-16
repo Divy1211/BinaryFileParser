@@ -1,8 +1,8 @@
 import struct
 
-from binary_file_parser.types.ByteStream import ByteStream
-from binary_file_parser.types.Parseable import Parseable
-from binary_file_parser.utils import Version
+from binary_file_parser.types.byte_stream import ByteStream
+from binary_file_parser.types.parseable import Parseable
+from binary_file_parser.types.version import Version
 
 
 class Bool(Parseable):
@@ -20,6 +20,7 @@ class Bool(Parseable):
 
     def to_bytes(self, value: bool) -> bytes:
         return struct.pack(self.struct_symbol, 1 if value else 0)
+
 
 bool8 = Bool(1, "<B")
 bool16 = Bool(2, "<H")

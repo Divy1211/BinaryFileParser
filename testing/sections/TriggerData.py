@@ -97,8 +97,8 @@ class Effect(BaseStruct):
     #     from testing.sections.effects import Effect as EffectCls
     #     return EffectCls._make_effect(self)
 
-    def __init__(self, struct_ver: Version = Version((3, 5, 1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
-        super().__init__(struct_ver, parent, initialise_defaults = initialise_defaults, **retriever_inits)
+    def __init__(self, struct_ver: Version = Version((3, 5, 1, 47)), initialise_defaults = True, **retriever_inits):
+        super().__init__(struct_ver, initialise_defaults = initialise_defaults, **retriever_inits)
 
 class Condition(BaseStruct):
     condition_type: int = Retriever(int32, default = 0)
@@ -135,8 +135,8 @@ class Condition(BaseStruct):
     include_changeable_weapon_objects: int = Retriever(int32, default = -1, min_ver = Version((3, 0, 1, 46)))
     xs_function: str = Retriever(str32, default = "", min_ver = Version((2, 4, 1, 40)))
 
-    def __init__(self, struct_ver: Version = Version((3, 5, 1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
-        super().__init__(struct_ver, parent, initialise_defaults = initialise_defaults, **retriever_inits)
+    def __init__(self, struct_ver: Version = Version((3, 5, 1, 47)), initialise_defaults = True, **retriever_inits):
+        super().__init__(struct_ver, initialise_defaults = initialise_defaults, **retriever_inits)
 
 
 class Trigger(BaseStruct):
@@ -202,16 +202,16 @@ class Trigger(BaseStruct):
     condition_display_orders: list[int] = Retriever(uint32, default = 0, repeat = 0)
     """originally int32"""
 
-    def __init__(self, struct_ver: Version = Version((3, 5, 1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
-        super().__init__(struct_ver, parent, initialise_defaults = initialise_defaults, **retriever_inits)
+    def __init__(self, struct_ver: Version = Version((3, 5, 1, 47)), initialise_defaults = True, **retriever_inits):
+        super().__init__(struct_ver, initialise_defaults = initialise_defaults, **retriever_inits)
 
 
 class Variable(BaseStruct):
     id: int = Retriever(uint32, default = 0)
     name: str = Retriever(nt_str32, default = "_Variable0")
 
-    def __init__(self, struct_ver: Version = Version((1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
-        super().__init__(struct_ver, parent, initialise_defaults = initialise_defaults, **retriever_inits)
+    def __init__(self, struct_ver: Version = Version((1, 47)), initialise_defaults = True, **retriever_inits):
+        super().__init__(struct_ver, initialise_defaults = initialise_defaults, **retriever_inits)
 
 
 class VariableData(BaseStruct):
@@ -219,8 +219,8 @@ class VariableData(BaseStruct):
     unused: bytes = Retriever(Bytes[9], default = b"\x00"*9, min_ver = Version((3, 0, 1, 46)))
     unknown: bytes = Retriever(Bytes[8], default = b"\x00"*8, min_ver = Version((3, 5, 1, 47)))
 
-    def __init__(self, struct_ver: Version = Version((3, 5, 1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
-        super().__init__(struct_ver, parent, initialise_defaults = initialise_defaults, **retriever_inits)
+    def __init__(self, struct_ver: Version = Version((3, 5, 1, 47)), initialise_defaults = True, **retriever_inits):
+        super().__init__(struct_ver, initialise_defaults = initialise_defaults, **retriever_inits)
 
 
 
@@ -257,10 +257,9 @@ class TriggerData(BaseStruct):
         cls,
         stream: ByteStream,
         struct_ver: Version = Version((0,)),
-        parent: BaseStruct = None,
     ) -> Version:
         ver_str = str(float64.from_bytes(stream.peek(8)))
         return Version(map(int, ver_str.split("."))) + struct_ver
 
-    def __init__(self, struct_ver: Version = Version((3, 5, 1, 47)), parent: BaseStruct = None, initialise_defaults = True, **retriever_inits):
-        super().__init__(struct_ver, parent, initialise_defaults = initialise_defaults, **retriever_inits)
+    def __init__(self, struct_ver: Version = Version((3, 5, 1, 47)), initialise_defaults = True, **retriever_inits):
+        super().__init__(struct_ver, initialise_defaults = initialise_defaults, **retriever_inits)
