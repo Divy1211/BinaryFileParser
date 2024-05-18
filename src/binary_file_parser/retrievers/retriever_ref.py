@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from contextlib import suppress
-from typing import Type, TypeVar, Generic
+from operator import attrgetter, itemgetter
+from typing import Any, Callable, Type, TypeVar, Generic
 
 from binary_file_parser.errors import VersionError
 
@@ -17,19 +18,33 @@ class RetrieverRef(Generic[T]):
     """
     Create a new reference to an existing retriever
     """
-    def __init__(self, retriever: Retriever | RetrieverCombiner):
+    def __init__(self, *retrievers: Retriever | RetrieverCombiner | int):
         """
-        :param retriever: The retriever to reference
+        :param retrievers: The retrievers or the list indexes to the final property to reference
         """
-        self.retriever = retriever
+        if len(retrievers) == 0:
+            raise TypeError("Cannot create an empty reference")
+
+        self.getter: list[Callable[[BaseStruct], Any]] = [
+            itemgetter(retriever) if isinstance(retriever, int) else attrgetter(retriever.p_name)
+            for retriever in retrievers
+        ]
+        last_retriever = retrievers[-1]
+        self.last = last_retriever if isinstance(last_retriever, int) else last_retriever.p_name
 
     def __set_name__(self, owner: Type[BaseStruct], name: str) -> None:
         self.name = name
         owner._add_ref(self)
 
     def __set__(self, instance: BaseStruct, value: T) -> None:
+        item = instance._struct
         with suppress(VersionError):
-            setattr(instance, self.retriever.p_name, value)
+            for get in self.getter[:-1]:
+                item = get(item)
+            if isinstance(self.last, int):
+                item[self.last] = value
+            else:
+                setattr(item, self.last, value)
             return
         raise VersionError(
             f"{self.name!r} is not supported in your struct version {instance.struct_ver}"
@@ -38,8 +53,11 @@ class RetrieverRef(Generic[T]):
     def __get__(self, instance: BaseStruct, owner: Type[BaseStruct]) -> RetrieverRef | T:
         if instance is None:
             return self
+        item = instance._struct
         with suppress(VersionError):
-            return getattr(instance, self.retriever.p_name)
+            for get in self.getter:
+                item = get(item)
+            return item
         raise VersionError(
             f"{self.name!r} is not supported in your struct version {instance.struct_ver}"
         )

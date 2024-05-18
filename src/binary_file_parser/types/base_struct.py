@@ -88,8 +88,8 @@ class BaseStruct(Parseable):
         return cloned_struct
 
     @property
-    def is_struct(self) -> bool:
-        return True
+    def _struct(self):
+        return self
 
     # @property
     # def root(self) -> BaseStruct:

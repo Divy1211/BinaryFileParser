@@ -1,6 +1,6 @@
 __authour__ = "Alian713"
-__version__ = "0.2.0"
-__version_info__ = (0, 2, 0)
+__version__ = "0.2.1"
+__version_info__ = (0, 2, 1)
 
 from .errors import ParsingError
 from .errors import CompressionError

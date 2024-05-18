@@ -16,11 +16,11 @@ class RetrieverCombiner(Generic[T]):
     Creates a single attribute to access values from multiple retrievers which are mutually exclusive among different
     struct versions
     """
-    def __init__(self, retrievers: list[Retriever] = None) -> None:
+    def __init__(self, *retrievers: Retriever) -> None:
         """
-        :param retrievers: A list of retrievers to combine
+        :param retrievers: The retrievers to combine
         """
-        self.retrievers = retrievers or []
+        self.retrievers = retrievers
 
     def __set_name__(self, owner: Type[BaseStruct], name: str) -> None:
         self.name = name
@@ -44,6 +44,11 @@ class RetrieverCombiner(Generic[T]):
         raise VersionError(
             f"{self.name!r} is not supported in your struct version {instance.struct_ver}"
         )
+
+    # todo: fix this
+    @property
+    def p_name(self):
+        return self.name
 
     def get_p_name(self, struct_ver: Version) -> str:
         """
