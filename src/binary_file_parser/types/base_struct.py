@@ -25,20 +25,20 @@ class BaseStruct(Parseable):
     __slots__ = "_struct_ver", "idx"
 
     _retrievers: list[Retriever] = []
-    _refs: list[RetrieverRef] = []
-    _combiners: list[RetrieverCombiner] = []
+    # _refs: list[RetrieverRef] = []
+    # _combiners: list[RetrieverCombiner] = []
 
     @classmethod
     def _add_retriever(cls, retriever: Retriever):
         cls._retrievers.append(retriever)
 
-    @classmethod
-    def _add_ref(cls, ref: RetrieverRef):
-        cls._refs.append(ref)
-
-    @classmethod
-    def _add_combiner(cls, combiner: RetrieverCombiner):
-        cls._combiners.append(combiner)
+    # @classmethod
+    # def _add_ref(cls, ref: RetrieverRef):
+    #     cls._refs.append(ref)
+    #
+    # @classmethod
+    # def _add_combiner(cls, combiner: RetrieverCombiner):
+    #     cls._combiners.append(combiner)
 
     def __init__(self, struct_ver: Version = Version((0,)), initialise_defaults: bool = True, **retriever_inits):
         """
@@ -73,8 +73,8 @@ class BaseStruct(Parseable):
         Note: subclasses of BaseStruct which intend to act as ABCs need to override this
         """
         cls._retrievers, BaseStruct._retrievers = cls._retrievers.copy(), []
-        cls._refs, BaseStruct._refs = cls._refs.copy(), []
-        cls._combiners, BaseStruct._combiners = cls._combiners.copy(), []
+        # cls._refs, BaseStruct._refs = cls._refs.copy(), []
+        # cls._combiners, BaseStruct._combiners = cls._combiners.copy(), []
 
     def __deepcopy__(self, memo):
         cls = self.__class__

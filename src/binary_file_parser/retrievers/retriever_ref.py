@@ -34,7 +34,7 @@ class RetrieverRef(Generic[T]):
 
     def __set_name__(self, owner: Type[BaseStruct], name: str) -> None:
         self.name = name
-        owner._add_ref(self)
+        # owner._add_ref(self)
 
     def __set__(self, instance: BaseStruct, value: T) -> None:
         item = instance._struct

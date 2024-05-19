@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import zlib
 
-from binary_file_parser import BaseStruct, ByteStream, Retriever, Version
+from binary_file_parser import BaseStruct, ByteStream, Retriever, RetrieverRef, Version
 from binary_file_parser.types import Bytes
 from testing.sections.BackgroundImage import BackgroundImage
 from testing.sections.Cinematics import Cinematics
@@ -74,3 +74,21 @@ class ScenarioSections(BaseStruct):
 
     def __init__(self, struct_ver: Version = Version((1, 47)), initialise_defaults = True, **retriever_inits):
         super().__init__(struct_ver, initialise_defaults = initialise_defaults, **retriever_inits)
+
+        self.player_man = PlayerManager(self)
+
+
+class PlayerManager:
+    _num_players =        RetrieverRef(ScenarioSections.file_header, FileHeader.num_players) # type: ignore
+
+    _tribe_names =         RetrieverRef(ScenarioSections.data_header, DataHeader.tribe_names) # type: ignore
+    _player_name_str_ids = RetrieverRef(ScenarioSections.data_header, DataHeader.player_name_str_ids) # type: ignore
+    _metadata            = RetrieverRef(ScenarioSections.data_header, DataHeader.player_data1) # type: ignore
+    _lock_civilizations  = RetrieverRef(ScenarioSections.data_header, DataHeader.lock_civilizations) # type: ignore
+
+    _resources =           RetrieverRef(ScenarioSections.player_data2, PlayerData2.resources) # type: ignore
+
+    _player_stances =      RetrieverRef(ScenarioSections.diplomacy, Diplomacy.player_stances) # type: ignore
+
+    def __init__(self, struct: ScenarioSections):
+        self._struct = struct
