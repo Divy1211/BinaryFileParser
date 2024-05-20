@@ -14,7 +14,7 @@ class Options(BaseStruct):
     all_techs: bool = Retriever(bool32, default = False)
     starting_ages: list[int] = Retriever(uint32, default = 2, repeat = 16)
     separator: bytes = Retriever(Bytes[4], default = b"\x9d\xff\xff\xff")
-    player1_view: View = Retriever(View, default_factory = lambda sv, p: View(sv, p))
+    player1_view: View = Retriever(View, default_factory = lambda sv: View(sv))
     ai_map_type_unused_1_45: int = Retriever(uint32, default = 2, max_ver = Version((1, 45)))
     ai_map_type_unused_1_46: int = Retriever(uint32, default = 22, min_ver = Version((1, 46)), max_ver = Version((1, 46)))
     ai_map_type: int = Retriever(uint32, default = 0, min_ver = Version((1, 47)))

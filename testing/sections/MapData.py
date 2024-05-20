@@ -40,7 +40,7 @@ class MapData(BaseStruct):
     lock_coop_alliances_1_41: bool = Retriever(bool8, default = False, min_ver = Version((1, 41)), max_ver = Version((1, 41)))
     collide_and_correct: bool = Retriever(bool8, default = False)
     villager_force_drop: bool = Retriever(bool8, default = False, min_ver = Version((1, 37)))
-    player_views: list[View] = Retriever(View, default_factory = lambda sv, p: View(sv, p), min_ver = Version((1, 40)), repeat = 16)
+    player_views: list[View] = Retriever(View, default_factory = lambda sv: View(sv), min_ver = Version((1, 40)), repeat = 16)
     lock_coop_alliances_1_42: bool = Retriever(bool8, default = False, min_ver = Version((1, 42)))
     ai_map_type: int = Retriever(uint32, default = 0, min_ver = Version((1, 42)), max_ver = Version((1, 46)))
     population_caps: list[int] = Retriever(uint32, default = 200, repeat = 16, min_ver = Version((1, 44)))
@@ -50,7 +50,7 @@ class MapData(BaseStruct):
     no_waves_on_shore: bool = Retriever(bool8, default = False)
     width: int = Retriever(uint32, default = 120, on_set = [set_terrain_data_repeat], on_write = [update_width_height])
     height: int = Retriever(uint32, default = 120, on_set = [set_terrain_data_repeat])
-    tiles: list[Terrain] = Retriever(Terrain, default_factory = lambda sv, p: Terrain(sv, p), repeat = 14_400)
+    tiles: list[Terrain] = Retriever(Terrain, default_factory = lambda sv: Terrain(sv), repeat = 14_400)
 
     def __init__(self, struct_ver: Version = Version((1, 47)), initialise_defaults = True, **retriever_inits):
         super().__init__(struct_ver, initialise_defaults = initialise_defaults, **retriever_inits)

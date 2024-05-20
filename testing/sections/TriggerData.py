@@ -193,12 +193,12 @@ class Trigger(BaseStruct):
     short_description: str = Retriever(nt_str32, default = "")
     num_effects: int = Retriever(uint32, default = 0, on_set = [set_effects_repeat, set_effect_display_orders_repeat], on_write = [update_num_effects])
     """originally int32"""
-    effects: list[Effect] = Retriever(Effect, default_factory = lambda sv, p: Effect(sv, p), repeat = 0)
+    effects: list[Effect] = Retriever(Effect, default_factory = lambda sv: Effect(sv), repeat = 0)
     effect_display_orders: list[int] = Retriever(uint32, default = 0, repeat = 0)
     """originally int32"""
     num_conditions: int = Retriever(uint32, default = 0, on_set = [set_conditions_repeat, set_condition_display_orders_repeat], on_write = [update_num_conditions])
     """originally int32"""
-    conditions: list[Condition] = Retriever(Condition, default_factory = lambda sv, p: Condition(sv, p), repeat = 0)
+    conditions: list[Condition] = Retriever(Condition, default_factory = lambda sv: Condition(sv), repeat = 0)
     condition_display_orders: list[int] = Retriever(uint32, default = 0, repeat = 0)
     """originally int32"""
 
@@ -215,7 +215,7 @@ class Variable(BaseStruct):
 
 
 class VariableData(BaseStruct):
-    variables: list[Variable] = Retriever(Array32[Variable], default_factory = lambda sv, p: Variable(sv, p))
+    variables: list[Variable] = Retriever(Array32[Variable], default_factory = lambda sv: Variable(sv))
     unused: bytes = Retriever(Bytes[9], default = b"\x00"*9, min_ver = Version((3, 0, 1, 46)))
     unknown: bytes = Retriever(Bytes[8], default = b"\x00"*8, min_ver = Version((3, 5, 1, 47)))
 
@@ -247,10 +247,10 @@ class TriggerData(BaseStruct):
     trigger_instruction_start: int = Retriever(int8, default = 0)
     num_triggers: int = Retriever(uint32, default = 0, on_set = [set_triggers_repeat, set_display_orders_repeat], on_write = [update_num_triggers])
     """originally int32"""
-    triggers: list[Trigger] = Retriever(Trigger, default_factory = lambda sv, p: Trigger(sv, p), repeat = 0)
+    triggers: list[Trigger] = Retriever(Trigger, default_factory = lambda sv: Trigger(sv), repeat = 0)
     trigger_display_orders: list[int] = Retriever(uint32, default = 0, repeat = 0)
     unknown: bytes = Retriever(Bytes[1028], default = b"\x00"*1028)
-    variable_data: VariableData = Retriever(VariableData, default_factory = lambda sv, p: VariableData(sv, p))
+    variable_data: VariableData = Retriever(VariableData, default_factory = lambda sv: VariableData(sv))
 
     @classmethod
     def _get_version(

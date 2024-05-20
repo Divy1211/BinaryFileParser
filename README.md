@@ -99,7 +99,7 @@ class Img(BaseStruct):
     _width: int = Retriever(uint32, default = 100, on_read = [_set_width], on_write = [_update_dims])
     _height: int = Retriever(uint32, default = 200, on_set = [_set_height])
     pixels: list[list[Pixel]] = Retriever(
-        FixedLenArray[Pixel, 100], default_factory = lambda _, __: [Pixel(0, 0, 0) for _ in range(100)], repeat = 200
+        FixedLenArray[Pixel, 100], default_factory = lambda _: [Pixel(0, 0, 0) for _ in range(100)], repeat = 200
     )
 
     @property

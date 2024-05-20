@@ -24,3 +24,12 @@ class Version(tuple[int, ...]):
 
     def __init__(self, tup: Iterable[int]):
         ...
+
+    def __add__(self, other: tuple[int, ...]):
+        if not isinstance(other, tuple):
+            raise TypeError("Cannot add non tuple to version")
+        if len(other) == 0:
+            return self
+        if not all(map(lambda x: isinstance(x, int), other)):
+            raise TypeError("tuple must be ints to version")
+        return Version(tuple(self) + other)

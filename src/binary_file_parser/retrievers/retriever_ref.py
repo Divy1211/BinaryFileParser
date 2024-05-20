@@ -25,15 +25,19 @@ class RetrieverRef(Generic[T]):
         if len(retrievers) == 0:
             raise TypeError("Cannot create an empty reference")
 
-        self.getter: list[Callable[[BaseStruct], Any]] = [
-            itemgetter(retriever) if isinstance(retriever, int) else attrgetter(retriever.p_name)
-            for retriever in retrievers
-        ]
-        last_retriever = retrievers[-1]
-        self.last = last_retriever if isinstance(last_retriever, int) else last_retriever.p_name
+        self.retrievers = retrievers
+        self.getter: list[Callable[[BaseStruct], Any]] = []
+        self.last: int | str = -1
 
     def __set_name__(self, owner: Type[BaseStruct], name: str) -> None:
         self.name = name
+
+        self.getter = [
+            itemgetter(retriever) if isinstance(retriever, int) else attrgetter(retriever.p_name)
+            for retriever in self.retrievers
+        ]
+        last_retriever = self.retrievers[-1]
+        self.last = last_retriever if isinstance(last_retriever, int) else last_retriever.p_name
         # owner._add_ref(self)
 
     def __set__(self, instance: BaseStruct, value: T) -> None:

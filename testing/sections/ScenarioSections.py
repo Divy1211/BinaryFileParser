@@ -3,13 +3,13 @@ from __future__ import annotations
 import zlib
 
 from binary_file_parser import BaseStruct, ByteStream, Retriever, RetrieverRef, Version
-from binary_file_parser.types import Bytes
+from binary_file_parser.types import Bytes, FixedLenStr
 from testing.sections.BackgroundImage import BackgroundImage
 from testing.sections.Cinematics import Cinematics
 from testing.sections.DataHeader import DataHeader
 from testing.sections.Diplomacy import Diplomacy
 from testing.sections.FileData import FileData
-from testing.sections.FileHeader import FileHeader
+from testing.sections.file_header import FileHeader
 from testing.sections.GlobalVictory import GlobalVictory
 from testing.sections.MapData import MapData
 from testing.sections.Messages import Messages
@@ -21,15 +21,15 @@ from testing.sections.UnitData import UnitData
 
 class ScenarioSections(BaseStruct):
     @staticmethod
-    def sync_script_file_path(retriever: Retriever, instance: ScenarioSections):
+    def sync_script_file_path(_, instance: ScenarioSections):
         instance.file_data.script_file_path = instance.map_data.script_name+".xs" if instance.map_data.script_name else ""
 
     @staticmethod
-    def sync_num_triggers(retriever: Retriever, instance: ScenarioSections):
+    def sync_num_triggers(_, instance: ScenarioSections):
         instance.file_header.num_triggers = instance.options.num_triggers = len(instance.trigger_data.triggers)
 
     @staticmethod
-    def sync_resources(retriever: Retriever, instance: ScenarioSections):
+    def sync_resources(_, instance: ScenarioSections):
         for i in range(8):
             instance.unit_data.player_data4[i].food = instance.player_data2.resources[i].food
             instance.unit_data.player_data4[i].wood = instance.player_data2.resources[i].wood
@@ -38,20 +38,23 @@ class ScenarioSections(BaseStruct):
             instance.unit_data.player_data4[i].ore_x = instance.player_data2.resources[i].ore_x
             instance.unit_data.player_data4[i].trade_goods = instance.player_data2.resources[i].trade_goods
 
-    file_header: FileHeader = Retriever(FileHeader, default_factory = lambda sv, p: FileHeader(sv, p), on_write = [sync_num_triggers])
-    data_header: DataHeader = Retriever(DataHeader, default_factory = lambda sv, p: DataHeader(sv, p), remaining_compressed = True)
-    messages: Messages = Retriever(Messages, default_factory = lambda sv, p: Messages(sv, p))
-    cinematics: Cinematics = Retriever(Cinematics, default_factory = lambda sv, p: Cinematics(sv, p))
-    background_image: BackgroundImage = Retriever(BackgroundImage, default_factory = lambda sv, p: BackgroundImage(sv, p))
-    player_data2: PlayerData2 = Retriever(PlayerData2, default_factory = lambda sv, p: PlayerData2(sv, p))
-    global_victory: GlobalVictory = Retriever(GlobalVictory, default_factory = lambda sv, p: GlobalVictory(sv, p))
-    diplomacy: Diplomacy = Retriever(Diplomacy, default_factory = lambda sv, p: Diplomacy(sv, p))
-    options: Options = Retriever(Options, default_factory = lambda sv, p: Options(sv, p))
-    map_data: MapData = Retriever(MapData, default_factory = lambda sv, p: MapData(sv, p))
-    unit_data: UnitData = Retriever(UnitData, default_factory = lambda sv, p: UnitData(sv, p), on_write = [sync_resources])
-    trigger_data: TriggerData = Retriever(TriggerData, default_factory = lambda sv, p: TriggerData(sv, p))
-    file_data: FileData = Retriever(FileData, default_factory = lambda sv, p: FileData(sv, p), min_ver = Version((1, 40)), on_write = [sync_script_file_path])
-    unknown1: bytes = Retriever(Bytes[8], default = b"\x00"*8, max_ver = Version((1, 37)))
+    # @formatter:off
+    version: str =                      Retriever(FixedLenStr[4],                              default = "1.47")
+    file_header: FileHeader =           Retriever(FileHeader,                                  default_factory = lambda sv: FileHeader(sv), on_write = [sync_num_triggers])
+    data_header: DataHeader =           Retriever(DataHeader,                                  default_factory = lambda sv: DataHeader(sv), remaining_compressed = True)
+    messages: Messages =                Retriever(Messages,                                    default_factory = lambda sv: Messages(sv))
+    cinematics: Cinematics =            Retriever(Cinematics,                                  default_factory = lambda sv: Cinematics(sv))
+    background_image: BackgroundImage = Retriever(BackgroundImage,                             default_factory = lambda sv: BackgroundImage(sv))
+    player_data2: PlayerData2 =         Retriever(PlayerData2,                                 default_factory = lambda sv: PlayerData2(sv))
+    global_victory: GlobalVictory =     Retriever(GlobalVictory,                               default_factory = lambda sv: GlobalVictory(sv))
+    diplomacy: Diplomacy =              Retriever(Diplomacy,                                   default_factory = lambda sv: Diplomacy(sv))
+    options: Options =                  Retriever(Options,                                     default_factory = lambda sv: Options(sv))
+    map_data: MapData =                 Retriever(MapData,                                     default_factory = lambda sv: MapData(sv))
+    unit_data: UnitData =               Retriever(UnitData,                                    default_factory = lambda sv: UnitData(sv),   on_write = [sync_resources])
+    trigger_data: TriggerData =         Retriever(TriggerData,                                 default_factory = lambda sv: TriggerData(sv))
+    file_data: FileData =               Retriever(FileData,        min_ver = Version((1, 40)), default_factory = lambda sv: FileData(sv),   on_write = [sync_script_file_path])
+    unknown1: bytes =                   Retriever(Bytes[8],        max_ver = Version((1, 37)), default = b"\x00"*8)
+    # @formatter:on
 
     @classmethod
     def _decompress(cls, bytes_: bytes) -> bytes:
@@ -73,7 +76,7 @@ class ScenarioSections(BaseStruct):
         return Version(map(int, ver_str.split(".")))
 
     @classmethod
-    def from_file(cls, file_name: str, *, file_version: Version = Version((0,)), strict = True) -> BaseStruct:
+    def from_file(cls, file_name: str, *, file_version: Version = Version((0,)), strict = True) -> ScenarioSections:
         return cls._from_file(file_name, file_version = file_version, strict = strict)
 
     def to_file(self, file_name: str):
@@ -86,16 +89,13 @@ class ScenarioSections(BaseStruct):
 
 
 class PlayerManager:
-    _num_players =        RetrieverRef(ScenarioSections.file_header, FileHeader.num_players) # type: ignore
-
-    _tribe_names =         RetrieverRef(ScenarioSections.data_header, DataHeader.tribe_names) # type: ignore
-    _player_name_str_ids = RetrieverRef(ScenarioSections.data_header, DataHeader.player_name_str_ids) # type: ignore
-    _metadata            = RetrieverRef(ScenarioSections.data_header, DataHeader.player_data1) # type: ignore
-    _lock_civilizations  = RetrieverRef(ScenarioSections.data_header, DataHeader.lock_civilizations) # type: ignore
-
-    _resources =           RetrieverRef(ScenarioSections.player_data2, PlayerData2.resources) # type: ignore
-
-    _player_stances =      RetrieverRef(ScenarioSections.diplomacy, Diplomacy.player_stances) # type: ignore
+    _num_players =         RetrieverRef(ScenarioSections.file_header, FileHeader.num_players)
+    _tribe_names =         RetrieverRef(ScenarioSections.data_header, DataHeader.tribe_names)
+    _player_name_str_ids = RetrieverRef(ScenarioSections.data_header, DataHeader.player_name_str_ids)
+    _metadata =            RetrieverRef(ScenarioSections.data_header, DataHeader.player_data1)
+    _lock_civilizations =  RetrieverRef(ScenarioSections.data_header, DataHeader.lock_civilizations)
+    _resources =           RetrieverRef(ScenarioSections.player_data2, PlayerData2.resources)
+    _player_stances =      RetrieverRef(ScenarioSections.diplomacy, Diplomacy.player_stances)
 
     def __init__(self, struct: ScenarioSections):
         self._struct = struct

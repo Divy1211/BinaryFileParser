@@ -29,7 +29,7 @@ class Retriever(MapValidate):
         max_ver: Version = Version((sys.maxsize,)),
         *,
         default = None,
-        default_factory: Callable[[Version, BaseStruct], Any] = None,
+        default_factory: Callable[[Version], Any] = None,
         repeat: int = 1,
         # atype: Type[RefList] = RefList,
         remaining_compressed: bool = False,
@@ -59,8 +59,8 @@ class Retriever(MapValidate):
                 0: skips reading value entirely, set property to []
                 1: single value is read and assigned to the property
                 >1: a list of values is read and assigned to the property
-        :param atype:
-            The array like type to use when constructing lists for retrievers with dynamic repeats
+        # :param atype:
+        #     The array like type to use when constructing lists for retrievers with dynamic repeats
         :param remaining_compressed:
             If set to true, the decompress/compress methods are used on the remaining bytes before reading/writing the
             remaining retriever properties
@@ -214,11 +214,11 @@ class Retriever(MapValidate):
 
         if self.default_factory is not None:
             if repeat == 1:
-                val = self.default_factory(instance.struct_ver, instance)
+                val = self.default_factory(instance.struct_ver)
                 # if isinstance(val, list):
                 #     return self.atype(val, instance.struct_ver, instance)
                 return val
-            return [self.default_factory(instance.struct_ver, instance) for _ in range(repeat)]
+            return [self.default_factory(instance.struct_ver) for _ in range(repeat)]
             # return self.atype(
             #     (self.default_factory(instance.struct_ver, instance) for _ in range(repeat)),
             #     instance.struct_ver, instance

@@ -31,10 +31,10 @@ class Resources(BaseStruct):
 class PlayerData2(BaseStruct):
     strings: list[str] = Retriever(str16, default = "", repeat = 32)
     ai_names: list[str] = Retriever(str16, default = "", repeat = 16)
-    ai_files: list[AiFile] = Retriever(AiFile, default_factory = lambda sv, p: AiFile(sv, p), repeat = 16)
+    ai_files: list[AiFile] = Retriever(AiFile, default_factory = lambda sv: AiFile(sv), repeat = 16)
     ai_types: list[int] = Retriever(uint8, default = 1, repeat = 16)
     separator: int = Retriever(uint32, default = 4294967197)
-    resources: list[Resources] = Retriever(Resources, default_factory = lambda sv, p: Resources(sv, p), repeat = 16)
+    resources: list[Resources] = Retriever(Resources, default_factory = lambda sv: Resources(sv), repeat = 16)
 
     def __init__(self, struct_ver: Version = Version((1, 47)), initialise_defaults = True, **retriever_inits):
         super().__init__(struct_ver, initialise_defaults = initialise_defaults, **retriever_inits)
