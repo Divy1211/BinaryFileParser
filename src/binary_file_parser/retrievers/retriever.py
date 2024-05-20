@@ -109,7 +109,7 @@ class Retriever(MapValidate):
         True if the dtype of this retriever is a struct that implements its own versioning.
         """
         try:
-            self.dtype.__class__.get_version(stream = ByteStream.from_bytes(b"\x00"*8))
+            self.dtype.__class__._get_version(stream = ByteStream.from_bytes(b"\x00" * 8))
             return True
         except EOFError:
             return True
@@ -252,7 +252,7 @@ class Retriever(MapValidate):
             return
 
         def getobj():
-            return self.dtype.from_stream(stream, struct_ver = instance.struct_ver)
+            return self.dtype._from_stream(stream, struct_ver = instance.struct_ver)
 
         is_not_dynamic_repeat = not hasattr(instance, self.r_name)
         if repeat == 1 and is_not_dynamic_repeat:
@@ -287,7 +287,7 @@ class Retriever(MapValidate):
 
         is_not_dynamic_repeat = not hasattr(instance, self.r_name)
         if repeat == 1 and is_not_dynamic_repeat:
-            return self.dtype.to_bytes(getattr(instance, self.p_name))
+            return self.dtype._to_bytes(getattr(instance, self.p_name))
 
         ls: list = getattr(instance, self.p_name)
         if len(ls) != repeat:
@@ -295,6 +295,6 @@ class Retriever(MapValidate):
 
         bytes_ = BytesIO()
         for value in getattr(instance, self.p_name):
-            bytes_.write(self.dtype.to_bytes(value))
+            bytes_.write(self.dtype._to_bytes(value))
 
         return bytes_.getvalue()

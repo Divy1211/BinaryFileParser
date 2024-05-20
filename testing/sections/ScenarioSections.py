@@ -54,23 +54,30 @@ class ScenarioSections(BaseStruct):
     unknown1: bytes = Retriever(Bytes[8], default = b"\x00"*8, max_ver = Version((1, 37)))
 
     @classmethod
-    def decompress(cls, bytes_: bytes) -> bytes:
+    def _decompress(cls, bytes_: bytes) -> bytes:
         return zlib.decompress(bytes_, -zlib.MAX_WBITS)
 
     @classmethod
-    def compress(cls, bytes_: bytes) -> bytes:
+    def _compress(cls, bytes_: bytes) -> bytes:
         deflate_obj = zlib.compressobj(9, zlib.DEFLATED, -zlib.MAX_WBITS)
         compressed = deflate_obj.compress(bytes_) + deflate_obj.flush()
         return compressed
 
     @classmethod
-    def get_version(
+    def _get_version(
         cls,
         stream: ByteStream,
         struct_ver: Version = Version((0,)),
     ) -> Version:
         ver_str = stream.peek(4).decode("ASCII")
         return Version(map(int, ver_str.split(".")))
+
+    @classmethod
+    def from_file(cls, file_name: str, *, file_version: Version = Version((0,)), strict = True) -> BaseStruct:
+        return cls._from_file(file_name, file_version = file_version, strict = strict)
+
+    def to_file(self, file_name: str):
+        super()._to_file(file_name)
 
     def __init__(self, struct_ver: Version = Version((1, 47)), initialise_defaults = True, **retriever_inits):
         super().__init__(struct_ver, initialise_defaults = initialise_defaults, **retriever_inits)

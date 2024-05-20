@@ -12,13 +12,13 @@ class Bool(Parseable):
         super().__init__(size)
         self.struct_symbol = struct_symbol
 
-    def from_stream(self, stream: ByteStream, *, struct_ver: Version = Version((0,))) -> bool:
-        return self.from_bytes(stream.get(self.size), struct_ver = struct_ver)
+    def _from_stream(self, stream: ByteStream, *, struct_ver: Version = Version((0,))) -> bool:
+        return self._from_bytes(stream.get(self._size), struct_ver = struct_ver)
 
-    def from_bytes(self, bytes_: bytes, *, struct_ver: Version = Version((0,))) -> bool:
+    def _from_bytes(self, bytes_: bytes, *, struct_ver: Version = Version((0,))) -> bool:
         return not not struct.unpack(self.struct_symbol, bytes_)[0]
 
-    def to_bytes(self, value: bool) -> bytes:
+    def _to_bytes(self, value: bool) -> bytes:
         return struct.pack(self.struct_symbol, 1 if value else 0)
 
 

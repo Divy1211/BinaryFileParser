@@ -11,13 +11,13 @@ from binary_file_parser.types.version import Version
 class BaseStr(Parseable, ABC):
     __slots__ = ()
 
-    def from_bytes(self, bytes_: bytes, *, struct_ver: Version = Version((0,))) -> str:
+    def _from_bytes(self, bytes_: bytes, *, struct_ver: Version = Version((0,))) -> str:
         try:
             return bytes_.decode("utf-8")
         except UnicodeDecodeError:
             return bytes_.decode("latin-1")
 
-    def to_bytes(self, value: str) -> bytes:
+    def _to_bytes(self, value: str) -> bytes:
         # TODO: plain bytes
         try:
             bytes_ = value.encode("utf-8")
@@ -30,16 +30,16 @@ class BaseStr(Parseable, ABC):
 class CStr(BaseStr):
     __slots__ = ()
 
-    def from_stream(self, stream: ByteStream, *, struct_ver: Version = Version((0,))) -> str:
+    def _from_stream(self, stream: ByteStream, *, struct_ver: Version = Version((0,))) -> str:
         bytes_ = b""
         while (byte := stream.get(1)) != b"\x00":
             bytes_ += byte
-        return self.from_bytes(bytes_)
+        return self._from_bytes(bytes_)
 
-    def to_bytes(self, value: str) -> bytes:
+    def _to_bytes(self, value: str) -> bytes:
         if not value.endswith("\x00"):
             value += "\x00"
-        return super().to_bytes(value)
+        return super()._to_bytes(value)
 
 
 class Str(BaseStr):
@@ -49,12 +49,12 @@ class Str(BaseStr):
         super().__init__(size)
         self.struct_symbol = struct_symbol
 
-    def from_stream(self, stream: ByteStream, *, struct_ver: Version = Version((0,))) -> str:
-        length: int = struct.unpack(self.struct_symbol, stream.get(self.size))[0]
-        return self.from_bytes(stream.get(length))
+    def _from_stream(self, stream: ByteStream, *, struct_ver: Version = Version((0,))) -> str:
+        length: int = struct.unpack(self.struct_symbol, stream.get(self._size))[0]
+        return self._from_bytes(stream.get(length))
 
-    def to_bytes(self, value: str) -> bytes:
-        bytes_ = super().to_bytes(value)
+    def _to_bytes(self, value: str) -> bytes:
+        bytes_ = super()._to_bytes(value)
         length = struct.pack(self.struct_symbol, len(bytes_))
         return length+bytes_
 
@@ -62,13 +62,13 @@ class Str(BaseStr):
 class NullTermStr(Str):
     __slots__ = ()
 
-    def from_stream(self, stream: ByteStream, *, struct_ver: Version = Version((0,))) -> str:
-        return super().from_stream(stream, struct_ver = struct_ver)[:-1]
+    def _from_stream(self, stream: ByteStream, *, struct_ver: Version = Version((0,))) -> str:
+        return super()._from_stream(stream, struct_ver = struct_ver)[:-1]
 
-    def to_bytes(self, value: str) -> bytes:
+    def _to_bytes(self, value: str) -> bytes:
         if not value.endswith("\x00"):
             value += "\x00"
-        return super().to_bytes(value)
+        return super()._to_bytes(value)
 
 
 class FixedLenStr(BaseStr):
@@ -83,8 +83,8 @@ class FixedLenStr(BaseStr):
             return True, ""
         return False, f"%s must have a fixed length of {value}"
 
-    def from_stream(self, stream: ByteStream, *, struct_ver: Version = Version((0,))) -> str:
-        return self.from_bytes(stream.get(self.length))
+    def _from_stream(self, stream: ByteStream, *, struct_ver: Version = Version((0,))) -> str:
+        return self._from_bytes(stream.get(self.length))
 
     def __class_getitem__(cls, item: int) -> FixedLenStr:
         return cls(4, item)

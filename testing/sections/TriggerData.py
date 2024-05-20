@@ -253,12 +253,12 @@ class TriggerData(BaseStruct):
     variable_data: VariableData = Retriever(VariableData, default_factory = lambda sv, p: VariableData(sv, p))
 
     @classmethod
-    def get_version(
+    def _get_version(
         cls,
         stream: ByteStream,
         struct_ver: Version = Version((0,)),
     ) -> Version:
-        ver_str = str(float64.from_bytes(stream.peek(8)))
+        ver_str = str(float64._from_bytes(stream.peek(8)))
         return Version(map(int, ver_str.split("."))) + struct_ver
 
     def __init__(self, struct_ver: Version = Version((3, 5, 1, 47)), initialise_defaults = True, **retriever_inits):

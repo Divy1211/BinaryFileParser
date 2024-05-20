@@ -26,21 +26,23 @@ This is a very basic script to give you an idea of how to use this library. Chec
 from binary_file_parser import BaseStruct, Retriever
 from binary_file_parser.types import int32, uint64, str32, FixedLenStr
 
+
 class Spam(BaseStruct):
     file_version: str = Retriever(FixedLenStr[4], default = "1.00")
     creator_name: str = Retriever(str32, default = "bfp")
     saved_timestamp: int = Retriever(uint64, default = 0)
     eggs: int = Retriever(int32, default = 0)
 
+
 # read a binary file that has the above format
-file = Spam.from_file("path/to/file")
+file = Spam._from_file("path/to/file")
 
 # modify the creator name
 file.creator_name = "Alian713"
 file.eggs = 20
 
 # write the modified data to a new file
-file.to_file("path/to/write/to")
+file._to_file("path/to/write/to")
 ```
 
 ## A Slightly More Complex Example

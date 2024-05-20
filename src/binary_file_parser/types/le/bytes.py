@@ -9,18 +9,18 @@ class Bytes(Parseable):
     __slots__ = ()
 
     def is_valid(self, value: bytes) -> tuple[bool, str]:
-        if len(value) == self.size:
+        if len(value) == self._size:
             return True, ""
-        return False, f"number of bytes in %s must equal {self.size}"
+        return False, f"number of bytes in %s must equal {self._size}"
 
-    def from_stream(self, stream: ByteStream, *, struct_ver: Version = Version((0,))) -> bytes:
-        return stream.get(self.size)
+    def _from_stream(self, stream: ByteStream, *, struct_ver: Version = Version((0,))) -> bytes:
+        return stream.get(self._size)
 
-    def from_bytes(self, bytes_: bytes, *, struct_ver: Version = Version((0,))) -> bytes:
+    def _from_bytes(self, bytes_: bytes, *, struct_ver: Version = Version((0,))) -> bytes:
         return bytes_
 
-    def to_bytes(self, value: bytes) -> bytes:
+    def _to_bytes(self, value: bytes) -> bytes:
         return value
 
-    def __class_getitem__(cls, item: int) -> Bytes:
-        return cls(item)
+    def __class_getitem__(cls, size: int) -> Bytes:
+        return cls(size)

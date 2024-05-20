@@ -12,13 +12,13 @@ class Float(Parseable):
         super().__init__(size)
         self.struct_symbol = struct_symbol
 
-    def from_stream(self, stream: ByteStream, *, struct_ver: Version = Version((0,))) -> float:
-        return self.from_bytes(stream.get(self.size))
+    def _from_stream(self, stream: ByteStream, *, struct_ver: Version = Version((0,))) -> float:
+        return self._from_bytes(stream.get(self._size))
 
-    def from_bytes(self, bytes_: bytes, *, struct_ver: Version = Version((0,))) -> float:
+    def _from_bytes(self, bytes_: bytes, *, struct_ver: Version = Version((0,))) -> float:
         return struct.unpack(self.struct_symbol, bytes_)[0]
 
-    def to_bytes(self, value: float) -> bytes:
+    def _to_bytes(self, value: float) -> bytes:
         return struct.pack(self.struct_symbol, value)
 
 float16 = Float(2, "<e")

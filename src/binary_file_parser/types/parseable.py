@@ -6,19 +6,19 @@ from binary_file_parser.types.version import Version
 
 T = TypeVar("T")
 class Parseable(ABC):
-    __slots__ = "size"
+    __slots__ = "_size"
 
     def __init__(self, size: int):
-        self.size = size
+        self._size = size
 
     @abstractmethod
-    def from_stream(self, stream: ByteStream, *, struct_ver: Version = Version((0,))) -> T:
+    def _from_stream(self, stream: ByteStream, *, struct_ver: Version = Version((0,))) -> T:
         ...
 
     @abstractmethod
-    def from_bytes(self, bytes_: bytes, *, struct_ver: Version = Version((0,))) -> T:
+    def _from_bytes(self, bytes_: bytes, *, struct_ver: Version = Version((0,))) -> T:
         ...
 
     @abstractmethod
-    def to_bytes(self, value: T) -> bytes:
+    def _to_bytes(self, value: T) -> bytes:
         ...

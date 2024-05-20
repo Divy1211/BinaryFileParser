@@ -15,7 +15,7 @@ from binary_file_parser.types.version import Version
 from binary_file_parser.utils import indentify
 
 if TYPE_CHECKING:
-    from binary_file_parser.retrievers import Retriever, RetrieverCombiner, RetrieverRef
+    from binary_file_parser.retrievers import Retriever
 
 
 class BaseStruct(Parseable):
@@ -65,7 +65,7 @@ class BaseStruct(Parseable):
                 init = retriever.from_default(self)
             setattr(self, retriever.p_name, init)
 
-            # size += retriever.default.size if retriever.dtype.is_struct else retriever.dtype.size
+            # size += retriever.dtype._size
         super().__init__(size)
 
     def __init_subclass__(cls, **kwargs):
@@ -101,7 +101,7 @@ class BaseStruct(Parseable):
     #         child = self.parent
     #     return child
 
-    def on_struct_ver_change(self, new_struct_ver: Version):
+    def _on_struct_ver_change(self, new_struct_ver: Version):
         """
         This method is called when a struct's version is changed. Use this to implement any custom logic required to
         support a version change on a struct. The default method implements a trial and error algorithm where if an
@@ -157,7 +157,7 @@ class BaseStruct(Parseable):
     #     self._parent = new_parent
 
     @property
-    def retriever_name_value_map(self) -> dict[str]:
+    def _retriever_name_value_map(self) -> dict[str]:
         map_ = {}
         for retriever in self._retrievers:
             if retriever.supported(self.struct_ver):
@@ -165,7 +165,7 @@ class BaseStruct(Parseable):
         return map_
 
     @classmethod
-    def get_version(cls, stream: ByteStream, struct_ver: Version = Version((0,))) -> Version:
+    def _get_version(cls, stream: ByteStream, struct_ver: Version = Version((0,))) -> Version:
         """
         If defined, the struct will be versioned and values in the struct which are not supported in the version that is
         read will be skipped
@@ -179,7 +179,7 @@ class BaseStruct(Parseable):
         raise VersionError("Un-versioned File")
 
     @classmethod
-    def decompress(cls, bytes_: bytes) -> bytes:
+    def _decompress(cls, bytes_: bytes) -> bytes:
         """
         If remaining_compressed is set to True in a Retriever, this method is used to decompress the bytes remaining
         before they are read and parsed into a struct object
@@ -194,7 +194,7 @@ class BaseStruct(Parseable):
         )
 
     @classmethod
-    def compress(cls, bytes_: bytes) -> bytes:
+    def _compress(cls, bytes_: bytes) -> bytes:
         """
         If remaining_compressed is set to True in a Retriever, this method is used to compress the bytes before they are
         written to file from the struct object
@@ -208,7 +208,7 @@ class BaseStruct(Parseable):
             "A Structure with a compressed section needs to implement 'compress' classmethod."
         )
 
-    def map(self) -> BaseStruct:
+    def _map(self) -> BaseStruct:
         """
         This method is called after a struct is read from bytes to allow any modifications post reading
 
@@ -217,7 +217,7 @@ class BaseStruct(Parseable):
         return self
 
     @classmethod
-    def from_stream(
+    def _from_stream(
         cls, stream: ByteStream, *, struct_ver: Version = Version((0,)), strict: bool = False,
         show_progress: bool = False
     ) -> BaseStruct:
@@ -231,7 +231,7 @@ class BaseStruct(Parseable):
         :return: An instance of a subtype of BaseStruct
         """
         with suppress(VersionError):
-            struct_ver = cls.get_version(stream, struct_ver)
+            struct_ver = cls._get_version(stream, struct_ver)
 
         instance = cls(struct_ver = struct_ver, initialise_defaults = False)
         retriever_ls = cls._retrievers
@@ -248,8 +248,9 @@ class BaseStruct(Parseable):
             if show_progress:
                 retriever_ls.text = f"            -> {retriever.p_name.title().replace('_', ' ')}"
             if retriever.remaining_compressed:
-                stream = ByteStream.from_bytes(cls.decompress(stream.remaining()))
+                stream = ByteStream.from_bytes(cls._decompress(stream.remaining()))
             retriever.from_stream(instance, stream)
+            # instance._size += retriever.dtype._size
 
         file_len = len(stream.content)
 
@@ -259,10 +260,10 @@ class BaseStruct(Parseable):
                 f"{stream.remaining()}"
             )
 
-        return instance.map()
+        return instance._map()
 
     @classmethod
-    def from_bytes(cls, bytes_: bytes, *, struct_ver: Version = Version((0,)), strict = False) -> BaseStruct:
+    def _from_bytes(cls, bytes_: bytes, *, struct_ver: Version = Version((0,)), strict = False) -> BaseStruct:
         """
         Create a struct object from bytes
 
@@ -272,10 +273,10 @@ class BaseStruct(Parseable):
         :return: An instance of a subtype of BaseStruct
         """
         stream = ByteStream.from_bytes(bytes_)
-        return cls.from_stream(stream, struct_ver = struct_ver, strict = strict)
+        return cls._from_stream(stream, struct_ver = struct_ver, strict = strict)
 
     @classmethod
-    def from_file(cls, file_name: str, *, file_version: Version = Version((0,)), strict = True) -> BaseStruct:
+    def _from_file(cls, file_name: str, *, file_version: Version = Version((0,)), strict = True) -> BaseStruct:
         """
         Create a struct object from file
 
@@ -285,10 +286,10 @@ class BaseStruct(Parseable):
         :return: An instance of a subtype of BaseStruct
         """
         stream = ByteStream.from_file(file_name)
-        return cls.from_stream(stream, struct_ver = file_version, strict = strict, show_progress = True)
+        return cls._from_stream(stream, struct_ver = file_version, strict = strict, show_progress = True)
 
     @classmethod
-    def to_bytes(cls, instance: BaseStruct, *, show_progress = False) -> bytes:
+    def _to_bytes(cls, instance: BaseStruct, *, show_progress = False) -> bytes:
         """
         Convert the struct object to bytes
 
@@ -323,20 +324,20 @@ class BaseStruct(Parseable):
 
         compressed = b""
         if compress_idx != length:
-            compressed = cls.compress(b"".join(bytes_[compress_idx:]))
+            compressed = cls._compress(b"".join(bytes_[compress_idx:]))
 
         return b"".join(bytes_[:compress_idx]) + compressed
 
-    def to_file(self, file_name: str):
+    def _to_file(self, file_name: str):
         """
         Write the bytes of the struct object to a file
 
         :param file_name: The name of the file to write to
         """
         with open(file_name, "wb") as file:
-            file.write(self.to_bytes(self, show_progress = True))
+            file.write(self._to_bytes(self, show_progress = True))
 
-    def diff(self, other: BaseStruct) -> list[Retriever]:
+    def _diff(self, other: BaseStruct) -> list[Retriever]:
         """
         Recursively builds a list of retrievers that have different values for the two objects.
 
@@ -360,7 +361,7 @@ class BaseStruct(Parseable):
             if (val1 := getattr(self, retriever.p_name)) == (val2 := getattr(other, retriever.p_name)):
                 continue
             if isinstance(val1, BaseStruct):
-                diff_retrievers.extend(val1.diff(val2))
+                diff_retrievers.extend(val1._diff(val2))
             else:
                 diff_retrievers.append(retriever)
         return diff_retrievers

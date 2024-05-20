@@ -39,7 +39,7 @@ class Effect(EffectStruct):
         return effect_cls(
             **{ref.name: None for ref in effect_cls._refs},
             struct_version = struct.struct_ver,
-            **struct.retriever_name_value_map,
+            **struct._retriever_name_value_map,
         )
 
     def __repr__(self):

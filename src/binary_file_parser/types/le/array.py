@@ -19,33 +19,33 @@ class BaseArray(Parseable):
         self.struct_symbol = struct_symbol
         self.length = -1
 
-    def from_stream(self, stream: ByteStream, *, struct_ver: Version = Version((0,))) -> list:
+    def _from_stream(self, stream: ByteStream, *, struct_ver: Version = Version((0,))) -> list:
         ls = [None] * self.length
         for i in range(self.length):
-            ls[i] = self.dtype.from_stream(stream, struct_ver = struct_ver)
+            ls[i] = self.dtype._from_stream(stream, struct_ver = struct_ver)
         return ls
 
-    def from_bytes(self, bytes_: bytes, *, struct_ver: Version = Version((0,))) -> list:
-        return self.from_stream(ByteStream.from_bytes(bytes_), struct_ver = struct_ver)
+    def _from_bytes(self, bytes_: bytes, *, struct_ver: Version = Version((0,))) -> list:
+        return self._from_stream(ByteStream.from_bytes(bytes_), struct_ver = struct_ver)
 
-    def to_bytes(self, value: list) -> bytes:
+    def _to_bytes(self, value: list) -> bytes:
         ls = [b""]*self.length
         for i, val in enumerate(value):
-            ls[i] = self.dtype.to_bytes(val)
+            ls[i] = self.dtype._to_bytes(val)
         return b"".join(ls)
 
 
 class Array(BaseArray):
     __slots__ = ()
 
-    def from_stream(self, stream: ByteStream, *, struct_ver: Version = Version((0,))) -> list:
-        self.length = struct.unpack(self.struct_symbol, stream.get(self.size))[0]
-        return super().from_stream(stream, struct_ver = struct_ver)
+    def _from_stream(self, stream: ByteStream, *, struct_ver: Version = Version((0,))) -> list:
+        self.length = struct.unpack(self.struct_symbol, stream.get(self._size))[0]
+        return super()._from_stream(stream, struct_ver = struct_ver)
 
-    def to_bytes(self, value: list) -> bytes:
+    def _to_bytes(self, value: list) -> bytes:
         self.length = len(value)
         length_bytes = struct.pack(self.struct_symbol, self.length)
-        return length_bytes+super().to_bytes(value)
+        return length_bytes+super()._to_bytes(value)
 
 class Array8(Array):
     __slots__ = ()
@@ -84,14 +84,14 @@ class FixedLenArray(BaseArray):
             return True, ""
         return False, f"%s must have a fixed length of {value}"
 
-    def to_bytes(self, value: list) -> bytes:
+    def _to_bytes(self, value: list) -> bytes:
         valid, msg = self.is_valid(value)
         if not valid:
             raise TypeError(msg)
-        return super().to_bytes(value)
+        return super()._to_bytes(value)
 
     def __class_getitem__(cls, item: tuple[ParseableType, int]) -> FixedLenArray:
-        return cls(4, item[0], '<I', item[1])
+        return cls(item[1], item[0], '<I', item[1])
 
 
 class StackedArrays(BaseArray):
@@ -110,21 +110,21 @@ class StackedArrays(BaseArray):
             return True, ""
         return False, f"%s expected {self.num_arrays} but found {num_arrays} stacked arrays"
 
-    def from_stream(self, stream: ByteStream, *, struct_ver: Version = Version((0,))) -> list[list]:
+    def _from_stream(self, stream: ByteStream, *, struct_ver: Version = Version((0,))) -> list[list]:
         num_arrays = self.num_arrays
         if num_arrays == -1:
-            num_arrays = struct.unpack(self.struct_symbol, stream.get(self.size))[0]
+            num_arrays = struct.unpack(self.struct_symbol, stream.get(self._size))[0]
 
-        lengths: list[int] = [struct.unpack(self.struct_symbol, stream.get(self.size))[0] for _ in range(num_arrays)]
+        lengths: list[int] = [struct.unpack(self.struct_symbol, stream.get(self._size))[0] for _ in range(num_arrays)]
         ls: list[list] = [[] for _ in range(num_arrays)]
 
         for i, length in enumerate(lengths):
             self.length = length
-            ls[i] = super().from_stream(stream, struct_ver = struct_ver)
+            ls[i] = super()._from_stream(stream, struct_ver = struct_ver)
 
         return ls
 
-    def to_bytes(self, value: list[list]) -> bytes:
+    def _to_bytes(self, value: list[list]) -> bytes:
         valid, msg = self.is_valid(value)
         if not valid:
             raise TypeError(msg)
@@ -140,7 +140,7 @@ class StackedArrays(BaseArray):
         for i, length in enumerate(lengths):
             self.length = length
             bytes_[i] = struct.pack(self.struct_symbol, length)
-            bytes_[num_arrays+i] = super().to_bytes(value[i])
+            bytes_[num_arrays+i] = super()._to_bytes(value[i])
 
         return length_bytes+b"".join(bytes_)
 
@@ -150,8 +150,8 @@ class StackedArray8s(StackedArrays):
 
     def __class_getitem__(cls, item: ParseableType | tuple[ParseableType, int]) -> StackedArrays:
         if isinstance(item, tuple):
-            return cls(4, item[0], '<B', item[1])
-        return cls(4, item, '<B')
+            return cls(item[1], item[0], '<B', item[1])
+        return cls(1, item, '<B')
 
 
 class StackedArray16s(StackedArrays):
@@ -159,8 +159,8 @@ class StackedArray16s(StackedArrays):
 
     def __class_getitem__(cls, item: ParseableType | tuple[ParseableType, int]) -> StackedArrays:
         if isinstance(item, tuple):
-            return cls(4, item[0], '<H', item[1])
-        return cls(4, item, '<H')
+            return cls(item[1], item[0], '<H', item[1])
+        return cls(2, item, '<H')
 
 
 class StackedArray32s(StackedArrays):
@@ -177,5 +177,5 @@ class StackedArray64s(StackedArrays):
 
     def __class_getitem__(cls, item: ParseableType | tuple[ParseableType, int]) -> StackedArrays:
         if isinstance(item, tuple):
-            return cls(4, item[0], '<Q', item[1])
-        return cls(4, item, '<Q')
+            return cls(item[1], item[0], '<Q', item[1])
+        return cls(8, item, '<Q')
