@@ -22,7 +22,7 @@ class BaseStruct(Parseable):
     """
     Base class for defining a file format as a structure
     """
-    __slots__ = "_struct_ver", "idx"
+    __slots__ = "_struct_ver"
 
     _retrievers: list[Retriever] = []
     # _refs: list[RetrieverRef] = []

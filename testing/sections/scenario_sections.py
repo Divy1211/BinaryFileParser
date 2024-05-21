@@ -4,9 +4,9 @@ import zlib
 from os import path
 
 from binary_file_parser import BaseStruct, ByteStream, Retriever, RetrieverRef, Version
-from binary_file_parser.types import Bytes, FixedLenStr, uint32
-from testing.sections.BackgroundImage import BackgroundImage
-from testing.sections.Cinematics import Cinematics
+from binary_file_parser.types import Bytes, FixedLenStr, str16, uint32
+from testing.sections.bitmap import BackgroundImage
+from testing.sections.cinematics import Cinematics
 from testing.sections.data_header import DataHeader
 from testing.sections.Diplomacy import Diplomacy
 from testing.sections.FileData import FileData
@@ -42,12 +42,14 @@ class ScenarioSections(BaseStruct):
     # @formatter:off
     version: str =                      Retriever(FixedLenStr[4],                              default = "1.47")
     file_header: FileHeader =           Retriever(FileHeader,                                  default_factory = lambda sv: FileHeader(sv), on_write = [sync_num_triggers])
-    next_unit_id: int =                 Retriever(uint32,                                      default = 0, remaining_compressed = True)
+    next_unit_id: int =                 Retriever(uint32,                                      default = 0,                                 remaining_compressed = True)
     data_header: DataHeader =           Retriever(DataHeader,                                  default_factory = lambda sv: DataHeader(sv))
     messages: Messages =                Retriever(Messages,                                    default_factory = lambda sv: Messages(sv))
     cinematics: Cinematics =            Retriever(Cinematics,                                  default_factory = lambda sv: Cinematics(sv))
     background_image: BackgroundImage = Retriever(BackgroundImage,                             default_factory = lambda sv: BackgroundImage(sv))
     player_data2: PlayerData2 =         Retriever(PlayerData2,                                 default_factory = lambda sv: PlayerData2(sv))
+    background_image_filename: str =    Retriever(str16,           min_ver = Version((1,  9)), default = "")
+    background_image: BackgroundImage = Retriever(BackgroundImage, min_ver = Version((1, 10)), default_factory = lambda sv: BackgroundImage(sv))
     global_victory: GlobalVictory =     Retriever(GlobalVictory,                               default_factory = lambda sv: GlobalVictory(sv))
     diplomacy: Diplomacy =              Retriever(Diplomacy,                                   default_factory = lambda sv: Diplomacy(sv))
     options: Options =                  Retriever(Options,                                     default_factory = lambda sv: Options(sv))
