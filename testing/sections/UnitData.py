@@ -69,8 +69,8 @@ class PlayerData3(BaseStruct):
     editor_view: ViewF = Retriever(ViewF, default_factory = lambda sv: ViewF(sv))
     initial_view: ViewI = Retriever(ViewI, default_factory = lambda sv: ViewI(sv))
     aok_allied_victory: bool = Retriever(bool8, default = False)
-    diplomacy_stances_interaction: list[int] = Retriever(Array16[uint8], default_factory = lambda _, __: [3, 0, 3, 3, 3, 3, 3, 3, 3])
-    diplomacy_stances_ai_system: list[int] = Retriever(FixedLenArray[uint32, 9], default_factory = lambda _, __: [0, 1, 4, 4, 4, 4, 4, 4, 4])
+    diplomacy_stances_interaction: list[int] = Retriever(Array16[uint8], default_factory = lambda _: [3, 0, 3, 3, 3, 3, 3, 3, 3])
+    diplomacy_stances_ai_system: list[int] = Retriever(FixedLenArray[uint32, 9], default_factory = lambda _: [0, 1, 4, 4, 4, 4, 4, 4, 4])
     colour: int = Retriever(uint32, default = 0)
     victory_version: float = Retriever(float32, default = 2.0, on_set = [set_unknown2_repeat, set_num_wwc2_repeat])
     num_grand_theft_empires: int = Retriever(uint16, default = 0, on_set = [set_gte_repeat], on_write = [update_num_gte])
@@ -116,7 +116,7 @@ class UnitData(BaseStruct):
     player_data4: list[PlayerData4] = Retriever(PlayerData4, default_factory = lambda sv: PlayerData4(sv), repeat = 8)
     num_players: int = Retriever(uint32, default = 9)
     player_data3: list[PlayerData3] = Retriever(PlayerData3, default_factory = lambda sv: PlayerData3(sv), repeat = 8)
-    units: list[list[Unit]] = Retriever(Array32[Unit], default_factory = lambda _, __: [])
+    units: list[list[Unit]] = Retriever(Array32[Unit], default_factory = lambda _: [])
 
     def __init__(self, struct_ver: Version = Version((1, 47)), initialise_defaults = True, **retriever_inits):
         super().__init__(struct_ver, initialise_defaults = initialise_defaults, **retriever_inits)

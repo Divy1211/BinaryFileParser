@@ -3,19 +3,19 @@ from __future__ import annotations
 import zlib
 from os import path
 
-from binary_file_parser import BaseStruct, ByteStream, Retriever, RetrieverCombiner, RetrieverRef, Version
+from binary_file_parser import BaseStruct, ByteStream, Retriever, RetrieverRef, Version
 from binary_file_parser.types import Bytes, FixedLenStr, str16, uint32
 from testing.sections.bitmap import BackgroundImage
 from testing.sections.cinematics import Cinematics
-from testing.sections.data_header import DataHeader, PlayerBaseOptions
-from testing.sections.Diplomacy import Diplomacy
+from testing.sections.data_header import DataHeader
+from testing.sections.diplomacy import Diplomacy
 from testing.sections.FileData import FileData
 from testing.sections.file_header import FileHeader
-from testing.sections.GlobalVictory import GlobalVictory
+from testing.sections.global_victory import GlobalVictory
 from testing.sections.MapData import MapData
 from testing.sections.messages import Messages
 from testing.sections.Options import Options
-from testing.sections.player_options import PlayerOptions, Resources
+from testing.sections.player_options import PlayerOptions
 from testing.sections.TriggerData import TriggerData
 from testing.sections.UnitData import UnitData
 
@@ -90,17 +90,17 @@ class ScenarioSections(BaseStruct):
     def __init__(self, struct_ver: Version = Version((1, 47)), initialise_defaults = True, **retriever_inits):
         super().__init__(struct_ver, initialise_defaults = initialise_defaults, **retriever_inits)
 
-        self.player_man = PlayerManager(self)
-
-
-class PlayerManager:
-    _num_players =         RetrieverRef(ScenarioSections.file_header, FileHeader.num_players)
-    _tribe_names =         RetrieverRef(ScenarioSections.data_header, DataHeader.tribe_names)
-    _player_name_str_ids = RetrieverRef(ScenarioSections.data_header, DataHeader.player_name_str_ids)
-    _metadata =            RetrieverRef(ScenarioSections.data_header, DataHeader.player_base_options)
-    _lock_civilizations =  RetrieverRef(ScenarioSections.data_header, DataHeader.lock_civilizations)
-    _resources =           RetrieverRef(ScenarioSections.player_options, PlayerOptions.starting_resources)
-    _player_stances =      RetrieverRef(ScenarioSections.diplomacy, Diplomacy.player_stances)
-
-    def __init__(self, struct: ScenarioSections):
-        self._struct = struct
+#         self.player_man = PlayerManager(self)
+#
+#
+# class PlayerManager:
+#     _num_players =         RetrieverRef(ScenarioSections.file_header, FileHeader.num_players)
+#     _tribe_names =         RetrieverRef(ScenarioSections.data_header, DataHeader.tribe_names)
+#     _player_name_str_ids = RetrieverRef(ScenarioSections.data_header, DataHeader.player_name_str_ids)
+#     _metadata =            RetrieverRef(ScenarioSections.data_header, DataHeader.player_base_options)
+#     _lock_civilizations =  RetrieverRef(ScenarioSections.data_header, DataHeader.lock_civilizations)
+#     _resources =           RetrieverRef(ScenarioSections.player_options, PlayerOptions.starting_resources)
+#     _player_stances =      RetrieverRef(ScenarioSections.diplomacy, Diplomacy.player_stances)
+#
+#     def __init__(self, struct: ScenarioSections):
+#         self._struct = struct

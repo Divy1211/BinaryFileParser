@@ -219,7 +219,7 @@ class BaseStruct(Parseable):
     @classmethod
     def _from_stream(
         cls, stream: ByteStream, *, struct_ver: Version = Version((0,)), strict: bool = False,
-        show_progress: bool = False
+        show_progress: bool = False,
     ) -> BaseStruct:
         """
         Create a struct object from a ByteStream
@@ -263,30 +263,38 @@ class BaseStruct(Parseable):
         return instance._map()
 
     @classmethod
-    def _from_bytes(cls, bytes_: bytes, *, struct_ver: Version = Version((0,)), strict = False) -> BaseStruct:
+    def _from_bytes(
+        cls, bytes_: bytes, *, struct_ver: Version = Version((0,)), strict = False,
+        show_progress: bool = False,
+    ) -> BaseStruct:
         """
         Create a struct object from bytes
 
         :param bytes_: The bytes to create the struct object from
         :param struct_ver: The version of the structure to create. Overwritten if `get_version` is defined
         :param strict: Raise an error if struct parsing finishes successfully but there are unused bytes left over
+        :param show_progress: When true, display a progress bar
         :return: An instance of a subtype of BaseStruct
         """
         stream = ByteStream.from_bytes(bytes_)
-        return cls._from_stream(stream, struct_ver = struct_ver, strict = strict)
+        return cls._from_stream(stream, struct_ver = struct_ver, strict = strict, show_progress = show_progress)
 
     @classmethod
-    def _from_file(cls, file_name: str, *, file_version: Version = Version((0,)), strict = True) -> BaseStruct:
+    def _from_file(
+        cls, file_name: str, *, file_version: Version = Version((0,)), strict = True,
+        show_progress: bool = True,
+    ) -> BaseStruct:
         """
         Create a struct object from file
 
         :param file_name: The path of the file to create the struct object from
         :param file_version: The version of the structure to create. Overwritten if `get_version` is defined
         :param strict: Raise an error if struct parsing finishes successfully but the stream has left over bytes
+        :param show_progress: When true, display a progress bar
         :return: An instance of a subtype of BaseStruct
         """
         stream = ByteStream.from_file(file_name)
-        return cls._from_stream(stream, struct_ver = file_version, strict = strict, show_progress = True)
+        return cls._from_stream(stream, struct_ver = file_version, strict = strict, show_progress = show_progress)
 
     @classmethod
     def _to_bytes(cls, instance: BaseStruct, *, show_progress = False) -> bytes:

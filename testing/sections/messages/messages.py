@@ -1,17 +1,17 @@
 from __future__ import annotations
 
 from binary_file_parser import BaseStruct, Retriever, Version
-from binary_file_parser.types import str16, uint32
+from binary_file_parser.types import int32, str16
 
 
 class Messages(BaseStruct):
     # @formatter:off
-    instructions_str_id: int = Retriever(uint32,                             default = 4294967294)
-    hints_str_id: int =        Retriever(uint32,                             default = 4294967294)
-    victory_str_id: int =      Retriever(uint32,                             default = 4294967294)
-    loss_str_id: int =         Retriever(uint32,                             default = 4294967294)
-    history_str_id: int =      Retriever(uint32,                             default = 4294967294)
-    scouts_str_id: int =       Retriever(uint32, min_ver = Version((1, 22)), default = 4294967294)
+    instructions_str_id: int = Retriever(int32,                              default = -2)
+    hints_str_id: int =        Retriever(int32,                              default = -2)
+    victory_str_id: int =      Retriever(int32,                              default = -2)
+    loss_str_id: int =         Retriever(int32,                              default = -2)
+    history_str_id: int =      Retriever(int32,                              default = -2)
+    scouts_str_id: int =       Retriever(int32, min_ver = Version((1, 22)),  default = -2)
     instructions: str =        Retriever(str16,  min_ver = Version((1, 11)), default = "")
     hints: str =               Retriever(str16,  min_ver = Version((1, 11)), default = "")
     victory: str =             Retriever(str16,  min_ver = Version((1, 11)), default = "This scenario was created using AoE2ScenarioParser! Hopefully you enjoyed!")

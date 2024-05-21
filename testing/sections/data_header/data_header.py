@@ -29,7 +29,7 @@ class DataHeader(BaseStruct):
     @classmethod
     def _get_version(cls, stream: ByteStream, struct_ver: Version = Version((0,))) -> Version:
         # this should be identical to file version, but just in case its possible for it to be different... yES
-        ver_str = f"{float32._from_bytes(stream.peek(4)):.3}"
+        ver_str = f"{float32._from_bytes(stream.peek(4)):.2f}"
         return Version(map(int, ver_str.split(".")))
 
     def __init__(self, struct_ver: Version = Version((1, 47)), initialise_defaults = True, **retriever_inits):

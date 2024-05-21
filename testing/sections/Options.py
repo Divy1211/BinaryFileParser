@@ -6,9 +6,9 @@ from testing.sections.MapData import View
 
 
 class Options(BaseStruct):
-    disabled_tech_ids: list[list[int]] = Retriever(StackedArray32s[uint32, 16], default_factory = lambda _, __: [[] for _ in range(16)])
-    disabled_unit_ids: list[list[int]] = Retriever(StackedArray32s[uint32, 16], default_factory = lambda _, __: [[] for _ in range(16)])
-    disabled_building_ids: list[list[int]] = Retriever(StackedArray32s[uint32, 16], default_factory = lambda _, __: [[] for _ in range(16)])
+    disabled_tech_ids: list[list[int]] = Retriever(StackedArray32s[uint32, 16], default_factory = lambda _: [[] for _ in range(16)])
+    disabled_unit_ids: list[list[int]] = Retriever(StackedArray32s[uint32, 16], default_factory = lambda _: [[] for _ in range(16)])
+    disabled_building_ids: list[list[int]] = Retriever(StackedArray32s[uint32, 16], default_factory = lambda _: [[] for _ in range(16)])
     combat_mode: bool = Retriever(bool32, default = False)
     naval_mode: bool = Retriever(bool32, default = False)
     all_techs: bool = Retriever(bool32, default = False)

@@ -12,7 +12,7 @@ class DLCOptions(BaseStruct):
     """
     _game_dataset: int =       Retriever(uint32, default = 1, min_ver = Version((1000, )))
     # todo: update this list with proper default versioning
-    required_dlcs: list[int] = Retriever(Array32[uint32], default_factory = lambda _, __: [2, 3, 4, 5, 6, 7], min_ver = Version((1000, )))
+    required_dlcs: list[int] = Retriever(Array32[uint32], default_factory = lambda _: [2, 3, 4, 5, 6, 7], min_ver = Version((1000, )))
     """
     - 2  - AoK
     - 3  - AoC
