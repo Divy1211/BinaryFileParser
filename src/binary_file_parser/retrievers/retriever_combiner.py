@@ -1,12 +1,16 @@
 from __future__ import annotations
 
 from contextlib import suppress
-from typing import Generic, Type, TypeVar
+from typing import Generic, Type, TYPE_CHECKING, TypeVar
 
 from binary_file_parser.errors import VersionError
-from binary_file_parser.retrievers.retriever import Retriever
-from binary_file_parser.types.base_struct import BaseStruct
 from binary_file_parser.types.version import Version
+
+if TYPE_CHECKING:
+    from binary_file_parser.retrievers.retriever import Retriever
+    from binary_file_parser.retrievers.retriever_ref import RetrieverRef
+    from binary_file_parser.types.base_struct import BaseStruct
+
 
 T = TypeVar("T")
 
@@ -16,7 +20,7 @@ class RetrieverCombiner(Generic[T]):
     Creates a single attribute to access values from multiple retrievers which are mutually exclusive among different
     struct versions
     """
-    def __init__(self, *retrievers: Retriever) -> None:
+    def __init__(self, *retrievers: Retriever | RetrieverRef) -> None:
         """
         :param retrievers: The retrievers to combine
         """

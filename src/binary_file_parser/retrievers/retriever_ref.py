@@ -2,13 +2,14 @@ from __future__ import annotations
 
 from contextlib import suppress
 from operator import attrgetter, itemgetter
-from typing import Any, Callable, Type, TypeVar, Generic
+from typing import Any, Callable, Type, TYPE_CHECKING, TypeVar, Generic
 
 from binary_file_parser.errors import VersionError
 
-from binary_file_parser.types.base_struct import BaseStruct
-from binary_file_parser.retrievers.retriever import Retriever
-from binary_file_parser.retrievers.retriever_combiner import RetrieverCombiner
+if TYPE_CHECKING:
+    from binary_file_parser.types.base_struct import BaseStruct
+    from binary_file_parser.retrievers.retriever import Retriever
+    from binary_file_parser.retrievers.retriever_combiner import RetrieverCombiner
 
 
 T = TypeVar("T")
@@ -65,3 +66,8 @@ class RetrieverRef(Generic[T]):
         raise VersionError(
             f"{self.name!r} is not supported in your struct version {instance.struct_ver}"
         )
+
+    # todo: fix this
+    @property
+    def p_name(self):
+        return self.name

@@ -3,11 +3,11 @@ from __future__ import annotations
 import zlib
 from os import path
 
-from binary_file_parser import BaseStruct, ByteStream, Retriever, RetrieverRef, Version
+from binary_file_parser import BaseStruct, ByteStream, Retriever, RetrieverCombiner, RetrieverRef, Version
 from binary_file_parser.types import Bytes, FixedLenStr, str16, uint32
 from testing.sections.bitmap import BackgroundImage
 from testing.sections.cinematics import Cinematics
-from testing.sections.data_header import DataHeader
+from testing.sections.data_header import DataHeader, PlayerBaseOptions
 from testing.sections.Diplomacy import Diplomacy
 from testing.sections.FileData import FileData
 from testing.sections.file_header import FileHeader
@@ -15,7 +15,7 @@ from testing.sections.GlobalVictory import GlobalVictory
 from testing.sections.MapData import MapData
 from testing.sections.messages import Messages
 from testing.sections.Options import Options
-from testing.sections.PlayerData2 import PlayerData2
+from testing.sections.player_options import PlayerOptions, Resources
 from testing.sections.TriggerData import TriggerData
 from testing.sections.UnitData import UnitData
 
@@ -32,12 +32,12 @@ class ScenarioSections(BaseStruct):
     @staticmethod
     def sync_resources(_, instance: ScenarioSections):
         for i in range(8):
-            instance.unit_data.player_data4[i].food = instance.player_data2.resources[i].food
-            instance.unit_data.player_data4[i].wood = instance.player_data2.resources[i].wood
-            instance.unit_data.player_data4[i].stone = instance.player_data2.resources[i].stone
-            instance.unit_data.player_data4[i].gold = instance.player_data2.resources[i].gold
-            instance.unit_data.player_data4[i].ore_x = instance.player_data2.resources[i].ore_x
-            instance.unit_data.player_data4[i].trade_goods = instance.player_data2.resources[i].trade_goods
+            instance.unit_data.player_data4[i].food = instance.player_options.starting_resources[i].food
+            instance.unit_data.player_data4[i].wood = instance.player_options.starting_resources[i].wood
+            instance.unit_data.player_data4[i].stone = instance.player_options.starting_resources[i].stone
+            instance.unit_data.player_data4[i].gold = instance.player_options.starting_resources[i].gold
+            instance.unit_data.player_data4[i].ore_x = instance.player_options.starting_resources[i].ore_x
+            instance.unit_data.player_data4[i].trade_goods = instance.player_options.starting_resources[i].trade_goods
 
     # @formatter:off
     version: str =                      Retriever(FixedLenStr[4],                              default = "1.47")
@@ -46,10 +46,9 @@ class ScenarioSections(BaseStruct):
     data_header: DataHeader =           Retriever(DataHeader,                                  default_factory = lambda sv: DataHeader(sv))
     messages: Messages =                Retriever(Messages,                                    default_factory = lambda sv: Messages(sv))
     cinematics: Cinematics =            Retriever(Cinematics,                                  default_factory = lambda sv: Cinematics(sv))
-    background_image: BackgroundImage = Retriever(BackgroundImage,                             default_factory = lambda sv: BackgroundImage(sv))
-    player_data2: PlayerData2 =         Retriever(PlayerData2,                                 default_factory = lambda sv: PlayerData2(sv))
     background_image_filename: str =    Retriever(str16,           min_ver = Version((1,  9)), default = "")
     background_image: BackgroundImage = Retriever(BackgroundImage, min_ver = Version((1, 10)), default_factory = lambda sv: BackgroundImage(sv))
+    player_options: PlayerOptions =     Retriever(PlayerOptions,                               default_factory = lambda sv: PlayerOptions(sv))
     global_victory: GlobalVictory =     Retriever(GlobalVictory,                               default_factory = lambda sv: GlobalVictory(sv))
     diplomacy: Diplomacy =              Retriever(Diplomacy,                                   default_factory = lambda sv: Diplomacy(sv))
     options: Options =                  Retriever(Options,                                     default_factory = lambda sv: Options(sv))
@@ -98,9 +97,9 @@ class PlayerManager:
     _num_players =         RetrieverRef(ScenarioSections.file_header, FileHeader.num_players)
     _tribe_names =         RetrieverRef(ScenarioSections.data_header, DataHeader.tribe_names)
     _player_name_str_ids = RetrieverRef(ScenarioSections.data_header, DataHeader.player_name_str_ids)
-    _metadata =            RetrieverRef(ScenarioSections.data_header, DataHeader.player_base_properties)
+    _metadata =            RetrieverRef(ScenarioSections.data_header, DataHeader.player_base_options)
     _lock_civilizations =  RetrieverRef(ScenarioSections.data_header, DataHeader.lock_civilizations)
-    _resources =           RetrieverRef(ScenarioSections.player_data2, PlayerData2.resources)
+    _resources =           RetrieverRef(ScenarioSections.player_options, PlayerOptions.starting_resources)
     _player_stances =      RetrieverRef(ScenarioSections.diplomacy, Diplomacy.player_stances)
 
     def __init__(self, struct: ScenarioSections):
