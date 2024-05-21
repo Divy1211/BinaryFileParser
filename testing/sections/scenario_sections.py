@@ -1,18 +1,19 @@
 from __future__ import annotations
 
 import zlib
+from os import path
 
 from binary_file_parser import BaseStruct, ByteStream, Retriever, RetrieverRef, Version
-from binary_file_parser.types import Bytes, FixedLenStr
+from binary_file_parser.types import Bytes, FixedLenStr, uint32
 from testing.sections.BackgroundImage import BackgroundImage
 from testing.sections.Cinematics import Cinematics
-from testing.sections.DataHeader import DataHeader
+from testing.sections.data_header import DataHeader
 from testing.sections.Diplomacy import Diplomacy
 from testing.sections.FileData import FileData
 from testing.sections.file_header import FileHeader
 from testing.sections.GlobalVictory import GlobalVictory
 from testing.sections.MapData import MapData
-from testing.sections.Messages import Messages
+from testing.sections.messages import Messages
 from testing.sections.Options import Options
 from testing.sections.PlayerData2 import PlayerData2
 from testing.sections.TriggerData import TriggerData
@@ -41,7 +42,8 @@ class ScenarioSections(BaseStruct):
     # @formatter:off
     version: str =                      Retriever(FixedLenStr[4],                              default = "1.47")
     file_header: FileHeader =           Retriever(FileHeader,                                  default_factory = lambda sv: FileHeader(sv), on_write = [sync_num_triggers])
-    data_header: DataHeader =           Retriever(DataHeader,                                  default_factory = lambda sv: DataHeader(sv), remaining_compressed = True)
+    next_unit_id: int =                 Retriever(uint32,                                      default = 0, remaining_compressed = True)
+    data_header: DataHeader =           Retriever(DataHeader,                                  default_factory = lambda sv: DataHeader(sv))
     messages: Messages =                Retriever(Messages,                                    default_factory = lambda sv: Messages(sv))
     cinematics: Cinematics =            Retriever(Cinematics,                                  default_factory = lambda sv: Cinematics(sv))
     background_image: BackgroundImage = Retriever(BackgroundImage,                             default_factory = lambda sv: BackgroundImage(sv))
@@ -79,7 +81,9 @@ class ScenarioSections(BaseStruct):
     def from_file(cls, file_name: str, *, file_version: Version = Version((0,)), strict = True) -> ScenarioSections:
         return cls._from_file(file_name, file_version = file_version, strict = strict)
 
-    def to_file(self, file_name: str):
+    def to_file(self, file_name: str, overwrite_original_file_name = True):
+        if overwrite_original_file_name:
+            self.data_header.file_name = path.basename(file_name)
         super()._to_file(file_name)
 
     def __init__(self, struct_ver: Version = Version((1, 47)), initialise_defaults = True, **retriever_inits):
@@ -92,7 +96,7 @@ class PlayerManager:
     _num_players =         RetrieverRef(ScenarioSections.file_header, FileHeader.num_players)
     _tribe_names =         RetrieverRef(ScenarioSections.data_header, DataHeader.tribe_names)
     _player_name_str_ids = RetrieverRef(ScenarioSections.data_header, DataHeader.player_name_str_ids)
-    _metadata =            RetrieverRef(ScenarioSections.data_header, DataHeader.player_data1)
+    _metadata =            RetrieverRef(ScenarioSections.data_header, DataHeader.player_base_properties)
     _lock_civilizations =  RetrieverRef(ScenarioSections.data_header, DataHeader.lock_civilizations)
     _resources =           RetrieverRef(ScenarioSections.player_data2, PlayerData2.resources)
     _player_stances =      RetrieverRef(ScenarioSections.diplomacy, Diplomacy.player_stances)

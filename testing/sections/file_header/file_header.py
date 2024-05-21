@@ -9,7 +9,7 @@ from testing.sections.file_header.dlc_options import DLCOptions
 class FileHeader(BaseStruct):
     # @formatter:off
     # todo: this should be set from the byte length of the header content, but it might be unused?
-    header_len: int =                 Retriever(uint32,                                    default = 0)
+    _header_len: int =                Retriever(uint32,                                    default = 0)
     version: int =                    Retriever(int32,                                     default = 6)
     timestamp_of_last_save: int =     Retriever(uint32,     min_ver = Version((2, )),      default = 1610675127)
     scenario_instructions: str =      Retriever(nt_str32,                                  default = "")

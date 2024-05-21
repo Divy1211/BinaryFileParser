@@ -308,7 +308,7 @@ class BaseStruct(Parseable):
                 dual_line = True,
                 title = "         Writing File",
                 stats = False,
-                finalize = lambda bar: bar.title("Finished Writing File")
+                finalize = lambda bar: bar.title("Finished Writing File"),
             )
 
         for i, retriever in enumerate(retriever_ls):
@@ -316,11 +316,7 @@ class BaseStruct(Parseable):
                 retriever_ls.text = f"            <- {retriever.p_name.title().replace('_', ' ')}"
             if retriever.remaining_compressed:
                 compress_idx = i
-            try:
-                bytes_[i] = retriever.to_bytes(instance)
-            except Exception:
-                print(retriever.p_name, getattr(instance, retriever.p_name))
-                raise
+            bytes_[i] = retriever.to_bytes(instance)
 
         compressed = b""
         if compress_idx != length:
