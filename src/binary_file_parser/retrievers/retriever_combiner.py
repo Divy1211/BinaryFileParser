@@ -20,7 +20,7 @@ class RetrieverCombiner(Generic[T]):
     Creates a single attribute to access values from multiple retrievers which are mutually exclusive among different
     struct versions
     """
-    def __init__(self, *retrievers: Retriever | RetrieverRef) -> None:
+    def __init__(self, *retrievers: Retriever | RetrieverRef | RetrieverCombiner) -> None:
         """
         :param retrievers: The retrievers to combine
         """

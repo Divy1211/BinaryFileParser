@@ -112,11 +112,13 @@ class UnitData(BaseStruct):
         instance.num_unit_lists = len(instance.units)
         instance.num_players = len(instance.units)
 
+    # @formatter:off
     num_unit_lists: int = Retriever(uint32, default = 9, on_set = [set_units_repeat], on_write = [update_num_unit_lists])
     player_data4: list[PlayerData4] = Retriever(PlayerData4, default_factory = lambda sv: PlayerData4(sv), repeat = 8)
     num_players: int = Retriever(uint32, default = 9)
     player_data3: list[PlayerData3] = Retriever(PlayerData3, default_factory = lambda sv: PlayerData3(sv), repeat = 8)
     units: list[list[Unit]] = Retriever(Array32[Unit], default_factory = lambda _: [])
+    # @formatter:on
 
     def __init__(self, struct_ver: Version = Version((1, 47)), initialise_defaults = True, **retriever_inits):
         super().__init__(struct_ver, initialise_defaults = initialise_defaults, **retriever_inits)

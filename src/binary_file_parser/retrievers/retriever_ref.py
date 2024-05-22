@@ -19,7 +19,7 @@ class RetrieverRef(Generic[T]):
     """
     Create a new reference to an existing retriever
     """
-    def __init__(self, *retrievers: Retriever | RetrieverCombiner | int):
+    def __init__(self, *retrievers: Retriever | RetrieverCombiner | RetrieverRef | int):
         """
         :param retrievers: The retrievers or the list indexes to the final property to reference
         """

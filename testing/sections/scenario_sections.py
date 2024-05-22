@@ -12,9 +12,9 @@ from testing.sections.diplomacy import Diplomacy
 from testing.sections.FileData import FileData
 from testing.sections.file_header import FileHeader
 from testing.sections.global_victory import GlobalVictory
-from testing.sections.MapData import MapData
+from testing.sections.map_data import MapData
 from testing.sections.messages import Messages
-from testing.sections.Options import Options
+from testing.sections.options import Options
 from testing.sections.player_options import PlayerOptions
 from testing.sections.TriggerData import TriggerData
 from testing.sections.UnitData import UnitData

@@ -21,9 +21,9 @@ class FileHeader(BaseStruct):
     # @formatter:on
 
     @classmethod
-    def _get_version(cls, stream: ByteStream, struct_ver: Version = Version((0,))) -> Version:
+    def _get_version(cls, stream: ByteStream, struct_ver: Version = Version((0, ))) -> Version:
         ver = int32._from_bytes(stream.peek(8)[4:])
         return Version((ver, ))
 
-    def __init__(self, struct_ver: Version = Version((1, 47)), initialise_defaults = True, **retriever_inits):
+    def __init__(self, struct_ver: Version = Version((6,)), initialise_defaults = True, **retriever_inits):
         super().__init__(struct_ver, initialise_defaults = initialise_defaults, **retriever_inits)
