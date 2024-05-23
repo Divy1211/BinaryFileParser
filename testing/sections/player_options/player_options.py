@@ -8,15 +8,15 @@ from testing.sections.player_options.resources import Resources
 
 class PlayerOptions(BaseStruct):
     # @formatter:off
-    build_lists: list[str] =              Retriever(str16,                                 default = "",                               repeat = 16)
+    build_lists: list[str] =              Retriever(str16,                                 default = "",                repeat = 16)
     """unused"""
-    city_plans: list[str] =               Retriever(str16,                                 default = "",                               repeat = 16)
+    city_plans: list[str] =               Retriever(str16,                                 default = "",                repeat = 16)
     """unused"""
-    ai_names: list[str] =                 Retriever(str16,     min_ver = Version((1,  8)), default = "",                               repeat = 16)
-    ai_files: list[AiFile] =              Retriever(AiFile,                                default_factory = lambda sv: AiFile(sv),    repeat = 16)
-    ai_types: list[int] =                 Retriever(uint8,     min_ver = Version((1, 20)), default = 1,                                repeat = 16)
+    ai_names: list[str] =                 Retriever(str16,     min_ver = Version((1,  8)), default = "",                repeat = 16)
+    ai_files: list[AiFile] =              Retriever(AiFile,                                default_factory = AiFile,    repeat = 16)
+    ai_types: list[int] =                 Retriever(uint8,     min_ver = Version((1, 20)), default = 1,                 repeat = 16)
     separator1: int =                     Retriever(int32,     min_ver = Version((1,  2)), default = -99)
-    starting_resources: list[Resources] = Retriever(Resources, min_ver = Version((1, 14)), default_factory = lambda sv: Resources(sv), repeat = 16)
+    starting_resources: list[Resources] = Retriever(Resources, min_ver = Version((1, 14)), default_factory = Resources, repeat = 16)
     separator2: int =                     Retriever(int32,     min_ver = Version((1,  2)), default = -99)
     # @formatter:on
 

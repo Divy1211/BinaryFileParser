@@ -9,7 +9,7 @@ from testing.sections.options.legacy_disables import LegacyDisables
 
 class Options(BaseStruct):
     # @formatter:off
-    _legacy_disables: LegacyDisables =        Retriever(LegacyDisables,              min_ver = Version((1,  3)), max_ver = Version((1, 27)), default_factory = lambda sv: LegacyDisables(sv))
+    _legacy_disables: LegacyDisables =        Retriever(LegacyDisables,              min_ver = Version((1,  3)), max_ver = Version((1, 27)), default_factory = LegacyDisables)
     _disabled_tech_ids: list[list[int]] =     Retriever(StackedArray32s[uint32, 16], min_ver = Version((1, 28)),                             default_factory = lambda _: [[] for _ in range(16)])
     _disabled_unit_ids: list[list[int]] =     Retriever(StackedArray32s[uint32, 16], min_ver = Version((1, 28)),                             default_factory = lambda _: [[] for _ in range(16)])
     _disabled_building_ids: list[list[int]] = Retriever(StackedArray32s[uint32, 16], min_ver = Version((1, 28)),                             default_factory = lambda _: [[] for _ in range(16)])
@@ -17,11 +17,11 @@ class Options(BaseStruct):
     combat_mode: bool =                       Retriever(bool32,                      min_ver = Version((1,  4)),                             default = False)
     naval_mode: bool =                        Retriever(bool32,                      min_ver = Version((1, 12)),                             default = False)
     all_techs: bool =                         Retriever(bool32,                      min_ver = Version((1, 12)),                             default = False)
-    starting_ages: list[int] =                Retriever(uint32,                      min_ver = Version((1,  5)),                             default = 2,                           repeat = 16)
+    starting_ages: list[int] =                Retriever(uint32,                      min_ver = Version((1,  5)),                             default = 2,            repeat = 16)
     separator: bytes =                        Retriever(int32,                       min_ver = Version((1,  2)),                             default = -99)
-    player1_view: View =                      Retriever(View,                        min_ver = Version((1, 19)),                             default_factory = lambda sv: View(sv))
+    player1_view: View =                      Retriever(View,                        min_ver = Version((1, 19)),                             default_factory = View)
     ai_map_type1: int =                       Retriever(int32,                       min_ver = Version((1, 21)),                             default = 2)
-    base_priorities: list[int] =              Retriever(uint8,                       min_ver = Version((1, 24)),                             default = 0,                           repeat = 16)
+    base_priorities: list[int] =              Retriever(uint8,                       min_ver = Version((1, 24)),                             default = 0,            repeat = 16)
     num_triggers: int =                       Retriever(uint32,                      min_ver = Version((1, 35)),                             default = 0)
 
     str_sign1: int =                          Retriever(uint16,                      min_ver = Version((1, 30)),                             default = 2656)
@@ -33,10 +33,11 @@ class Options(BaseStruct):
     lock_coop_alliances_1_41: bool =          Retriever(bool8,                       min_ver = Version((1, 41)), max_ver = Version((1, 41)), default = False)
     collide_and_correct: bool =               Retriever(bool8,                       min_ver = Version((1, 36)),                             default = False)
     villager_force_drop: bool =               Retriever(bool8,                       min_ver = Version((1, 37)),                             default = False)
-    player_views: list[View] =                Retriever(View,                        min_ver = Version((1, 40)),                             default_factory = lambda sv: View(sv), repeat = 16)
+    player_views: list[View] =                Retriever(View,                        min_ver = Version((1, 40)),                             default_factory = View, repeat = 16)
     lock_diplomatic_stances: bool =           Retriever(bool8,                       min_ver = Version((1, 42)),                             default = False)
     ai_map_type2: int =                       Retriever(uint32,                      min_ver = Version((1, 42)), max_ver = Version((1, 46)), default = 0)
-    population_caps: list[int] =              Retriever(uint32,                      min_ver = Version((1, 44)),                             default = 200,                         repeat = 16)
+    population_caps: list[int] =              Retriever(uint32,                      min_ver = Version((1, 44)),                             default = 200,          repeat = 16)
+    # todo: figure this out
     secondary_game_mode =                     Retriever(Bytes[4],                    min_ver = Version((1, 45)),                             default = b"\x00"*4)
 
     # references

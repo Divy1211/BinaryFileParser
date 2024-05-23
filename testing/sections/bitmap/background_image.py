@@ -29,12 +29,12 @@ class BackgroundImage(BaseStruct):
 
     # @formatter:off
     size: int =                     Retriever(uint32,           default = 0)
-    width: int =                    Retriever(uint32,           default = 0,                                       on_set = [set_bmp_header_repeat])
-    height: int =                   Retriever(int32,            default = 0,                                       on_set = [set_bmp_header_repeat])
+    width: int =                    Retriever(uint32,           default = 0,                        on_set = [set_bmp_header_repeat])
+    height: int =                   Retriever(int32,            default = 0,                        on_set = [set_bmp_header_repeat])
     orientation: int =              Retriever(int16,            default = 1)
 
-    info_header: BitmapInfoHeader = Retriever(BitmapInfoHeader, default_factory = lambda sv: BitmapInfoHeader(sv), on_set = [set_img_repeat])
-    pixels: list[bytes] =           Retriever(Bytes[1],         default = b"\x00",                                 repeat = -1)
+    info_header: BitmapInfoHeader = Retriever(BitmapInfoHeader, default_factory = BitmapInfoHeader, on_set = [set_img_repeat])
+    pixels: list[bytes] =           Retriever(Bytes[1],         default = b"\x00",                  repeat = -1)
     # @formatter:on
 
     def __init__(

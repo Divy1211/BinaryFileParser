@@ -15,7 +15,7 @@ class FileHeader(BaseStruct):
     scenario_instructions: str =      Retriever(nt_str32,                             default = "")
     individual_victories_used: bool = Retriever(bool32,     max_ver = Version((5, )), default = False)
     num_players: int =                Retriever(uint32,                               default = 2)
-    dlc_options: DLCOptions =         Retriever(DLCOptions, min_ver = Version((3, )), default_factory = lambda sv: DLCOptions())
+    dlc_options: DLCOptions =         Retriever(DLCOptions, min_ver = Version((3, )), default_factory = DLCOptions)
     creator: str =                    Retriever(nt_str32,   min_ver = Version((5, )), default = "AoE2SP")
     num_triggers: int =               Retriever(uint32,     min_ver = Version((5, )), default = 0)
     # @formatter:on
@@ -25,5 +25,5 @@ class FileHeader(BaseStruct):
         ver = int32._from_bytes(stream.peek(8)[4:])
         return Version((ver, ))
 
-    def __init__(self, struct_ver: Version = Version((6,)), initialise_defaults = True, **retriever_inits):
+    def __init__(self, struct_ver: Version = Version((6, )), initialise_defaults = True, **retriever_inits):
         super().__init__(struct_ver, initialise_defaults = initialise_defaults, **retriever_inits)

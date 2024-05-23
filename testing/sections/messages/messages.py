@@ -11,7 +11,7 @@ class Messages(BaseStruct):
     victory_str_id: int =      Retriever(int32,                              default = -2)
     loss_str_id: int =         Retriever(int32,                              default = -2)
     history_str_id: int =      Retriever(int32,                              default = -2)
-    scouts_str_id: int =       Retriever(int32, min_ver = Version((1, 22)),  default = -2)
+    scouts_str_id: int =       Retriever(int32,  min_ver = Version((1, 22)), default = -2)
     instructions: str =        Retriever(str16,  min_ver = Version((1, 11)), default = "")
     hints: str =               Retriever(str16,  min_ver = Version((1, 11)), default = "")
     victory: str =             Retriever(str16,  min_ver = Version((1, 11)), default = "This scenario was created using AoE2ScenarioParser! Hopefully you enjoyed!")

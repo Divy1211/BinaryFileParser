@@ -5,7 +5,8 @@ from typing import Type
 
 from binary_file_parser import Retriever, Version
 from binary_file_parser.utils import indentify
-from testing.sections.TriggerData import Effect as EffectStruct
+from testing.sections.trigger_data.effect import Effect as EffectStruct
+
 
 class Effect(EffectStruct):
     def __init__(

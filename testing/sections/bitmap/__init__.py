@@ -1,3 +1,3 @@
 from .background_image import BackgroundImage
-from .color import Color
+from .colour import Colour
 from .bitmap_info_header import BitmapInfoHeader

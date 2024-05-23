@@ -21,7 +21,7 @@ class MapData(BaseStruct):
     no_waves_on_shore: bool =  Retriever(bool8,  min_ver = Version((2, )), default = False)
     width: int =               Retriever(uint32,                           default = 120, on_set = [set_terrain_data_repeat], on_write = [update_width_height])
     height: int =              Retriever(uint32,                           default = 120, on_set = [set_terrain_data_repeat])
-    tiles: list[TerrainTile] = Retriever(TerrainTile,                      default_factory = lambda sv: TerrainTile(sv),      repeat = 14_400)
+    tiles: list[TerrainTile] = Retriever(TerrainTile,                      default_factory = TerrainTile, repeat = 14_400)
     # @formatter:on
 
     @classmethod

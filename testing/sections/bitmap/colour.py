@@ -2,7 +2,7 @@ from binary_file_parser import BaseStruct, Retriever, Version
 from binary_file_parser.types import uint8
 
 
-class Color(BaseStruct):
+class Colour(BaseStruct):
     red: int =   Retriever(uint8, default = 0)
     green: int = Retriever(uint8, default = 0)
     blue: int =  Retriever(uint8, default = 0)

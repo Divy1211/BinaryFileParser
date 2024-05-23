@@ -1,7 +1,7 @@
 from binary_file_parser.retrievers import RetrieverRef
 from testing.sections.effects.Effect import Effect
 from testing.sections.effects.tmp import EffectType
-from testing.sections.TriggerData import Effect as EffectStruct
+from testing.sections.trigger_data.effect import Effect as EffectStruct
 
 
 class ResearchTechnology(Effect):

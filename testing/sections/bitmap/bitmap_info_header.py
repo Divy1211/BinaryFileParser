@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from binary_file_parser import BaseStruct, Retriever, Version
 from binary_file_parser.types import int32, uint16, uint32
-from testing.sections.bitmap.color import Color
+from testing.sections.bitmap.colour import Colour
 
 
 class BitmapInfoHeader(BaseStruct):
@@ -29,7 +29,7 @@ class BitmapInfoHeader(BaseStruct):
     y_pixels_per_meter: int =    Retriever(int32,  default = 0)
     num_colours: int =           Retriever(uint32, default = 0, on_read = [set_colours_repeat], on_write = [update_num_colours])
     num_important_colours: int = Retriever(uint32, default = 0)
-    colours: list[Color] =       Retriever(Color,  default = 0, repeat = 0)
+    colours: list[Colour] =      Retriever(Colour, default_factory = Colour, repeat = 0)
     # @formatter:on
 
     def __init__(

@@ -5,15 +5,15 @@ from testing.sections.diplomacy.legacy_victory_info import LegacyVictoryInfo
 
 class Diplomacy(BaseStruct):
     # @formatter:off
-    player_stances: list[list[int]] =                    Retriever(FixedLenArray[uint32, 16],                             default_factory = lambda _: [3]*16,                                      repeat = 16)
-    legacy_victory_info: list[list[LegacyVictoryInfo]] = Retriever(FixedLenArray[LegacyVictoryInfo, 12],                  default_factory = lambda sv: [LegacyVictoryInfo(sv) for _ in range(12)], repeat = 16)
+    player_stances: list[list[int]] =                    Retriever(FixedLenArray[uint32, 16],            default_factory = lambda _: [3]*16,                                      repeat = 16)
+    legacy_victory_info: list[list[LegacyVictoryInfo]] = Retriever(FixedLenArray[LegacyVictoryInfo, 12], default_factory = lambda sv: [LegacyVictoryInfo(sv) for _ in range(12)], repeat = 16)
     "used in aoe1"
-    separator: int =                                     Retriever(int32,                     min_ver = Version((1,  2)), default = -99)
-    allied_victories: list[bool] =                       Retriever(bool32,                                                default = False,                                                         repeat = 16)
-    lock_teams_in_game: bool =                           Retriever(bool8,                     min_ver = Version((1, 22)), default = False)
-    lock_teams_in_lobby: bool =                          Retriever(bool8,                     min_ver = Version((1, 24)), default = False)
-    random_start_points: bool =                          Retriever(bool8,                     min_ver = Version((1, 24)), default = False)
-    max_num_teams: int =                                 Retriever(int8,                      min_ver = Version((1, 24)), default = 4)
+    separator: int =                                     Retriever(int32,  min_ver = Version((1,  2)),   default = -99)
+    allied_victories: list[bool] =                       Retriever(bool32,                               default = False,                                                         repeat = 16)
+    lock_teams_in_game: bool =                           Retriever(bool8,  min_ver = Version((1, 22)),   default = False)
+    lock_teams_in_lobby: bool =                          Retriever(bool8,  min_ver = Version((1, 24)),   default = False)
+    random_start_points: bool =                          Retriever(bool8,  min_ver = Version((1, 24)),   default = False)
+    max_num_teams: int =                                 Retriever(int8,   min_ver = Version((1, 24)),   default = 4)
     # @formatter:on
 
     def __init__(self, struct_ver: Version = Version((1, 47)), initialise_defaults = True, **retriever_inits):

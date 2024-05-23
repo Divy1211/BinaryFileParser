@@ -16,7 +16,7 @@ from testing.sections.map_data import MapData
 from testing.sections.messages import Messages
 from testing.sections.options import Options
 from testing.sections.player_options import PlayerOptions
-from testing.sections.TriggerData import TriggerData
+from testing.sections.trigger_data import TriggerData
 from testing.sections.unit_data import UnitData
 
 
@@ -41,21 +41,21 @@ class ScenarioSections(BaseStruct):
 
     # @formatter:off
     version: str =                      Retriever(FixedLenStr[4],                              default = "1.47")
-    file_header: FileHeader =           Retriever(FileHeader,                                  default_factory = lambda sv: FileHeader(sv), on_write = [sync_num_triggers])
-    next_unit_id: int =                 Retriever(uint32,                                      default = 0,                                 remaining_compressed = True)
-    data_header: DataHeader =           Retriever(DataHeader,                                  default_factory = lambda sv: DataHeader(sv))
-    messages: Messages =                Retriever(Messages,                                    default_factory = lambda sv: Messages(sv))
-    cinematics: Cinematics =            Retriever(Cinematics,                                  default_factory = lambda sv: Cinematics(sv))
+    file_header: FileHeader =           Retriever(FileHeader,                                  default_factory = FileHeader, on_write = [sync_num_triggers])
+    next_unit_ref: int =                Retriever(uint32,                                      default = 0,                  remaining_compressed = True)
+    data_header: DataHeader =           Retriever(DataHeader,                                  default_factory = DataHeader)
+    messages: Messages =                Retriever(Messages,                                    default_factory = Messages)
+    cinematics: Cinematics =            Retriever(Cinematics,                                  default_factory = Cinematics)
     background_image_filename: str =    Retriever(str16,           min_ver = Version((1,  9)), default = "")
-    background_image: BackgroundImage = Retriever(BackgroundImage, min_ver = Version((1, 10)), default_factory = lambda sv: BackgroundImage(sv))
-    player_options: PlayerOptions =     Retriever(PlayerOptions,                               default_factory = lambda sv: PlayerOptions(sv))
-    global_victory: GlobalVictory =     Retriever(GlobalVictory,                               default_factory = lambda sv: GlobalVictory(sv))
-    diplomacy: Diplomacy =              Retriever(Diplomacy,                                   default_factory = lambda sv: Diplomacy(sv))
-    options: Options =                  Retriever(Options,                                     default_factory = lambda sv: Options(sv))
-    map_data: MapData =                 Retriever(MapData,                                     default_factory = lambda sv: MapData(sv))
-    unit_data: UnitData =               Retriever(UnitData,                                    default_factory = lambda sv: UnitData(sv),   on_write = [sync_resources])
-    trigger_data: TriggerData =         Retriever(TriggerData,     min_ver = Version((1, 14)), default_factory = lambda sv: TriggerData(sv))
-    file_data: FileData =               Retriever(FileData,        min_ver = Version((1, 40)), default_factory = lambda sv: FileData(sv),   on_write = [sync_script_file_path])
+    background_image: BackgroundImage = Retriever(BackgroundImage, min_ver = Version((1, 10)), default_factory = BackgroundImage)
+    player_options: PlayerOptions =     Retriever(PlayerOptions,                               default_factory = PlayerOptions)
+    global_victory: GlobalVictory =     Retriever(GlobalVictory,                               default_factory = GlobalVictory)
+    diplomacy: Diplomacy =              Retriever(Diplomacy,                                   default_factory = Diplomacy)
+    options: Options =                  Retriever(Options,                                     default_factory = Options)
+    map_data: MapData =                 Retriever(MapData,                                     default_factory = MapData)
+    unit_data: UnitData =               Retriever(UnitData,                                    default_factory = UnitData,   on_write = [sync_resources])
+    trigger_data: TriggerData =         Retriever(TriggerData,     min_ver = Version((1, 14)), default_factory = TriggerData)
+    file_data: FileData =               Retriever(FileData,        min_ver = Version((1, 40)), default_factory = FileData,   on_write = [sync_script_file_path])
     unknown1: bytes =                   Retriever(Bytes[8],        max_ver = Version((1, 37)), default = b"\x00"*8)
     # @formatter:on
 
