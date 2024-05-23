@@ -3,7 +3,7 @@ from __future__ import annotations
 import zlib
 from os import path
 
-from binary_file_parser import BaseStruct, ByteStream, Retriever, RetrieverRef, Version
+from binary_file_parser import BaseStruct, ByteStream, Retriever, Version
 from binary_file_parser.types import Bytes, FixedLenStr, str16, uint32
 from testing.sections.bitmap import BackgroundImage
 from testing.sections.cinematics import Cinematics
@@ -17,13 +17,13 @@ from testing.sections.messages import Messages
 from testing.sections.options import Options
 from testing.sections.player_options import PlayerOptions
 from testing.sections.TriggerData import TriggerData
-from testing.sections.UnitData import UnitData
+from testing.sections.unit_data import UnitData
 
 
 class ScenarioSections(BaseStruct):
     @staticmethod
     def sync_script_file_path(_, instance: ScenarioSections):
-        instance.file_data.script_file_path = instance.map_data.script_name+".xs" if instance.map_data.script_name else ""
+        instance.file_data.script_file_path = instance.options.script_name+".xs" if instance.options.script_name else ""
 
     @staticmethod
     def sync_num_triggers(_, instance: ScenarioSections):
@@ -32,12 +32,12 @@ class ScenarioSections(BaseStruct):
     @staticmethod
     def sync_resources(_, instance: ScenarioSections):
         for i in range(8):
-            instance.unit_data.player_data4[i].food = instance.player_options.starting_resources[i].food
-            instance.unit_data.player_data4[i].wood = instance.player_options.starting_resources[i].wood
-            instance.unit_data.player_data4[i].stone = instance.player_options.starting_resources[i].stone
-            instance.unit_data.player_data4[i].gold = instance.player_options.starting_resources[i].gold
-            instance.unit_data.player_data4[i].ore_x = instance.player_options.starting_resources[i].ore_x
-            instance.unit_data.player_data4[i].trade_goods = instance.player_options.starting_resources[i].trade_goods
+            instance.unit_data.world_player_data[i].food = instance.player_options.starting_resources[i].food
+            instance.unit_data.world_player_data[i].wood = instance.player_options.starting_resources[i].wood
+            instance.unit_data.world_player_data[i].stone = instance.player_options.starting_resources[i].stone
+            instance.unit_data.world_player_data[i].gold = instance.player_options.starting_resources[i].gold
+            instance.unit_data.world_player_data[i].ore_x = instance.player_options.starting_resources[i].ore_x
+            instance.unit_data.world_player_data[i].trade_goods = instance.player_options.starting_resources[i].trade_goods
 
     # @formatter:off
     version: str =                      Retriever(FixedLenStr[4],                              default = "1.47")
@@ -54,7 +54,7 @@ class ScenarioSections(BaseStruct):
     options: Options =                  Retriever(Options,                                     default_factory = lambda sv: Options(sv))
     map_data: MapData =                 Retriever(MapData,                                     default_factory = lambda sv: MapData(sv))
     unit_data: UnitData =               Retriever(UnitData,                                    default_factory = lambda sv: UnitData(sv),   on_write = [sync_resources])
-    trigger_data: TriggerData =         Retriever(TriggerData,                                 default_factory = lambda sv: TriggerData(sv))
+    trigger_data: TriggerData =         Retriever(TriggerData,     min_ver = Version((1, 14)), default_factory = lambda sv: TriggerData(sv))
     file_data: FileData =               Retriever(FileData,        min_ver = Version((1, 40)), default_factory = lambda sv: FileData(sv),   on_write = [sync_script_file_path])
     unknown1: bytes =                   Retriever(Bytes[8],        max_ver = Version((1, 37)), default = b"\x00"*8)
     # @formatter:on

@@ -2,7 +2,16 @@ from testing.sections.scenario_sections import ScenarioSections
 
 def main():
     # scx = ScenarioSections.from_file(r"C:\Users\Divy\My Stuff\Roll_The_Dice_v9-2_DE.aoe2scenario")
-    scx = ScenarioSections.from_file(r"./scxs/1_47.aoe2scenario", strict = False)
+    scx = ScenarioSections.from_file(r"./scxs/1_36.aoe2scenario")
+    scx = ScenarioSections.from_file(r"./scxs/1_37.aoe2scenario")
+    scx = ScenarioSections.from_file(r"./scxs/1_40.aoe2scenario")
+    scx = ScenarioSections.from_file(r"./scxs/1_41.aoe2scenario")
+    scx = ScenarioSections.from_file(r"./scxs/1_42.aoe2scenario")
+    scx = ScenarioSections.from_file(r"./scxs/1_43.aoe2scenario")
+    scx = ScenarioSections.from_file(r"./scxs/1_44.aoe2scenario")
+    scx = ScenarioSections.from_file(r"./scxs/1_45.aoe2scenario")
+    scx = ScenarioSections.from_file(r"./scxs/1_46.aoe2scenario")
+    scx = ScenarioSections.from_file(r"./scxs/1_47.aoe2scenario")
 
     # scx.to_file(r"C:\Users\Divy\Games\Age of Empires 2 DE\76561198276345085\resources\_common\scenario\test.aoe2scenario")
 

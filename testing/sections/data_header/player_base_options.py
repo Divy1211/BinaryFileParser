@@ -1,18 +1,18 @@
 from __future__ import annotations
 
-from binary_file_parser import BaseStruct, Retriever, RetrieverCombiner, Version
+from binary_file_parser import BaseStruct, Retriever, Version
 from binary_file_parser.types import bool32, uint32
 from testing.sections.player_options import Resources
 
 
 class PlayerBaseOptions(BaseStruct):
     # @formatter:off
-    active: bool =             Retriever(bool32,    default = False)
-    starting_resources: int =  Retriever(Resources, default_factory = lambda sv: Resources(sv), max_ver = Version((1, 13)))
-    human: bool =              Retriever(bool32,    default = False)
-    civilization: int =        Retriever(uint32,    default = 43)
-    architecture: int =        Retriever(uint32,    default = 43, min_ver = Version((1, 40)))
-    posture: int =             Retriever(uint32,    default = 4)
+    active: bool =             Retriever(bool32,                                default = False)
+    starting_resources: int =  Retriever(Resources, max_ver = Version((1, 13)), default_factory = lambda sv: Resources(sv))
+    human: bool =              Retriever(bool32,                                default = False)
+    civilization: int =        Retriever(uint32,                                default = 43)
+    architecture: int =        Retriever(uint32,    min_ver = Version((1, 40)), default = 43)
+    posture: int =             Retriever(uint32,                                default = 4)
 
     # todo: add correct defaults for different versions, or there will be crashes in DE
     # _civilization_1_36: int = Retriever(uint32, default = 36,                             max_ver = Version((1, 40)))

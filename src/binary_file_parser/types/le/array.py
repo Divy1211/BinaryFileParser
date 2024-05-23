@@ -79,15 +79,9 @@ class FixedLenArray(BaseArray):
         super().__init__(size, dtype, struct_symbol)
         self.length = length
 
-    def is_valid(self, value: list) -> tuple[bool, str]:
-        if len(value) == self.length:
-            return True, ""
-        return False, f"%s must have a fixed length of {value}"
-
     def _to_bytes(self, value: list) -> bytes:
-        valid, msg = self.is_valid(value)
-        if not valid:
-            raise TypeError(msg)
+        if len(value) != self.length:
+            raise TypeError(f"Expected FixedLenArray[{self.length}], found array with length: {len(value)}")
         return super()._to_bytes(value)
 
     def __class_getitem__(cls, item: tuple[ParseableType, int]) -> FixedLenArray:
@@ -100,15 +94,6 @@ class StackedArrays(BaseArray):
     def __init__(self, size: int, dtype: ParseableType, struct_symbol: str, num_arrays: int = -1):
         super().__init__(size, dtype, struct_symbol)
         self.num_arrays = num_arrays
-
-    def is_valid(self, value: list[list]) -> tuple[bool, str]:
-        if self.num_arrays == -1:
-            return True, ""
-
-        num_arrays = len(value)
-        if num_arrays == self.num_arrays:
-            return True, ""
-        return False, f"%s expected {self.num_arrays} but found {num_arrays} stacked arrays"
 
     def _from_stream(self, stream: ByteStream, *, struct_ver: Version = Version((0,))) -> list[list]:
         num_arrays = self.num_arrays
@@ -125,9 +110,8 @@ class StackedArrays(BaseArray):
         return ls
 
     def _to_bytes(self, value: list[list]) -> bytes:
-        valid, msg = self.is_valid(value)
-        if not valid:
-            raise TypeError(msg)
+        if self.num_arrays != -1 and len(value) != self.num_arrays:
+            raise TypeError(f"Expected {self.num_arrays} StackedArrays, found {len(value)}")
 
         length_bytes = b""
         num_arrays = self.num_arrays

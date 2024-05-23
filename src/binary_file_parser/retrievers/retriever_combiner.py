@@ -54,6 +54,7 @@ class RetrieverCombiner(Generic[T]):
     def p_name(self):
         return self.name
 
+    # todo: this doesn't work for refs
     def get_p_name(self, struct_ver: Version) -> str:
         """
         Find out the name of the retriever which holds the value referenced by this retriever combiner for the provided
@@ -65,4 +66,14 @@ class RetrieverCombiner(Generic[T]):
                 return retriever.p_name
         raise VersionError(
             f"{self.name!r} is not supported in your struct version {struct_ver}"
+        )
+
+    # todo: this doesn't work for refs
+    def set_repeat(self, instance: BaseStruct, repeat: int) -> None:
+        for retriever in self.retrievers:
+            if retriever.supported(instance.struct_ver):
+                retriever.set_repeat(instance, repeat)
+                return
+        raise VersionError(
+            f"{self.name!r} is not supported in your struct version {instance.struct_ver}"
         )

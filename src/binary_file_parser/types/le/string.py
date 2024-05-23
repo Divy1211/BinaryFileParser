@@ -78,10 +78,10 @@ class FixedLenStr(BaseStr):
         super().__init__(size)
         self.length = length
 
-    def is_valid(self, value: str) -> tuple[bool, str]:
-        if len(value) == self.length:
-            return True, ""
-        return False, f"%s must have a fixed length of {value}"
+    def _to_bytes(self, value: str) -> bytes:
+        if len(value) != self.length:
+            raise TypeError(f"Expected FixedLenStr[{self.length}], found string with length: {len(value)}")
+        return super()._to_bytes(value)
 
     def _from_stream(self, stream: ByteStream, *, struct_ver: Version = Version((0,))) -> str:
         return self._from_bytes(stream.get(self.length))
