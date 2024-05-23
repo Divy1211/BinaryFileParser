@@ -246,9 +246,14 @@ class Retriever(MapValidate):
         if not self.supported(instance.struct_ver):
             return
 
+        def call_on_reads():
+            for func in self.on_read:
+                func(self, instance)
+
         repeat = self.repeat(instance)
         if repeat == -1:
             setattr(instance, self.p_name, None)
+            call_on_reads()
             return
 
         def getobj():
@@ -257,6 +262,7 @@ class Retriever(MapValidate):
         is_not_dynamic_repeat = not hasattr(instance, self.r_name)
         if repeat == 1 and is_not_dynamic_repeat:
             setattr(instance, self.p_name, getobj())
+            call_on_reads()
             return
 
         ls: list = [None] * repeat
@@ -264,9 +270,7 @@ class Retriever(MapValidate):
             ls[i] = getobj()
         # setattr(instance, self.p_name, self.atype(ls, instance.struct_ver, instance))
         setattr(instance, self.p_name, ls)
-
-        for func in self.on_read:
-            func(self, instance)
+        call_on_reads()
 
     def to_bytes(self, instance: BaseStruct) -> bytes:
         """

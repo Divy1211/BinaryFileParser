@@ -44,7 +44,7 @@ class VictoryOptions(BaseStruct):
     @classmethod
     def _get_version(cls, stream: ByteStream, struct_ver: Version = Version((0,))) -> Version:
         if struct_ver >= Version((1, 9)):
-            ver_str = f"{float32._from_bytes(stream.peek(4)):.2f}"
+            ver_str = str(float32._from_bytes(stream.peek(4)))
             return Version(map(int, ver_str.split(".")))
         return Version((0, 0))
 
