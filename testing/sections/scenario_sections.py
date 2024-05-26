@@ -55,8 +55,7 @@ class ScenarioSections(BaseStruct):
     map_data: MapData =                 Retriever(MapData,                                     default_factory = MapData)
     unit_data: UnitData =               Retriever(UnitData,                                    default_factory = UnitData,   on_write = [sync_resources])
     trigger_data: TriggerData =         Retriever(TriggerData,     min_ver = Version((1, 14)), default_factory = TriggerData)
-    file_data: FileData =               Retriever(FileData,        min_ver = Version((1, 40)), default_factory = FileData,   on_write = [sync_script_file_path])
-    unknown1: bytes =                   Retriever(Bytes[8],        max_ver = Version((1, 37)), default = b"\x00"*8)
+    file_data: FileData =               Retriever(FileData,        min_ver = Version((1, 17)), default_factory = FileData,   on_write = [sync_script_file_path])
     # @formatter:on
 
     @classmethod

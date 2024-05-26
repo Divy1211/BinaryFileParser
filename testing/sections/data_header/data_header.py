@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+from functools import partial
+from itertools import takewhile
+from operator import ne
+
 from binary_file_parser import BaseStruct, ByteStream, Retriever, Version
 from binary_file_parser.types import bool32, bool8, Bytes, FixedLenStr, float32, int16, int32, str16, uint16
 
@@ -13,15 +17,15 @@ class DataHeader(BaseStruct):
 
     @staticmethod
     def unpad_names(_, instance: DataHeader):
-        instance.tribe_names = [name.replace("\x00", "") for name in instance.tribe_names]
+        instance.tribe_names = [str(takewhile(partial(ne, "\x00"), name)) for name in instance.tribe_names]
 
     @staticmethod
-    def pad_names(_, instance: DataHeader):
-        instance.tribe_names = [f"{name:\x00<256}" for name in instance.tribe_names]
+    def pad_names(retriever: Retriever, instance: DataHeader):
+        instance.tribe_names = [f"{name:\x00<{retriever.dtype.length}}" for name in instance.tribe_names]
 
     # @formatter:off
     version: float =                               Retriever(float32,                                       default = 1.4700000286102295)
-    tribe_names: list[str] =                       Retriever(FixedLenStr[256],                              default = "\x00"*256,                repeat = 16, on_read = [unpad_names], on_write = [pad_names])
+    tribe_names: list[str] =                       Retriever(FixedLenStr[256],                              default = "",                        repeat = 16, on_read = [unpad_names], on_write = [pad_names])
     player_name_str_ids: list[int] =               Retriever(int32,             min_ver = Version((1, 17)), default = -2,                        repeat = 16)
     player_base_options: list[PlayerBaseOptions] = Retriever(PlayerBaseOptions,                             default_factory = PlayerBaseOptions, repeat = 16)
     lock_civilizations: list[bool] =               Retriever(bool32,            min_ver = Version((1, 28)), default = False,                     repeat = 16)

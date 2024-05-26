@@ -1,3 +1,3 @@
 from .player_options import PlayerOptions
-from .ai_file import AiFile
+from .legacy_ai_file import LegacyAiFile
 from .resources import Resources
