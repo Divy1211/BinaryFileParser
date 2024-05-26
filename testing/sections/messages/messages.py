@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from binary_file_parser import BaseStruct, Retriever, Version
 from binary_file_parser.types import int32, str16
+from testing.sections.scx_versions import DE_LATEST
 
 
 class Messages(BaseStruct):
@@ -20,5 +21,5 @@ class Messages(BaseStruct):
     scouts: str =              Retriever(str16,  min_ver = Version((1, 22)), default = "")
     # @formatter:on
 
-    def __init__(self, struct_ver: Version = Version((1, 47)), initialise_defaults = True, **retriever_inits):
+    def __init__(self, struct_ver: Version = DE_LATEST, initialise_defaults = True, **retriever_inits):
         super().__init__(struct_ver, initialise_defaults = initialise_defaults, **retriever_inits)

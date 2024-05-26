@@ -1,5 +1,6 @@
 from binary_file_parser import BaseStruct, Retriever, Version
 from binary_file_parser.types import int32
+from testing.sections.scx_versions import DE_LATEST
 
 
 class Resources(BaseStruct):
@@ -16,5 +17,5 @@ class Resources(BaseStruct):
     player_colour: int = Retriever(int32, default = 0, min_ver = Version((1, 24)))
     # @formatter:on
 
-    def __init__(self, struct_ver: Version = Version((1, 47)), initialise_defaults = True, **retriever_inits):
+    def __init__(self, struct_ver: Version = DE_LATEST, initialise_defaults = True, **retriever_inits):
         super().__init__(struct_ver, initialise_defaults = initialise_defaults, **retriever_inits)

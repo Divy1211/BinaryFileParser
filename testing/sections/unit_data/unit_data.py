@@ -4,6 +4,7 @@ from binary_file_parser import BaseStruct, Retriever, RetrieverCombiner, Version
 from binary_file_parser.types import (
     Array32, uint32,
 )
+from testing.sections.scx_versions import DE_LATEST
 from testing.sections.unit_data.scenario_player_data import ScenarioPlayerData
 from testing.sections.unit_data.world_player_data import WorldPlayerData
 from testing.sections.unit_data.unit import Unit
@@ -42,5 +43,5 @@ class UnitData(BaseStruct):
     units: list[list[Unit]] =                        RetrieverCombiner(_units_de, _units_aoc)
     # @formatter:on
 
-    def __init__(self, struct_ver: Version = Version((1, 47)), initialise_defaults = True, **retriever_inits):
+    def __init__(self, struct_ver: Version = DE_LATEST, initialise_defaults = True, **retriever_inits):
         super().__init__(struct_ver, initialise_defaults = initialise_defaults, **retriever_inits)

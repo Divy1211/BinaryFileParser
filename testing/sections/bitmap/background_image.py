@@ -6,6 +6,7 @@ from binary_file_parser import BaseStruct, Retriever, Version
 from binary_file_parser.types import Bytes, int16, int32, uint32
 
 from testing.sections.bitmap.bitmap_info_header import BitmapInfoHeader
+from testing.sections.scx_versions import DE_LATEST
 
 
 class BackgroundImage(BaseStruct):
@@ -37,10 +38,5 @@ class BackgroundImage(BaseStruct):
     pixels: list[bytes] =           Retriever(Bytes[1],         default = b"\x00",                  repeat = -1)
     # @formatter:on
 
-    def __init__(
-        self,
-        struct_ver: Version = Version((1, 47)),
-        initialise_defaults = True,
-        **retriever_inits
-    ):
+    def __init__(self, struct_ver: Version = DE_LATEST, initialise_defaults = True, **retriever_inits):
         super().__init__(struct_ver, initialise_defaults = initialise_defaults, **retriever_inits)

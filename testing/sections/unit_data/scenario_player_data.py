@@ -5,6 +5,7 @@ from binary_file_parser.types import (
     Array16, bool8, FixedLenArray, nt_str16, uint32,
     uint8,
 )
+from testing.sections.scx_versions import DE_LATEST
 from testing.sections.unit_data.victory_options import VictoryOptions
 from testing.sections.unit_data.view import ViewF, ViewI
 
@@ -23,5 +24,5 @@ class ScenarioPlayerData(BaseStruct):
     victory_options: VictoryOptions =          Retriever(VictoryOptions,                                       default_factory = lambda sv: VictoryOptions(sv))
     # @formatter:on
 
-    def __init__(self, struct_ver: Version = Version((1, 47)), initialise_defaults = True, **retriever_inits):
+    def __init__(self, struct_ver: Version = DE_LATEST, initialise_defaults = True, **retriever_inits):
         super().__init__(struct_ver, initialise_defaults = initialise_defaults, **retriever_inits)

@@ -300,8 +300,7 @@ class BaseStruct(Parseable):
         stream = ByteStream.from_file(file_name)
         return cls._from_stream(stream, struct_ver = file_version, strict = strict, show_progress = show_progress)
 
-    @classmethod
-    def _to_bytes(cls, instance: BaseStruct, *, show_progress = False) -> bytes:
+    def _to_bytes(self, *, show_progress = False) -> bytes:
         """
         Convert the struct object to bytes
 
@@ -309,11 +308,11 @@ class BaseStruct(Parseable):
         :param show_progress: When true, display a progress bar
         :return: bytes
         """
-        length = len(instance._retrievers)
+        length = len(self._retrievers)
 
         bytes_ = [b""] * length
         compress_idx = length
-        retriever_ls = instance._retrievers
+        retriever_ls = self._retrievers
         if show_progress:
             retriever_ls = alive_it(
                 retriever_ls,
@@ -328,11 +327,11 @@ class BaseStruct(Parseable):
                 retriever_ls.text = f"            <- {retriever.p_name.title().replace('_', ' ')}"
             if retriever.remaining_compressed:
                 compress_idx = i
-            bytes_[i] = retriever.to_bytes(instance)
+            bytes_[i] = retriever.to_bytes(self)
 
         compressed = b""
         if compress_idx != length:
-            compressed = cls._compress(b"".join(bytes_[compress_idx:]))
+            compressed = self._compress(b"".join(bytes_[compress_idx:]))
 
         return b"".join(bytes_[:compress_idx]) + compressed
 
@@ -343,7 +342,7 @@ class BaseStruct(Parseable):
         :param file_name: The name of the file to write to
         """
         with open(file_name, "wb") as file:
-            file.write(self._to_bytes(self, show_progress = True))
+            file.write(self._to_bytes(show_progress = True))
 
     def _diff(self, other: BaseStruct) -> list[Retriever]:
         """

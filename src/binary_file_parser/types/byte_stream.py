@@ -46,7 +46,7 @@ class ByteStream:
         if n <= 0:
             return b''
         result = self.content[self.progress:self.progress + n]
-        if not result:
+        if len(result) < n:
             remaining = len(self.remaining())
             raise EOFError(f"End of file reached. (Requested: {n} bytes, only {remaining} left.)")
         self.progress += n
@@ -63,7 +63,7 @@ class ByteStream:
         if n <= 0:
             return b''
         result = self.content[self.progress:self.progress + n]
-        if not result:
+        if len(result) < n:
             remaining = len(self.remaining())
             raise EOFError(f"End of file reached. (Requested: {n} bytes, only {remaining} left.)")
         return result

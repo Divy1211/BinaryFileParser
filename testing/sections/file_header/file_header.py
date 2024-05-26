@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+from time import time
+
 from binary_file_parser import BaseStruct, ByteStream, Retriever, Version
 from binary_file_parser.types import bool32, int32, nt_str32, uint32
-
 from testing.sections.file_header.dlc_options import DLCOptions
 
 
@@ -11,7 +12,7 @@ class FileHeader(BaseStruct):
     # todo: this should be set from the # of bytes in this header, but it is unused
     size: int =                       Retriever(uint32,                               default = 0)
     version: int =                    Retriever(int32,                                default = 6)
-    timestamp_of_last_save: int =     Retriever(uint32,     min_ver = Version((2, )), default = 1610675127)
+    timestamp_of_last_save: int =     Retriever(uint32,     min_ver = Version((2, )), default_factory = lambda _: int(time()))
     scenario_instructions: str =      Retriever(nt_str32,                             default = "")
     individual_victories_used: bool = Retriever(bool32,     max_ver = Version((5, )), default = False)
     num_players: int =                Retriever(uint32,                               default = 2)

@@ -4,6 +4,7 @@ from binary_file_parser import BaseStruct, Retriever, Version
 from binary_file_parser.types import int32, str16, uint8
 from testing.sections.player_options.legacy_ai_file import LegacyAiFile
 from testing.sections.player_options.resources import Resources
+from testing.sections.scx_versions import DE_LATEST
 
 
 class PlayerOptions(BaseStruct):
@@ -20,5 +21,5 @@ class PlayerOptions(BaseStruct):
     separator2: int =                     Retriever(int32,        min_ver = Version((1,  2)), default = -99)
     # @formatter:on
 
-    def __init__(self, struct_ver: Version = Version((1, 47)), initialise_defaults = True, **retriever_inits):
+    def __init__(self, struct_ver: Version = DE_LATEST, initialise_defaults = True, **retriever_inits):
         super().__init__(struct_ver, initialise_defaults = initialise_defaults, **retriever_inits)

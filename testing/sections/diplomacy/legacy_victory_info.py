@@ -1,6 +1,7 @@
 from binary_file_parser import BaseStruct, Retriever, Version
 from binary_file_parser.types import bool32, int32, uint32
 from testing.sections.diplomacy.area_f import AreaF
+from testing.sections.scx_versions import DE_LATEST
 
 
 class LegacyVictoryInfo(BaseStruct):
@@ -21,5 +22,5 @@ class LegacyVictoryInfo(BaseStruct):
     """unused"""
     # @formatter:on
 
-    def __init__(self, struct_ver: Version = Version((1, 47)), initialise_defaults = True, **retriever_inits):
+    def __init__(self, struct_ver: Version = DE_LATEST, initialise_defaults = True, **retriever_inits):
         super().__init__(struct_ver, initialise_defaults = initialise_defaults, **retriever_inits)

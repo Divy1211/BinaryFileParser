@@ -16,6 +16,7 @@ from testing.sections.map_data import MapData
 from testing.sections.messages import Messages
 from testing.sections.options import Options
 from testing.sections.player_options import PlayerOptions
+from testing.sections.scx_versions import DE_LATEST
 from testing.sections.trigger_data import TriggerData
 from testing.sections.unit_data import UnitData
 
@@ -40,7 +41,7 @@ class ScenarioSections(BaseStruct):
             instance.unit_data.world_player_data[i].trade_goods = instance.player_options.starting_resources[i].trade_goods
 
     # @formatter:off
-    version: str =                      Retriever(FixedLenStr[4],                              default = "1.47")
+    version: str =                      Retriever(FixedLenStr[4],                              default = "1.53")
     file_header: FileHeader =           Retriever(FileHeader,                                  default_factory = FileHeader, on_write = [sync_num_triggers])
     next_unit_ref: int =                Retriever(uint32,                                      default = 0,                  remaining_compressed = True)
     data_header: DataHeader =           Retriever(DataHeader,                                  default_factory = DataHeader)
@@ -65,7 +66,7 @@ class ScenarioSections(BaseStruct):
     @classmethod
     def _compress(cls, bytes_: bytes) -> bytes:
         deflate_obj = zlib.compressobj(9, zlib.DEFLATED, -zlib.MAX_WBITS)
-        compressed = deflate_obj.compress(bytes_) + deflate_obj.flush()
+        compressed = deflate_obj.compress(bytes_[:-7]) + deflate_obj.flush()
         return compressed
 
     @classmethod
@@ -86,7 +87,7 @@ class ScenarioSections(BaseStruct):
             self.data_header.file_name = path.basename(file_name)
         super()._to_file(file_name)
 
-    def __init__(self, struct_ver: Version = Version((1, 47)), initialise_defaults = True, **retriever_inits):
+    def __init__(self, struct_ver: Version = DE_LATEST, initialise_defaults = True, **retriever_inits):
         super().__init__(struct_ver, initialise_defaults = initialise_defaults, **retriever_inits)
 
 #         self.player_man = PlayerManager(self)

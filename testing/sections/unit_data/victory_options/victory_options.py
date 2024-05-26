@@ -24,7 +24,7 @@ class VictoryOptions(BaseStruct):
         instance.num_points = len(instance.victory_points)
 
     # @formatter:off
-    version: float =      Retriever(float32, min_ver = Version((2, 0)), default = 2.0)
+    version: float =      Retriever(float32, min_ver = Version((2, 0)), default = 2.1)
     num_conditions: int = Retriever(int32,                              default = 0, on_set = [set_conditions_repeat], on_write = [sync_num_conditions])
     victory_state: int =  Retriever(uint8,                              default = 0)
     """

@@ -4,6 +4,7 @@ from binary_file_parser import BaseStruct, Retriever, Version
 from binary_file_parser.types import (
     Array32, ByteStream, float64, int8, uint32,
 )
+from testing.sections.scx_versions import DE_LATEST, TRIGGER_LATEST
 from testing.sections.trigger_data.trigger import Trigger
 from testing.sections.trigger_data.variable_data import VariableData
 
@@ -24,7 +25,7 @@ class TriggerData(BaseStruct):
             instance.trigger_display_orders = list(range(num_triggers))
 
     # @formatter:off
-    version: float =                     Retriever(float64,                                              default = 3.2)
+    version: float =                     Retriever(float64,                                              default = 3.6)
     objectives_state: int =              Retriever(int8,                      min_ver = Version((1, 5)), default = 0)
     triggers: list[Trigger] =            Retriever(Array32[Trigger],                                     default_factory = lambda _: [],             on_read = [set_disp_ords_repeat])
     trigger_display_orders: list[int] =  Retriever(uint32,                    min_ver = Version((1, 4)), default = 0,                    repeat = 0, on_write = [sync_disp_ords])
@@ -40,5 +41,5 @@ class TriggerData(BaseStruct):
         ver_str = str(float64._from_bytes(stream.peek(8)))
         return Version(map(int, ver_str.split("."))) + struct_ver
 
-    def __init__(self, struct_ver: Version = Version((3, 5, 1, 47)), initialise_defaults = True, **retriever_inits):
+    def __init__(self, struct_ver: Version = TRIGGER_LATEST + DE_LATEST, initialise_defaults = True, **retriever_inits):
         super().__init__(struct_ver, initialise_defaults = initialise_defaults, **retriever_inits)

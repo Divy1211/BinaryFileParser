@@ -6,6 +6,7 @@ from itertools import takewhile
 
 from binary_file_parser import BaseStruct, Retriever, Version
 from binary_file_parser.types import FixedLenStr, int32, uint32
+from testing.sections.scx_versions import DE_LATEST
 
 
 class AiError(BaseStruct):
@@ -53,5 +54,5 @@ class AiError(BaseStruct):
     """
     # @formatter:on
 
-    def __init__(self, struct_ver: Version = Version((1, 47)), initialise_defaults = True, **retriever_inits):
+    def __init__(self, struct_ver: Version = DE_LATEST, initialise_defaults = True, **retriever_inits):
         super().__init__(struct_ver, initialise_defaults = initialise_defaults, **retriever_inits)

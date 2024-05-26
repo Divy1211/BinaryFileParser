@@ -5,6 +5,7 @@ from binary_file_parser.types import bool32, bool8, Bytes, int32, StackedArray32
 
 from testing.sections.options.view import View
 from testing.sections.options.legacy_disables import LegacyDisables
+from testing.sections.scx_versions import DE_LATEST
 
 
 class Options(BaseStruct):
@@ -52,5 +53,5 @@ class Options(BaseStruct):
     lock_diplomatic_stances: bool = RetrieverCombiner(_lock_diplo_stances1, _lock_diplo_stances2)
     # @formatter:on
 
-    def __init__(self, struct_ver: Version = Version((1, 47)), initialise_defaults = True, **retriever_inits):
+    def __init__(self, struct_ver: Version = DE_LATEST, initialise_defaults = True, **retriever_inits):
         super().__init__(struct_ver, initialise_defaults = initialise_defaults, **retriever_inits)

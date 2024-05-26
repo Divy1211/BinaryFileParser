@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from binary_file_parser import BaseStruct, Retriever, Version
 from binary_file_parser.types import Array32, bool32, bool8, Bytes, int32, nt_str32, uint32, uint8
+from testing.sections.scx_versions import DE_LATEST, TRIGGER_LATEST
 from testing.sections.trigger_data.condition import Condition
 from testing.sections.trigger_data.effect import Effect
 
@@ -56,5 +57,5 @@ class Trigger(BaseStruct):
     condition_display_orders: list[int] =    Retriever(uint32,                                        default = 0, repeat = 0,        on_write = [sync_con_disp_ords])
     # @formatter:on
 
-    def __init__(self, struct_ver: Version = Version((3, 5, 1, 47)), initialise_defaults = True, **retriever_inits):
+    def __init__(self, struct_ver: Version = TRIGGER_LATEST + DE_LATEST, initialise_defaults = True, **retriever_inits):
         super().__init__(struct_ver, initialise_defaults = initialise_defaults, **retriever_inits)

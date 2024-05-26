@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from binary_file_parser import BaseStruct, Retriever, Version
 from binary_file_parser.types import float32, int32, uint16, uint8
+from testing.sections.scx_versions import DE_LATEST
 
 
 class Unit(BaseStruct):
@@ -19,5 +20,5 @@ class Unit(BaseStruct):
     """another object's reference_id. -1 (and 0 for v1.12+) mean None"""
     # @formatter:on
 
-    def __init__(self, struct_ver: Version = Version((1, 47)), initialise_defaults = True, **retriever_inits):
+    def __init__(self, struct_ver: Version = DE_LATEST, initialise_defaults = True, **retriever_inits):
         super().__init__(struct_ver, initialise_defaults = initialise_defaults, **retriever_inits)
