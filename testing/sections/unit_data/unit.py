@@ -12,7 +12,7 @@ class Unit(BaseStruct):
     reference_id: int =      Retriever(int32,   default = 0)
     type: int =              Retriever(uint16,  default = 4)
     state: int =             Retriever(uint8,   default = 2)
-    angle: float =           Retriever(float32, default = 0)
+    rotation: float =        Retriever(float32, default = 0)
     """in radians"""
     frame: int =             Retriever(uint16, min_ver = Version((1, 15)), default = 0)
     garrisoned_in_ref: int = Retriever(int32,  min_ver = Version((1, 13)), default = -1)

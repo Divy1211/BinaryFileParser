@@ -249,7 +249,11 @@ class BaseStruct(Parseable):
                 retriever_ls.text = f"            -> {retriever.p_name.title().replace('_', ' ')}"
             if retriever.remaining_compressed:
                 stream = ByteStream.from_bytes(cls._decompress(stream.remaining()))
-            retriever.from_stream(instance, stream)
+            try:
+                retriever.from_stream(instance, stream)
+            except:
+                print(retriever.p_name)
+                raise
             # instance._size += retriever.dtype._size
 
         file_len = len(stream.content)

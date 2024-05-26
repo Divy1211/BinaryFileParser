@@ -1,13 +1,7 @@
 from __future__ import annotations
 
-from binary_file_parser import BaseStruct, ByteStream, Retriever, Version
-from binary_file_parser.types import int32, str32
-
-
-attr_usage_ids = {
-    "_message": {3, 20, 26, 37, 44, 45, 48, 51, 55, 56, 59, 60, 65, 66},
-    "_sound_name": {3, 4, 20},
-}
+from binary_file_parser import BaseStruct, Retriever, Version
+from binary_file_parser.types import int32, nt_str32
 
 
 class Effect(BaseStruct):
@@ -17,23 +11,12 @@ class Effect(BaseStruct):
         Effect.selected_object_ids.set_repeat(instance, repeat)
 
     @staticmethod
-    def remove_null_term(retriever: Retriever, instance: Effect):
-        setattr(instance, retriever.s_name, getattr(instance, retriever.s_name).removesuffix("\x00"))
-
-    @staticmethod
-    def append_null_term_if_used(retriever: Retriever, instance: Effect):
-        if instance.type in attr_usage_ids[retriever.p_name]:
-            val = getattr(instance, retriever.s_name)
-            if len(val) > 0 and val[-1] != "\x00":
-                setattr(instance, retriever.s_name, val+"\x00")
-
-    @staticmethod
     def sync_num_obj_sel(_, instance: Effect):
         instance.num_objects_selected = len(instance.selected_object_ids)
 
     # @formatter:off
     type: int =                       Retriever(int32, default = -1)
-    static_value: int =               Retriever(int32, default = 52)
+    num_properties: int =             Retriever(int32, default = 52)
     ai_script_goal: int =             Retriever(int32, default = -1)
     quantity: int =                   Retriever(int32, default = -1)
     resource: int =                   Retriever(int32, default = -1)
@@ -82,15 +65,16 @@ class Effect(BaseStruct):
     location_object_reference: int =  Retriever(int32, default = -1)
     play_sound: int =                 Retriever(int32, default = -1)
     colour: int =                     Retriever(int32, default = -1, min_ver = Version((2, 4, 1, 40)))
+    # todo: what's this
     unknown4: int =                   Retriever(int32, default = -1, min_ver = Version((2, 4, 1, 40)))
     colour_mood: int =                Retriever(int32, default = -1, min_ver = Version((2, 4, 1, 42)))
     reset_timer: int =                Retriever(int32, default = -1, min_ver = Version((2, 4, 1, 44)))
     object_state: int =               Retriever(int32, default = -1, min_ver = Version((2, 4, 1, 44)))
     action_type: int =                Retriever(int32, default = -1, min_ver = Version((2, 4, 1, 44)))
     # todo: try ignoring the null term, see what happens in game
-    message: str =                    Retriever(str32, default = "", on_read = [remove_null_term], on_write = [append_null_term_if_used])
-    sound_name: str =                 Retriever(str32, default = "", on_read = [remove_null_term], on_write = [append_null_term_if_used])
-    selected_object_ids: list[int] =  Retriever(int32, default = -1, repeat = 0)
+    message: str =                    Retriever(nt_str32, default = "")
+    sound_name: str =                 Retriever(nt_str32, default = "")
+    selected_object_ids: list[int] =  Retriever(int32,    default = -1, repeat = 0)
     # @formatter:on
 
     # def map(self) -> BaseStruct:

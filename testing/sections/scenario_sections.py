@@ -9,7 +9,7 @@ from testing.sections.bitmap import BackgroundImage
 from testing.sections.cinematics import Cinematics
 from testing.sections.data_header import DataHeader
 from testing.sections.diplomacy import Diplomacy
-from testing.sections.FileData import FileData
+from testing.sections.file_data import FileData
 from testing.sections.file_header import FileHeader
 from testing.sections.global_victory import GlobalVictory
 from testing.sections.map_data import MapData
