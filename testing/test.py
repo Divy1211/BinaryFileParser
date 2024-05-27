@@ -4,6 +4,7 @@ from testing.sections.scenario_sections import ScenarioSections
 def main():
     # todo: correctly initialise struct_ver `from_default` for all self versioned structs
     # todo: for default values that are different across different versions, use default_factory
+    scx = ScenarioSections.from_file(r"./scxs/1_21.scx")
     scx = ScenarioSections.from_file(r"./scxs/1_21.aoe2scenario")
     scx = ScenarioSections.from_file(r"./scxs/1_36.aoe2scenario")
     scx = ScenarioSections.from_file(r"./scxs/1_37.aoe2scenario")
