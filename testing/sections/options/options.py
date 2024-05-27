@@ -20,7 +20,7 @@ class Options(BaseStruct):
     all_techs: bool =                         Retriever(bool32,                      min_ver = Version((1, 12)),                             default = False)
     starting_ages: list[int] =                Retriever(uint32,                      min_ver = Version((1,  5)),                             default = 2,            repeat = 16)
     separator: bytes =                        Retriever(int32,                       min_ver = Version((1,  2)),                             default = -99)
-    player1_view: View =                      Retriever(View,                        min_ver = Version((1, 19)),                             default_factory = View)
+    editor_camera_position: View =            Retriever(View,                        min_ver = Version((1, 19)),                             default_factory = View)
     ai_map_type1: int =                       Retriever(int32,                       min_ver = Version((1, 21)),                             default = 2)
     base_priorities: list[int] =              Retriever(uint8,                       min_ver = Version((1, 24)),                             default = 0,            repeat = 16)
     num_triggers: int =                       Retriever(uint32,                      min_ver = Version((1, 35)),                             default = 0)
@@ -31,11 +31,11 @@ class Options(BaseStruct):
     colour_mood: str =                        Retriever(str16,                       min_ver = Version((1, 32)),                             default = "Empty")
     str_sign3: int =                          Retriever(uint16,                      min_ver = Version((1, 40)),                             default = 2656)
     script_name: str =                        Retriever(str16,                       min_ver = Version((1, 40)),                             default = "")
-    _lock_diplo_stances1: bool =              Retriever(bool8,                       min_ver = Version((1, 41)), max_ver = Version((1, 41)), default = False)
+    _lock_coop_alliances1: bool =             Retriever(bool8,                       min_ver = Version((1, 41)), max_ver = Version((1, 41)), default = False)
     collide_and_correct: bool =               Retriever(bool8,                       min_ver = Version((1, 36)),                             default = False)
     villager_force_drop: bool =               Retriever(bool8,                       min_ver = Version((1, 37)),                             default = False)
     player_views: list[View] =                Retriever(View,                        min_ver = Version((1, 40)),                             default_factory = View, repeat = 16)
-    _lock_diplo_stances2: bool =              Retriever(bool8,                       min_ver = Version((1, 42)),                             default = False)
+    _lock_coop_alliances2: bool =             Retriever(bool8,                       min_ver = Version((1, 42)),                             default = False)
     ai_map_type2: int =                       Retriever(uint32,                      min_ver = Version((1, 42)), max_ver = Version((1, 46)), default = 0)
     population_caps: list[int] =              Retriever(uint32,                      min_ver = Version((1, 44)),                             default = 200,          repeat = 16)
     # todo: figure this out
@@ -50,7 +50,8 @@ class Options(BaseStruct):
     disabled_unit_ids: list[list[int]] =     RetrieverCombiner(_disabled_unit_ids, _legacy_disabled_unit_ids)
     disabled_building_ids: list[list[int]] = RetrieverCombiner(_disabled_building_ids, _legacy_disabled_building_ids)
 
-    lock_diplomatic_stances: bool = RetrieverCombiner(_lock_diplo_stances1, _lock_diplo_stances2)
+    lock_coop_alliances: bool = RetrieverCombiner(_lock_coop_alliances1, _lock_coop_alliances2)
+    """unused, thxDE"""
     # @formatter:on
 
     def __init__(self, struct_ver: Version = DE_LATEST, initialise_defaults = True, **retriever_inits):

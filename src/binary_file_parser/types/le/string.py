@@ -2,6 +2,9 @@ from __future__ import annotations
 
 import struct
 from abc import ABC
+from functools import partial
+from itertools import takewhile
+from operator import ne
 
 from binary_file_parser.types.byte_stream import ByteStream
 from binary_file_parser.types.parseable import Parseable
@@ -63,7 +66,7 @@ class NullTermStr(Str):
     __slots__ = ()
 
     def _from_stream(self, stream: ByteStream, *, struct_ver: Version = Version((0,))) -> str:
-        return super()._from_stream(stream, struct_ver = struct_ver)[:-1]
+        return super()._from_stream(stream, struct_ver = struct_ver).removesuffix("\x00")
 
     def _to_bytes(self, value: str) -> bytes:
         if not value.endswith("\x00"):
@@ -88,6 +91,18 @@ class FixedLenStr(BaseStr):
 
     def __class_getitem__(cls, item: int) -> FixedLenStr:
         return cls(4, item)
+
+class FixedLenNTStr(FixedLenStr):
+    __slots__ = ()
+
+    def _to_bytes(self, value: str) -> bytes:
+        value = f"{value:\x00<{self.length}}"
+        return super()._to_bytes(value)
+
+    def _from_bytes(self, bytes_: bytes, *, struct_ver: Version = Version((0,))) -> str:
+        value = super()._from_bytes(bytes_, struct_ver = struct_ver)
+        return str(takewhile(partial(ne, "\x00"), value))
+
 
 c_str = CStr(4)
 str8 = Str(1, "<B")

@@ -10,11 +10,11 @@ class Resources(BaseStruct):
     wood: int =          Retriever(int32, default = 0)
     food: int =          Retriever(int32, default = 0)
     stone: int =         Retriever(int32, default = 0)
-    ore_x: int =         Retriever(int32, default = 0, min_ver = Version((1, 17)))
+    ore_x: int =         Retriever(int32, default = 0, min_ver = Version((1, 15)))  # min ver unverified
     """unused"""
-    trade_goods: int =   Retriever(int32, default = 0, min_ver = Version((1, 17)))
+    trade_goods: int =   Retriever(int32, default = 0, min_ver = Version((1, 15)))  # min ver unverified
     """unused"""
-    player_colour: int = Retriever(int32, default = 0, min_ver = Version((1, 24)))
+    player_colour: int = Retriever(int32, default = 0, min_ver = Version((1, 24)))  # min ver semi unverified
     # @formatter:on
 
     def __init__(self, struct_ver: Version = DE_LATEST, initialise_defaults = True, **retriever_inits):

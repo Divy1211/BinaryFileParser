@@ -9,7 +9,7 @@ from testing.sections.scx_versions import DE_LATEST
 class PlayerBaseOptions(BaseStruct):
     # @formatter:off
     active: bool =             Retriever(bool32,                                default = False)
-    starting_resources: int =  Retriever(Resources, max_ver = Version((1, 13)), default_factory = lambda sv: Resources(sv))
+    starting_resources: int =  Retriever(Resources, max_ver = Version((1, 13)), default_factory = Resources)
     human: bool =              Retriever(bool32,                                default = False)
     civilization: int =        Retriever(uint32,                                default = 65537)
     architecture: int =        Retriever(uint32,    min_ver = Version((1, 40)), default = 65537)

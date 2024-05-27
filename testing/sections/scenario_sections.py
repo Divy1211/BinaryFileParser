@@ -4,7 +4,7 @@ import zlib
 from os import path
 
 from binary_file_parser import BaseStruct, ByteStream, Retriever, Version
-from binary_file_parser.types import Bytes, FixedLenStr, str16, uint32
+from binary_file_parser.types import FixedLenStr, str16, uint32
 from testing.sections.bitmap import BackgroundImage
 from testing.sections.cinematics import Cinematics
 from testing.sections.data_header import DataHeader
@@ -40,11 +40,16 @@ class ScenarioSections(BaseStruct):
             instance.unit_data.world_player_data[i].ore_x = instance.player_options.starting_resources[i].ore_x
             instance.unit_data.world_player_data[i].trade_goods = instance.player_options.starting_resources[i].trade_goods
 
+    @staticmethod
+    def set_self_version(_, instance: ScenarioSections):
+        # yES
+        instance._struct_ver = instance.data_header.struct_ver
+
     # @formatter:off
     version: str =                      Retriever(FixedLenStr[4],                              default = "1.53")
     file_header: FileHeader =           Retriever(FileHeader,                                  default_factory = FileHeader, on_write = [sync_num_triggers])
     next_unit_ref: int =                Retriever(uint32,                                      default = 0,                  remaining_compressed = True)
-    data_header: DataHeader =           Retriever(DataHeader,                                  default_factory = DataHeader)
+    data_header: DataHeader =           Retriever(DataHeader,                                  default_factory = DataHeader, on_read = [set_self_version])
     messages: Messages =                Retriever(Messages,                                    default_factory = Messages)
     cinematics: Cinematics =            Retriever(Cinematics,                                  default_factory = Cinematics)
     background_image_filename: str =    Retriever(str16,           min_ver = Version((1,  9)), default = "")

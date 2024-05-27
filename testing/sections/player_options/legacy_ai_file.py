@@ -7,11 +7,12 @@ class LegacyAiFile(BaseStruct):
     """This struct is useless"""
 
     # @formatter:off
+    # Note: these are potentially stacked32strs, since build_ls and cty_plans are unused, we don't know (or care)
     build_list: str = Retriever(str32, default = "")
     """unused"""
     city_plans: str = Retriever(str32, default = "")
     """unused"""
-    ai_rules: str =   Retriever(str32, default = "", min_ver = Version((1,  8)))
+    ai_rules: str =   Retriever(str32, default = "", min_ver = Version((1,  8)))  # min ver unverified
     """From the .per file of an AI"""
     # @formatter:on
 

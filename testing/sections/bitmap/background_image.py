@@ -34,6 +34,7 @@ class BackgroundImage(BaseStruct):
     height: int =                   Retriever(int32,            default = 0,                        on_set = [set_bmp_header_repeat])
     orientation: int =              Retriever(int16,            default = 1)
 
+    # todo: there is potentially an optional BitmapFileHeader here. Look into this (on top of the InfoHeader!)
     info_header: BitmapInfoHeader = Retriever(BitmapInfoHeader, default_factory = BitmapInfoHeader, on_set = [set_img_repeat])
     pixels: list[bytes] =           Retriever(Bytes[1],         default = b"\x00",                  repeat = -1)
     # @formatter:on

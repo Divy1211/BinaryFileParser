@@ -1,28 +1,16 @@
 from __future__ import annotations
 
-from _operator import ne
-from functools import partial
-from itertools import takewhile
-
 from binary_file_parser import BaseStruct, Retriever, Version
-from binary_file_parser.types import FixedLenStr, int32, uint32
+from binary_file_parser.types import FixedLenNTStr, int32, uint32
 from testing.sections.scx_versions import DE_LATEST
 
 
 class AiError(BaseStruct):
-    @staticmethod
-    def unpad_names(_, instance: AiError):
-        instance.file_name = str(takewhile(partial(ne, "\x00"), instance.file_name))
-
-    @staticmethod
-    def pad_names(retriever: Retriever, instance: AiError):
-        instance.file_name = f"{instance.file_name:\x00<{retriever.dtype.length}}"
-
     # @formatter:off
-    file_name: str =   Retriever(FixedLenStr[260], default = "", on_read = [unpad_names], on_write = [pad_names])
-    line_number: int = Retriever(int32,            default = -1)
-    message: str =     Retriever(FixedLenStr[128], default = -1, on_read = [unpad_names], on_write = [pad_names])
-    code: str =        Retriever(uint32,           default = 0)
+    file_name: str =   Retriever(FixedLenNTStr[260], default = "")
+    line_number: int = Retriever(int32,              default = -1)
+    message: str =     Retriever(FixedLenNTStr[128], default = -1)
+    code: str =        Retriever(uint32,             default = 0)
     """
     - 0: ConstantAlreadyDefined
     - 1: FileOpenFailed

@@ -11,7 +11,7 @@ class Diplomacy(BaseStruct):
     "used in aoe1"
     separator: int =                                     Retriever(int32,  min_ver = Version((1,  2)),   default = -99)
     allied_victories: list[bool] =                       Retriever(bool32,                               default = False,                                                         repeat = 16)
-    lock_teams_in_game: bool =                           Retriever(bool8,  min_ver = Version((1, 22)),   default = False)
+    lock_teams_in_game: bool =                           Retriever(bool8,  min_ver = Version((1, 23)),   default = False)
     lock_teams_in_lobby: bool =                          Retriever(bool8,  min_ver = Version((1, 24)),   default = False)
     random_start_points: bool =                          Retriever(bool8,  min_ver = Version((1, 24)),   default = False)
     max_num_teams: int =                                 Retriever(int8,   min_ver = Version((1, 24)),   default = 4)

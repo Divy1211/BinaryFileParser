@@ -28,7 +28,7 @@ class Retriever(MapValidate):
         min_ver: Version = Version((-1,)),
         max_ver: Version = Version((sys.maxsize,)),
         *,
-        default = None,
+        default: object = None,
         default_factory: Callable[[Version], Any] = None,
         repeat: int = 1,
         # atype: Type[RefList] = RefList,
@@ -39,7 +39,7 @@ class Retriever(MapValidate):
         validators: list[Callable[[RetrieverSub, BaseStructSub, T], tuple[bool, str]]] | None = None,
         on_get: list[Callable[[RetrieverSub, BaseStructSub], None]] | None = None,
         on_set: list[Callable[[RetrieverSub, BaseStructSub], None]] | None = None,
-    ):
+    ) -> object:
         """
         :param dtype: The type of the value to read
         :param min_ver:

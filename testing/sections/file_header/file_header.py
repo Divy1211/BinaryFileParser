@@ -9,8 +9,8 @@ from testing.sections.file_header.dlc_options import DLCOptions
 
 class FileHeader(BaseStruct):
     # @formatter:off
-    # todo: this should be set from the # of bytes in this header, but it is unused
     size: int =                       Retriever(uint32,                               default = 0)
+    """unused"""
     version: int =                    Retriever(int32,                                default = 6)
     timestamp_of_last_save: int =     Retriever(uint32,     min_ver = Version((2, )), default_factory = lambda _: int(time()))
     scenario_instructions: str =      Retriever(nt_str32,                             default = "")
