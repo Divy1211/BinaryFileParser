@@ -3,6 +3,11 @@ dist/*
 src/binary_file_parser.egg-info/*
 docs/*
 *.aoe2scenario
+*.aoescenario
 *.scx
+*.scx2
+*.scn
+*.scn2
+*.aoescn
 mkdocs.yml
 pub.bat

@@ -4,7 +4,6 @@ import zlib
 from os import path
 
 from binary_file_parser import BaseStruct, ByteStream, Retriever, Version
-from binary_file_parser.types import FixedLenStr, str16, uint32
 from testing.sections.bitmap import BackgroundImage
 from testing.sections.cinematics import Cinematics
 from testing.sections.data_header import DataHeader
@@ -46,13 +45,10 @@ class ScenarioSections(BaseStruct):
         instance._struct_ver = instance.data_header.struct_ver
 
     # @formatter:off
-    version: str =                      Retriever(FixedLenStr[4],                              default = "1.53")
     file_header: FileHeader =           Retriever(FileHeader,                                  default_factory = FileHeader, on_write = [sync_num_triggers])
-    next_unit_ref: int =                Retriever(uint32,                                      default = 0,                  remaining_compressed = True)
-    data_header: DataHeader =           Retriever(DataHeader,                                  default_factory = DataHeader, on_read = [set_self_version])
+    data_header: DataHeader =           Retriever(DataHeader,                                  default_factory = DataHeader, on_read = [set_self_version], remaining_compressed = True)
     messages: Messages =                Retriever(Messages,                                    default_factory = Messages)
     cinematics: Cinematics =            Retriever(Cinematics,                                  default_factory = Cinematics)
-    background_image_filename: str =    Retriever(str16,           min_ver = Version((1,  9)), default = "")
     background_image: BackgroundImage = Retriever(BackgroundImage, min_ver = Version((1, 10)), default_factory = BackgroundImage)
     player_options: PlayerOptions =     Retriever(PlayerOptions,                               default_factory = PlayerOptions)
     global_victory: GlobalVictory =     Retriever(GlobalVictory,                               default_factory = GlobalVictory)

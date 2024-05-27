@@ -21,6 +21,24 @@ def main():
     scx = ScenarioSections.from_file(r"./scxs/1_51.aoe2scenario")
     scx = ScenarioSections.from_file(r"./scxs/1_53.aoe2scenario")
 
+    # scx = ScenarioSections.from_file(r"./scxs/genie-rs/A New Emporer.scn")
+    # scx = ScenarioSections.from_file(r"./scxs/genie-rs/Age of Heroes b1-3-5.scx")
+    # scx = ScenarioSections.from_file(r"./scxs/genie-rs/Bronze Age Art of War.scn")
+    # scx = ScenarioSections.from_file(r"./scxs/genie-rs/CAMELOT.SCN")
+    # scx = ScenarioSections.from_file(r"./scxs/genie-rs/CEASAR.scn")
+    # scx = ScenarioSections.from_file(r"./scxs/genie-rs/Corlis.aoescn")
+    # scx = ScenarioSections.from_file(r"./scxs/genie-rs/Dawn of a New Age.scn")
+    # scx = ScenarioSections.from_file(r"./scxs/genie-rs/El advenimiento de los hunos_.scx", strict = False)
+    # scx = ScenarioSections.from_file(r"./scxs/genie-rs/Hotkey Trainer Buildings.aoe2scenario")
+    # scx = ScenarioSections.from_file(r"./scxs/genie-rs/Jeremiah Johnson (Update).scx")
+    # scx = ScenarioSections.from_file(r"./scxs/genie-rs/layertest.aoe2scenario")
+    # scx = ScenarioSections.from_file(r"./scxs/genie-rs/real_world_amazon.scx")
+    # scx = ScenarioSections.from_file(r"./scxs/genie-rs/The Destruction of Rome.scn")
+    # scx = ScenarioSections.from_file(r"./scxs/genie-rs/Year_of_the_Pig.aoe2scenario")
+
+    # print(scx.options.separator)
+
+
 
 if __name__ == "__main__":
     main()

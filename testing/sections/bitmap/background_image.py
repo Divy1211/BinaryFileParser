@@ -3,7 +3,7 @@ from __future__ import annotations
 import math as maths
 
 from binary_file_parser import BaseStruct, Retriever, Version
-from binary_file_parser.types import Bytes, int16, int32, uint32
+from binary_file_parser.types import Bytes, int16, int32, str16, uint32
 
 from testing.sections.bitmap.bitmap_info_header import BitmapInfoHeader
 from testing.sections.scx_versions import DE_LATEST
@@ -29,10 +29,12 @@ class BackgroundImage(BaseStruct):
             BackgroundImage.info_header.set_repeat(instance, -1)
 
     # @formatter:off
-    size: int =                     Retriever(uint32,           default = 0)
-    width: int =                    Retriever(uint32,           default = 0,                        on_set = [set_bmp_header_repeat])
-    height: int =                   Retriever(int32,            default = 0,                        on_set = [set_bmp_header_repeat])
-    orientation: int =              Retriever(int16,            default = 1)
+    background_image_filename: str = Retriever(str16,           min_ver = Version((1,  9)), default = "")
+    # todo: size needs to be set correctly
+    size: int =                      Retriever(uint32,           default = 0)
+    width: int =                     Retriever(uint32,           default = 0,                        on_set = [set_bmp_header_repeat])
+    height: int =                    Retriever(int32,            default = 0,                        on_set = [set_bmp_header_repeat])
+    orientation: int =               Retriever(int16,            default = 1)
 
     # todo: there is potentially an optional BitmapFileHeader here. Look into this (on top of the InfoHeader!)
     info_header: BitmapInfoHeader = Retriever(BitmapInfoHeader, default_factory = BitmapInfoHeader, on_set = [set_img_repeat])
