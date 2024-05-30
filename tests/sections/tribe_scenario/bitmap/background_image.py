@@ -20,7 +20,7 @@ class BackgroundImage(BaseStruct):
 
     # @formatter:off
     background_image_filename: str = Retriever(str16,                                        default = "")
-    # todo: size needs to be set correctly
+    # todo: does size needs to be set correctly? testing needed
     size: int =                      Retriever(uint32,           min_ver = Version((1, 10)), default = 0)
     width: int =                     Retriever(uint32,           min_ver = Version((1, 10)), default = 0)
     height: int =                    Retriever(int32,            min_ver = Version((1, 10)), default = 0,                        on_read = [set_bmp_header_repeat, set_img_repeat], on_write = [set_bmp_header_repeat])
