@@ -42,7 +42,7 @@ def test_1_07a():
     ScenarioSections.from_file(r"./scxs/wtest.bin")
 
 def test_1_11c():
-    scx = scx = ScenarioSections.from_file(r"./scxs/genie-rs/El advenimiento de los hunos_.scx")
+    scx = ScenarioSections.from_file(r"./scxs/genie-rs/El advenimiento de los hunos_.scx")
     scx.to_file(r"./scxs/wtest.bin")
     ScenarioSections.from_file(r"./scxs/wtest.bin")
 

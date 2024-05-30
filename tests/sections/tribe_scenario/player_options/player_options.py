@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from binary_file_parser import BaseStruct, Retriever, Version
-from binary_file_parser.types import Bytes, FixedLenNTStr, int32, str16, uint8
-from tests.sections.data_header import PlayerBaseOptions, Resources
-from tests.sections.player_options.legacy_ai_file import LegacyAiFile
+from binary_file_parser.types import FixedLenNTStr, int32, str16, uint8
+from tests.sections.tribe_scenario.data_header import PlayerBaseOptions, Resources
+from tests.sections.tribe_scenario.player_options.legacy_ai_file import LegacyAiFile
 from tests.sections.scx_versions import DE_LATEST
 
 

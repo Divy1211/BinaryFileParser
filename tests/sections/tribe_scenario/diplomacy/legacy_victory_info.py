@@ -1,6 +1,6 @@
 from binary_file_parser import BaseStruct, Retriever, Version
 from binary_file_parser.types import bool32, int32, uint32
-from tests.sections.diplomacy.area_f import AreaF
+from tests.sections.tribe_scenario.diplomacy.area_f import AreaF
 from tests.sections.scx_versions import DE_LATEST
 
 

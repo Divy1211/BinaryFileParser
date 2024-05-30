@@ -1,14 +1,9 @@
-import os
+from tests.sections import ScenarioSections
 
 
 def main():
-    for dir_, _, files in os.walk("./scxs/genie-rs"):
-        for file in files:
-            print(file)
-            with open(os.path.join(dir_, file), "rb") as scx:
-                ver = scx.read(4)
-                print(ver)
-
+    scx = ScenarioSections.from_file(r"./scxs/genie-rs/El advenimiento de los hunos_.scx")
+    print(scx.tribe_scenario.background_image.size)
 
 if __name__ == "__main__":
     main()

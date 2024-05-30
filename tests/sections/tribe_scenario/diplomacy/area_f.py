@@ -1,5 +1,5 @@
 from binary_file_parser import BaseStruct, Retriever, Version
-from tests.sections.diplomacy.tile_f import TileF
+from tests.sections.tribe_scenario.diplomacy.tile_f import TileF
 from tests.sections.scx_versions import DE_LATEST
 
 
