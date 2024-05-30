@@ -2,46 +2,76 @@ from tests.sections import ScenarioSections
 
 
 def test_1_21a():
-    ScenarioSections.from_file(r"scxs/1_22.scx")
+    scx = ScenarioSections.from_file(r"scxs/1_22.scx")
+    scx.to_file(r"./scxs/wtest.bin")
+    ScenarioSections.from_file(r"./scxs/wtest.bin")
 
 def test_1_21b():
-    ScenarioSections.from_file(r"scxs/1_26.aoe2scenario")
+    scx = ScenarioSections.from_file(r"scxs/1_26.aoe2scenario")
+    scx.to_file(r"./scxs/wtest.bin")
+    ScenarioSections.from_file(r"./scxs/wtest.bin")
 
 def test_1_11a():
-    ScenarioSections.from_file(r"./scxs/genie-rs/A New Emporer.scn")
+    scx = ScenarioSections.from_file(r"./scxs/genie-rs/A New Emporer.scn")
+    scx.to_file(r"./scxs/wtest.bin")
+    ScenarioSections.from_file(r"./scxs/wtest.bin")
 
 def test_1_21c():
-    ScenarioSections.from_file(r"./scxs/genie-rs/Age of Heroes b1-3-5.scx")
+    scx = ScenarioSections.from_file(r"./scxs/genie-rs/Age of Heroes b1-3-5.scx")
+    scx.to_file(r"./scxs/wtest.bin")
+    ScenarioSections.from_file(r"./scxs/wtest.bin")
 
 def test_1_10():
-    ScenarioSections.from_file(r"./scxs/genie-rs/Bronze Age Art of War.scn")
+    scx = ScenarioSections.from_file(r"./scxs/genie-rs/Bronze Age Art of War.scn")
+    scx.to_file(r"./scxs/wtest.bin")
+    ScenarioSections.from_file(r"./scxs/wtest.bin")
 
 def test_1_18():
-    ScenarioSections.from_file(r"./scxs/genie-rs/CAMELOT.SCN")
+    scx = ScenarioSections.from_file(r"./scxs/genie-rs/CAMELOT.SCN")
+    scx.to_file(r"./scxs/wtest.bin")
+    ScenarioSections.from_file(r"./scxs/wtest.bin")
 
 def test_1_11b():
-    ScenarioSections.from_file(r"./scxs/genie-rs/CEASAR.scn")
+    scx = ScenarioSections.from_file(r"./scxs/genie-rs/CEASAR.scn")
+    scx.to_file(r"./scxs/wtest.bin")
+    ScenarioSections.from_file(r"./scxs/wtest.bin")
 
 def test_1_07a():
-    ScenarioSections.from_file(r"./scxs/genie-rs/Dawn of a New Age.scn")
+    scx = ScenarioSections.from_file(r"./scxs/genie-rs/Dawn of a New Age.scn")
+    scx.to_file(r"./scxs/wtest.bin")
+    ScenarioSections.from_file(r"./scxs/wtest.bin")
 
 def test_1_11c():
-    scx = ScenarioSections.from_file(r"./scxs/genie-rs/El advenimiento de los hunos_.scx")
+    scx = scx = ScenarioSections.from_file(r"./scxs/genie-rs/El advenimiento de los hunos_.scx")
+    scx.to_file(r"./scxs/wtest.bin")
+    ScenarioSections.from_file(r"./scxs/wtest.bin")
 
 def test_1_36():
-    ScenarioSections.from_file(r"./scxs/genie-rs/Hotkey Trainer Buildings.aoe2scenario")
+    scx = ScenarioSections.from_file(r"./scxs/genie-rs/Hotkey Trainer Buildings.aoe2scenario")
+    scx.to_file(r"./scxs/wtest.bin")
+    ScenarioSections.from_file(r"./scxs/wtest.bin")
 
 def test_1_11d():
-    ScenarioSections.from_file(r"./scxs/genie-rs/Jeremiah Johnson (Update).scx")
+    scx = ScenarioSections.from_file(r"./scxs/genie-rs/Jeremiah Johnson (Update).scx")
+    scx.to_file(r"./scxs/wtest.bin")
+    ScenarioSections.from_file(r"./scxs/wtest.bin")
 
 def test_1_37():
-    ScenarioSections.from_file(r"./scxs/genie-rs/layertest.aoe2scenario")
+    scx = ScenarioSections.from_file(r"./scxs/genie-rs/layertest.aoe2scenario")
+    scx.to_file(r"./scxs/wtest.bin")
+    ScenarioSections.from_file(r"./scxs/wtest.bin")
 
 def test_1_21():
-    ScenarioSections.from_file(r"./scxs/genie-rs/real_world_amazon.scx")
+    scx = ScenarioSections.from_file(r"./scxs/genie-rs/real_world_amazon.scx")
+    scx.to_file(r"./scxs/wtest.bin")
+    ScenarioSections.from_file(r"./scxs/wtest.bin")
 
 def test_1_11e():
-    ScenarioSections.from_file(r"./scxs/genie-rs/The Destruction of Rome.scn")
+    scx = ScenarioSections.from_file(r"./scxs/genie-rs/The Destruction of Rome.scn")
+    scx.to_file(r"./scxs/wtest.bin")
+    ScenarioSections.from_file(r"./scxs/wtest.bin")
 
 def test1_1_21():
-    ScenarioSections.from_file(r"./scxs/genie-rs/Year_of_the_Pig.aoe2scenario")
+    scx = ScenarioSections.from_file(r"./scxs/genie-rs/Year_of_the_Pig.aoe2scenario")
+    scx.to_file(r"./scxs/wtest.bin")
+    ScenarioSections.from_file(r"./scxs/wtest.bin")

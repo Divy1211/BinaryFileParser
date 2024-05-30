@@ -15,7 +15,9 @@ class LegacyAiFile(BaseStruct):
     @staticmethod
     def sync_len(retriever: Retriever, instance: LegacyAiFile):
         source_ret: Retriever = getattr(LegacyAiFile, retriever.p_name[1:-4])
-        setattr(instance, retriever.p_name, len(getattr(instance, source_ret.p_name)))
+        len_ = len(getattr(instance, source_ret.p_name))
+        source_ret.dtype.length = len_
+        setattr(instance, retriever.p_name, len_)
 
     # @formatter:off
     _build_list_len: int = Retriever(int32, default = 0,                             on_read = [set_len], on_write = [sync_len])

@@ -7,24 +7,18 @@ from binary_file_parser.types import FixedLenArray, int32
 class LegacyDisables(BaseStruct):
     @staticmethod
     def sync_num_techs(_, instance: LegacyDisables):
-        num = len(instance._disabled_tech_ids)
-        if num > LegacyDisables._disabled_tech_ids.dtype.length:
-            raise ValueError(f"Cannot disable more than {num} techs")
-        instance._num_disabled_techs = num
+        for i in range(16):
+            instance._num_disabled_techs[i] = len(instance.disabled_tech_ids[i])
 
     @staticmethod
     def sync_num_units(_, instance: LegacyDisables):
-        num = len(instance._disabled_unit_ids)
-        if num > LegacyDisables._disabled_unit_ids.dtype.length:
-            raise ValueError(f"Cannot disable more than {num} units")
-        instance._num_disabled_units = num
+        for i in range(16):
+            instance._num_disabled_techs[i] = len(instance.disabled_unit_ids[i])
 
     @staticmethod
     def sync_num_buildings(_, instance: LegacyDisables):
-        num = len(instance._disabled_building_ids)
-        if num > LegacyDisables._disabled_building_ids.dtype.length:
-            raise ValueError(f"Cannot disable more than {num} buildings")
-        instance._num_disabled_buildings = num
+        for i in range(16):
+            instance._num_disabled_buildings[i] = len(instance.disabled_building_ids[i])
 
     # @formatter:off
     _num_disabled_techs: list[int] =              Retriever(int32,                    min_ver = Version((1, 18)),                             default = 0,                         repeat = 16, on_write = [sync_num_techs])

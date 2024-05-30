@@ -56,7 +56,7 @@ class ScenarioSections(BaseStruct):
     @classmethod
     def _compress(cls, bytes_: bytes) -> bytes:
         deflate_obj = zlib.compressobj(9, zlib.DEFLATED, -zlib.MAX_WBITS)
-        compressed = deflate_obj.compress(bytes_[:-7]) + deflate_obj.flush()
+        compressed = deflate_obj.compress(bytes_) + deflate_obj.flush()
         return compressed
 
     @classmethod

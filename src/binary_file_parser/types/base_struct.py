@@ -327,7 +327,11 @@ class BaseStruct(Parseable):
                 retriever_ls.text = f"            <- {retriever.p_name.title().replace('_', ' ')}"
             if retriever.remaining_compressed:
                 compress_idx = i
-            bytes_[i] = retriever.to_bytes(self)
+            try:
+                bytes_[i] = retriever.to_bytes(self)
+            except:
+                print(retriever.p_name)
+                raise
 
         compressed = b""
         if compress_idx != length:
