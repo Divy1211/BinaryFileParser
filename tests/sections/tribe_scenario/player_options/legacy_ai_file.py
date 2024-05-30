@@ -1,34 +1,25 @@
 from __future__ import annotations
 
-from binary_file_parser import BaseStruct, ByteStream, Retriever, Version
-from binary_file_parser.types import FixedLenStr, int32
+from binary_file_parser import BaseStruct, Retriever, RetrieverCombiner, RetrieverRef, Version
+from binary_file_parser.types import StackedStr32s
 from tests.sections.scx_versions import DE_LATEST
 
 
 class LegacyAiFile(BaseStruct):
     """This struct is useless"""
-    @staticmethod
-    def set_len(retriever: Retriever, instance: LegacyAiFile):
-        target_ret: Retriever = getattr(LegacyAiFile, retriever.p_name[1:-4])
-        target_ret.dtype.length = getattr(instance, retriever.p_name)
 
-    @staticmethod
-    def sync_len(retriever: Retriever, instance: LegacyAiFile):
-        source_ret: Retriever = getattr(LegacyAiFile, retriever.p_name[1:-4])
-        len_ = len(getattr(instance, source_ret.p_name))
-        source_ret.dtype.length = len_
-        setattr(instance, retriever.p_name, len_)
+    _strings1: list[str] = Retriever(StackedStr32s[2], max_ver = Version((1,  7)), default_factory = lambda _: [""]*2)
+    _strings2: list[str] = Retriever(StackedStr32s[3], min_ver = Version((1,  8)), default_factory = lambda _: [""]*3)
 
-    # @formatter:off
-    _build_list_len: int = Retriever(int32, default = 0,                             on_read = [set_len], on_write = [sync_len])
-    _city_plans_len: int = Retriever(int32, default = 0,                             on_read = [set_len], on_write = [sync_len])
-    _ai_rules_len: int =   Retriever(int32, default = 0, min_ver = Version((1,  8)), on_read = [set_len], on_write = [sync_len])
+    # refs
+    _strings: list[str] = RetrieverCombiner(_strings2, _strings1)
 
-    build_list: str =      Retriever(FixedLenStr[0], default = "")
+
+    build_list: str = RetrieverRef(_strings, 0)
     """unused?"""
-    city_plans: str =      Retriever(FixedLenStr[0], default = "")
+    city_plans: str = RetrieverRef(_strings, 1)
     """unused?"""
-    ai_rules: str =        Retriever(FixedLenStr[0], default = "", min_ver = Version((1,  8)))
+    ai_rules: str =   RetrieverRef(_strings, 2)
     """From the .per file of an AI"""
     # @formatter:on
 

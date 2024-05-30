@@ -5,11 +5,15 @@ from abc import ABC
 from functools import partial
 from itertools import takewhile
 from operator import ne
+from typing import Type, TYPE_CHECKING
 
 from binary_file_parser.types.byte_stream import ByteStream
 from binary_file_parser.types.parseable import Parseable
 from binary_file_parser.types.version import Version
 
+
+if TYPE_CHECKING:
+    ParseableType = Type[Parseable] | Parseable
 
 class BaseStr(Parseable, ABC):
     __slots__ = ()
@@ -21,14 +25,10 @@ class BaseStr(Parseable, ABC):
             return bytes_.decode("latin-1")
 
     def _to_bytes(self, value: str) -> bytes:
-        # TODO: plain bytes
         try:
-            bytes_ = value.encode("utf-8")
+            return value.encode("utf-8")
         except UnicodeEncodeError:
-            bytes_ = value.encode("latin-1")
-
-        return bytes_
-
+            return value.encode("latin-1")
 
 class CStr(BaseStr):
     __slots__ = ()
@@ -104,6 +104,48 @@ class FixedLenNTStr(FixedLenStr):
         return str(takewhile(partial(ne, "\x00"), value))
 
 
+class StackedStrs(BaseStr):
+    __slots__ = "struct_symbol", "num_strings"
+
+    def __init__(self, size: int, struct_symbol: str, num_strings: int = -1):
+        super().__init__(size)
+        self.struct_symbol = struct_symbol
+        self.num_strings = num_strings
+
+    def _from_stream(self, stream: ByteStream, *, struct_ver: Version = Version((0,))) -> list[str]:
+        num_strings = self.num_strings
+        if num_strings == -1:
+            num_strings = struct.unpack(self.struct_symbol, stream.get(self._size))[0]
+
+        lengths: list[int] = [struct.unpack(self.struct_symbol, stream.get(self._size))[0] for _ in range(num_strings)]
+        ls: list[str] = [""]*num_strings
+
+        for i, length in enumerate(lengths):
+            ls[i] = super()._from_bytes(stream.get(length), struct_ver = struct_ver)
+
+        return ls
+
+    def _to_bytes(self, value: list[str]) -> bytes:
+        if self.num_strings != -1 and len(value) != self.num_strings:
+            raise TypeError(f"Expected {self.num_strings} StackedStrings, found {len(value)}")
+
+        length_bytes = b""
+        num_strings = self.num_strings
+        if num_strings == -1:
+            num_strings = len(value)
+            length_bytes = struct.pack(self.struct_symbol, num_strings)
+
+        bytes_: list[bytes] = [b""]*(2*num_strings)
+        for i in range(num_strings):
+            bytes_[num_strings+i] = super()._to_bytes(value[i])
+            bytes_[i] = struct.pack(self.struct_symbol, len(bytes_[num_strings+i]))
+
+        return length_bytes+b"".join(bytes_)
+
+    def __getitem__(self, item: int) -> StackedStrs:
+        return self.__class__(self._size, self.struct_symbol, item)
+
+
 c_str = CStr(4)
 str8 = Str(1, "<B")
 str16 = Str(2, "<H")
@@ -113,3 +155,7 @@ nt_str8 = NullTermStr(1, "<B")
 nt_str16 = NullTermStr(2, "<H")
 nt_str32 = NullTermStr(4, "<I")
 nt_str64 = NullTermStr(8, "<Q")
+StackedStr8s = StackedStrs(1, '<B', -1)
+StackedStr16s = StackedStrs(2, '<H', -1)
+StackedStr32s = StackedStrs(4, '<I', -1)
+StackedStr64s = StackedStrs(8, '<Q', -1)

@@ -76,16 +76,16 @@ class BaseStruct(Parseable):
         # cls._refs, BaseStruct._refs = cls._refs.copy(), []
         # cls._combiners, BaseStruct._combiners = cls._combiners.copy(), []
 
-    def __deepcopy__(self, memo):
-        cls = self.__class__
-        cloned_struct = cls.__new__(cls)
-        memo[id(self)] = cloned_struct
-
-        for attr in list(self.__slots__) + list(self.__dict__):
-            value = copy.deepcopy(getattr(self, attr), memo)
-            setattr(cloned_struct, attr, value)
-
-        return cloned_struct
+    # def __deepcopy__(self, memo):
+    #     cls = self.__class__
+    #     cloned_struct = cls.__new__(cls)
+    #     memo[id(self)] = cloned_struct
+    #
+    #     for attr in list(self.__slots__) + list(self.__dict__):
+    #         value = copy.deepcopy(getattr(self, attr), memo)
+    #         setattr(cloned_struct, attr, value)
+    #
+    #     return cloned_struct
 
     @property
     def _struct(self):
