@@ -10,7 +10,7 @@
 - `DefaultValueError` now also subclasses `ValueError`
 - Diffing structs now returns a dict of name-value pairs instead of just a list of retrievers.
   - Note: This is an expensive operation and should only be used for debug purposes. diff's behaviour is subject to change!
-- Added `StrArray8s`, `StrArray161s`, `StrArray32s` and `StrArray64s` datatypes
+- Added `StrArray8s`, `StrArray16s`, `StrArray32s` and `StrArray64s` datatypes
 - Added `Manager` superclass for creating grouped retriever references and functions on them. Use this to provide a more coherent API
     for struct modification when the internal struct is messy
 - Added docstrings to datatypes, explaining their expected layouts
