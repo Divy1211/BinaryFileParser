@@ -165,6 +165,7 @@ class StackedArray8s(StackedArrays):
     indicating the length of each row, followed by that many elements for each row.
 
     >>> StackedArray8s[int32]
+    >>> StackedArray8s[int32, 4] # indicate the number of rows as fixed. This excludes it from being read from/written to bytes
     """
     __slots__ = ()
 
@@ -180,6 +181,7 @@ class StackedArray16s(StackedArrays):
     indicating the length of each row, followed by that many elements for each row.
 
     >>> StackedArray16s[int32]
+    >>> StackedArray16s[int32, 4] # indicate the number of rows as fixed. This excludes it from being read from/written to bytes
     """
     __slots__ = ()
 
@@ -195,6 +197,7 @@ class StackedArray32s(StackedArrays):
     indicating the length of each row, followed by that many elements for each row.
 
     >>> StackedArray32s[int32]
+    >>> StackedArray32s[int32, 4] # indicate the number of rows as fixed. This excludes it from being read from/written to bytes
     """
     __slots__ = ()
 
@@ -210,6 +213,7 @@ class StackedArray64s(StackedArrays):
     indicating the length of each row, followed by that many elements for each row.
 
     >>> StackedArray64s[int32]
+    >>> StackedArray64s[int32, 4] # indicate the number of rows as fixed. This excludes it from being read from/written to bytes
     """
     __slots__ = ()
 

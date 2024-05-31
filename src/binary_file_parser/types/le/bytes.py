@@ -26,3 +26,6 @@ class Bytes(Parseable):
 
     def __class_getitem__(cls, size: int) -> Bytes:
         return cls(size)
+
+void = Bytes[0]
+"""Read/Write no data"""

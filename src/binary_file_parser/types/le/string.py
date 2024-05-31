@@ -157,19 +157,46 @@ str32 = Str(4, "<I")
 str64 = Str(8, "<Q")
 """A string whose length in bytes is indicated by a ``uint64`` at the start"""
 nt_str8 = NullTermStr(1, "<B")
-"""Same as ``str8`` but removes a null terminated character from the end of the string if present.
-Also appends one on write if one is not already present"""
+"""A string whose length in bytes is indicated by a ``uint8`` at the start. Removes a null character from the end after
+decoding the string if one is present. Also appends one on write if one is not already present"""
 nt_str16 = NullTermStr(2, "<H")
-"""Same as ``str16`` but removes a null terminated character from the end of the string if present.
-Also appends one on write if one is not already present"""
+"""A string whose length in bytes is indicated by a ``uint16`` at the start. Removes a null character from the end after
+decoding the string if one is present. Also appends one on write if one is not already present"""
 nt_str32 = NullTermStr(4, "<I")
-"""Same as ``str32`` but removes a null terminated character from the end of the string if present.
-Also appends one on write if one is not already present"""
+"""A string whose length in bytes is indicated by a ``uint32`` at the start. Removes a null character from the end after
+decoding the string if one is present. Also appends one on write if one is not already present"""
 nt_str64 = NullTermStr(8, "<Q")
-"""Same as ``str64`` but removes a null terminated character from the end of the string if present.
-Also appends one on write if one is not already present"""
+"""A string whose length in bytes is indicated by a ``uint64`` at the start. Removes a null character from the end after
+decoding the string if one is present. Also appends one on write if one is not already present"""
 StrArray8 = StrArray(1, '<B', -1)
-"""Represents a list of strings"""
+"""
+Represents a list of ``str8``s where the first ``uint8`` indicates the number of ``str8``s followed by that many
+``uint8``s indicating the length of each string in bytes, followed by that many bytes for each string. Usage:
+
+>>> StrArray8
+>>> StrArray8[3] # indicate the number of strings as fixed. This excludes it from being read from/written to bytes
+"""
 StrArray16 = StrArray(2, '<H', -1)
+"""
+Represents a list of ``str16``s where the first ``uint16`` indicates the number of ``str16``s followed by that many
+``uint16``s indicating the length of each string in bytes, followed by that many bytes for each string. Usage:
+
+>>> StrArray16
+>>> StrArray16[3] # indicate the number of strings as fixed. This excludes it from being read from/written to bytes
+"""
 StrArray32 = StrArray(4, '<I', -1)
+"""
+Represents a list of ``str32``s where the first ``uint32`` indicates the number of ``str32``s followed by that many
+``uint32``s indicating the length of each string in bytes, followed by that many bytes for each string. Usage:
+
+>>> StrArray32
+>>> StrArray32[3] # indicate the number of strings as fixed. This excludes it from being read from/written to bytes
+"""
 StrArray64 = StrArray(8, '<Q', -1)
+"""
+Represents a list of ``str64``s where the first ``uint64`` indicates the number of ``str64``s followed by that many
+``uint64``s indicating the length of each string in bytes, followed by that many bytes for each string. Usage:
+
+>>> StrArray64
+>>> StrArray64[3] # indicate the number of strings as fixed. This excludes it from being read from/written to bytes
+"""
