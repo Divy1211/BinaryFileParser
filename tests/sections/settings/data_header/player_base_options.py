@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from binary_file_parser import BaseStruct, Retriever, Version
 from binary_file_parser.types import bool32, uint32
-from tests.sections.tribe_scenario.data_header.resources import Resources
+from tests.sections.settings.data_header.resources import Resources
 from tests.sections.scx_versions import DE_LATEST
 
 

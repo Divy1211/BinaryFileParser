@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import copy
 from contextlib import suppress
-from io import StringIO
 from typing import TYPE_CHECKING
 
 from alive_progress import alive_it
@@ -10,35 +8,35 @@ from alive_progress import alive_it
 from binary_file_parser.errors import CompressionError, ParsingError, VersionError
 from binary_file_parser.types.parseable import Parseable
 from binary_file_parser.types.byte_stream import ByteStream
-# from binary_file_parser.types.ref_list import RefList
 from binary_file_parser.types.version import Version
-from binary_file_parser.utils import indentify
+from binary_file_parser.utils import TabbedStringIO
 
 if TYPE_CHECKING:
-    from binary_file_parser.retrievers import Retriever
+    from binary_file_parser.retrievers import Retriever, RetrieverCombiner, RetrieverRef
 
 
 class BaseStruct(Parseable):
     """
-    Base class for defining a file format as a structure
+    Base class for defining a file format as a structure. Most methods of this class are protected to be hidden from the
+    end user API
     """
     __slots__ = "_struct_ver"
 
     _retrievers: list[Retriever] = []
-    # _refs: list[RetrieverRef] = []
-    # _combiners: list[RetrieverCombiner] = []
+    _refs: list[RetrieverRef] = []
+    _combiners: list[RetrieverCombiner] = []
 
     @classmethod
     def _add_retriever(cls, retriever: Retriever):
         cls._retrievers.append(retriever)
 
-    # @classmethod
-    # def _add_ref(cls, ref: RetrieverRef):
-    #     cls._refs.append(ref)
-    #
-    # @classmethod
-    # def _add_combiner(cls, combiner: RetrieverCombiner):
-    #     cls._combiners.append(combiner)
+    @classmethod
+    def _add_ref(cls, ref: RetrieverRef):
+        cls._refs.append(ref)
+
+    @classmethod
+    def _add_combiner(cls, combiner: RetrieverCombiner):
+        cls._combiners.append(combiner)
 
     def __init__(self, struct_ver: Version = Version((0,)), initialise_defaults: bool = True, **retriever_inits):
         """
@@ -73,107 +71,29 @@ class BaseStruct(Parseable):
         Note: subclasses of BaseStruct which intend to act as ABCs need to override this
         """
         cls._retrievers, BaseStruct._retrievers = cls._retrievers.copy(), []
-        # cls._refs, BaseStruct._refs = cls._refs.copy(), []
-        # cls._combiners, BaseStruct._combiners = cls._combiners.copy(), []
-
-    # def __deepcopy__(self, memo):
-    #     cls = self.__class__
-    #     cloned_struct = cls.__new__(cls)
-    #     memo[id(self)] = cloned_struct
-    #
-    #     for attr in list(self.__slots__) + list(self.__dict__):
-    #         value = copy.deepcopy(getattr(self, attr), memo)
-    #         setattr(cloned_struct, attr, value)
-    #
-    #     return cloned_struct
+        cls._refs, BaseStruct._refs = cls._refs.copy(), []
+        cls._combiners, BaseStruct._combiners = cls._combiners.copy(), []
 
     @property
     def _struct(self):
         return self
 
-    # @property
-    # def root(self) -> BaseStruct:
-    #     """
-    #     The top level object of which this struct is a part of
-    #     """
-    #     child = self
-    #     while child.parent is not None:
-    #         child = self.parent
-    #     return child
-
-    def _on_struct_ver_change(self, new_struct_ver: Version):
-        """
-        This method is called when a struct's version is changed. Use this to implement any custom logic required to
-        support a version change on a struct. The default method implements a trial and error algorithm where if an
-        unsupported retriever after the version change used to have the same value as its default, then it is discarded
-        without any errors, However, if a value other than the default was assigned to it, an error is raised
-
-        :param new_struct_ver: The new struct version (the self.struct_ver attribute will automatically be updated)
-
-        :raises VersionError: When the version change causes a non default valued retriever to become unsupported
-        """
-        pass
-
     @property
     def struct_ver(self) -> Version:
+        """The struct_ver of this struct used when retrievers are versioned"""
         return self._struct_ver
-
-    # @struct_ver.setter
-    # def struct_ver(self, value: Version):
-    #     self._struct_ver = value
-
-    # @property
-    # def struct_ver(self):
-    #     return self._struct_ver
-    #
-    # @struct_ver.setter
-    # def struct_ver(self, new_struct_ver: Version):
-    #     for retriever in self._retrievers:
-    #         if (
-    #             not retriever.supported(self.struct_ver)
-    #             or not (retriever.dtype.is_struct or retriever.dtype.is_iterable)
-    #             or retriever.is_self_versioned
-    #         ):
-    #             continue
-    #         if (obj := getattr(self, retriever.p_name)) is not None:
-    #             obj.struct_ver = new_struct_ver
-    #     self.on_struct_ver_change(new_struct_ver)
-    #     self._struct_ver = new_struct_ver
-    #
-    # @property
-    # def parent(self):
-    #     return self._parent
-    #
-    # @parent.setter
-    # def parent(self, new_parent: BaseStruct):
-    #     for retriever in self._retrievers:
-    #         if (
-    #             not retriever.supported(self.struct_ver)
-    #             or not (retriever.dtype.is_struct or retriever.dtype.is_iterable)
-    #         ):
-    #             continue
-    #         if (obj := getattr(self, retriever.p_name)) is not None:
-    #             obj.parent = new_parent
-    #     self._parent = new_parent
-
-    @property
-    def _retriever_name_value_map(self) -> dict[str]:
-        map_ = {}
-        for retriever in self._retrievers:
-            if retriever.supported(self.struct_ver):
-                map_[retriever.p_name] = getattr(self, retriever.p_name)
-        return map_
 
     @classmethod
     def _get_version(cls, stream: ByteStream, struct_ver: Version = Version((0,))) -> Version:
         """
-        If defined, the struct will be versioned and values in the struct which are not supported in the version that is
-        read will be skipped
+        If defined, the struct will be versioned and the retrievers in the struct which are not supported will be
+        skipped during read/write and will raise a VersionError on access.
 
         :param stream: The stream to read the struct version from
         :param struct_ver: The struct version of the parent
-        :param parent:
+
         :return: A tuple of ints indicating the version eg: v1.47 should return (1, 47)
+
         :raises VersionError: - When unimplemented
         """
         raise VersionError("Un-versioned File")
@@ -185,7 +105,9 @@ class BaseStruct(Parseable):
         before they are read and parsed into a struct object
 
         :param bytes_: The remaining (compressed) bytes of the compressed section of the struct
+
         :return: decompressed bytes
+
         :raises CompressionError: - When unimplemented
         """
         raise CompressionError(
@@ -200,21 +122,15 @@ class BaseStruct(Parseable):
         written to file from the struct object
 
         :param bytes_: The remaining (uncompressed) bytes of the compressed section of the struct
+
         :return: compressed bytes
+
         :raises CompressionError: - When unimplemented
         """
         raise CompressionError(
             "Unable to write object to file. "
             "A Structure with a compressed section needs to implement 'compress' classmethod."
         )
-
-    def _map(self) -> BaseStruct:
-        """
-        This method is called after a struct is read from bytes to allow any modifications post reading
-
-        :return: A BaseStruct instance
-        """
-        return self
 
     @classmethod
     def _from_stream(
@@ -228,6 +144,7 @@ class BaseStruct(Parseable):
         :param struct_ver: The version of the structure to create. Overwritten if `get_version` is defined
         :param strict: Raise an error if struct parsing finishes successfully but the stream has left over bytes
         :param show_progress: When true, display a progress bar
+
         :return: An instance of a subtype of BaseStruct
         """
         with suppress(VersionError):
@@ -254,17 +171,15 @@ class BaseStruct(Parseable):
             except:
                 print(retriever.p_name)
                 raise
-            # instance._size += retriever.dtype._size
 
         file_len = len(stream.content)
 
         if stream.progress != file_len and strict:
             raise ParsingError(
-                f"{file_len - stream.progress} bytes are left after parsing all retrievers successfully:\n"
-                f"{stream.remaining()}"
+                f"{file_len - stream.progress} bytes are left after parsing all retrievers successfully"
             )
 
-        return instance._map()
+        return instance
 
     @classmethod
     def _from_bytes(
@@ -278,6 +193,7 @@ class BaseStruct(Parseable):
         :param struct_ver: The version of the structure to create. Overwritten if `get_version` is defined
         :param strict: Raise an error if struct parsing finishes successfully but there are unused bytes left over
         :param show_progress: When true, display a progress bar
+
         :return: An instance of a subtype of BaseStruct
         """
         stream = ByteStream.from_bytes(bytes_)
@@ -295,6 +211,7 @@ class BaseStruct(Parseable):
         :param file_version: The version of the structure to create. Overwritten if `get_version` is defined
         :param strict: Raise an error if struct parsing finishes successfully but the stream has left over bytes
         :param show_progress: When true, display a progress bar
+
         :return: An instance of a subtype of BaseStruct
         """
         stream = ByteStream.from_file(file_name)
@@ -306,6 +223,7 @@ class BaseStruct(Parseable):
 
         :param instance: The struct object to convert to bytes
         :param show_progress: When true, display a progress bar
+
         :return: bytes
         """
         length = len(self._retrievers)
@@ -339,64 +257,73 @@ class BaseStruct(Parseable):
 
         return b"".join(bytes_[:compress_idx]) + compressed
 
-    def _to_file(self, file_name: str):
+    def _to_file(self, file_name: str, *, show_progress: bool = True):
         """
         Write the bytes of the struct object to a file
 
         :param file_name: The name of the file to write to
+        :param show_progress: When true, display a progress bar
         """
         with open(file_name, "wb") as file:
-            file.write(self._to_bytes(show_progress = True))
+            file.write(self._to_bytes(show_progress = show_progress))
 
-    def _diff(self, other: BaseStruct) -> list[Retriever]:
+    def _diff(self, other: BaseStruct) -> dict[str, tuple | dict]:
         """
-        Recursively builds a list of retrievers that have different values for the two objects.
+        Get a dictionary of retriever names to tuples values for which the two provided structs differ.
 
         :param other: The object to diff with
-        :return: list of retrievers that have different values for the two objects
+
+        :return: dictionary with differing retriever names as keys and their values as tuples.
         """
         if (
             not isinstance(other, BaseStruct)
             or type(self) is not type(other)
         ):
             raise TypeError(f"Cannot diff '{type(self)}' with an object of type '{type(other)}'")
-        if self.struct_ver != other.struct_ver:
-            raise VersionError(
-                f"Cannot diff structs with different versions '{self.struct_ver}' and '{other.struct_ver}'"
-            )
 
-        diff_retrievers: list[Retriever] = []
+        diff_retrievers: dict[str, tuple | dict] = {}
         for retriever in self._retrievers:
-            if not retriever.supported(self.struct_ver):
-                continue
-            if (val1 := getattr(self, retriever.p_name)) == (val2 := getattr(other, retriever.p_name)):
-                continue
-            if isinstance(val1, BaseStruct):
-                diff_retrievers.extend(val1._diff(val2))
-            else:
-                diff_retrievers.append(retriever)
+            diff = (getattr(self, retriever.p_name, None), getattr(other, retriever.p_name, None))
+            match diff:
+                case None, None: pass
+                case _, None:
+                    diff_retrievers[retriever.p_name] = ("...", None)
+                case None, _:
+                    diff_retrievers[retriever.p_name] = (None, "...")
+                case val1, val2:
+                    if isinstance(val1, BaseStruct):
+                        diff_retrievers[retriever.p_name] = val1._diff(val2)
+                    elif val1 != val2:
+                        diff_retrievers[retriever.p_name] = diff
+
         return diff_retrievers
 
-    def __repr__(self) -> str:
-        repr_builder = StringIO()
-        repr_builder.write(f"{self.__class__.__name__}(")
-        for retriever in self._retrievers:
-            if not retriever.supported(self.struct_ver):
-                continue
+    def __repr__(self, ident: int = 0) -> str:
+        builder = TabbedStringIO(ident)
+        builder.write(f"{self.__class__.__name__}(")
 
-            obj = getattr(self, retriever.p_name)
-            if isinstance(obj, list):
-                sub_obj_repr_str = (
-                    "[\n    "
-                    + ",\n    ".join(map(lambda x: indentify(repr(x)), obj))
-                    + ",\n]"
-                )
-            else:
-                sub_obj_repr_str = f"{obj!r}"
+        len_gt_zero = False
+        with builder.tabbed():
+            if self.struct_ver != Version((0,)):
+                builder.writeln(f"struct_ver = {self.struct_ver},")
+                len_gt_zero = True
+            for retriever in self._retrievers:
+                if not retriever.supported(self.struct_ver):
+                    continue
+                obj = getattr(self, retriever.p_name)
+                if isinstance(obj, BaseStruct):
+                    builder.writeln(f"{retriever.p_name} = {obj.__repr__(builder.ident)},")
+                if isinstance(obj, list):
+                    builder.writeln(f"{retriever.p_name} = {_ls_repr(obj, builder.ident)},")
+                else:
+                    builder.writeln(f"{retriever.p_name} = {obj!r},")
+                len_gt_zero = True
 
-            repr_builder.write(f"\n    {retriever.p_name} = {indentify(sub_obj_repr_str)},")
-        repr_builder.write("\n)")
-        return repr_builder.getvalue()
+        if len_gt_zero:
+            builder.writeln()
+
+        builder.write(")")
+        return builder.getvalue()
 
     def __eq__(self, other: object) -> bool:
         if (
@@ -405,6 +332,9 @@ class BaseStruct(Parseable):
             or self.struct_ver != other.struct_ver
         ):
             return False
+
+        if id(self) == id(other):
+            return True
 
         for retriever in self._retrievers:
             if not retriever.supported(self.struct_ver):
@@ -416,4 +346,23 @@ class BaseStruct(Parseable):
     # todo: write val <-> data (names) to file
     # todo: write hex (decompressed) to file
     # todo: file/header/decompressed in both hex/val <-> data
-    # todo: to_json
+
+def _ls_repr(ls: list, ident: int = 0):
+    builder = TabbedStringIO(ident)
+    builder.write("[")
+
+    with builder.tabbed():
+        for item in ls:
+            if isinstance(item, BaseStruct):
+                builder.writeln(item.__repr__(builder.ident))
+            if isinstance(item, list):
+                builder.writeln(_ls_repr(item, builder.ident))
+            else:
+                builder.writeln(repr(item))
+            builder.write(",")
+
+    if len(ls) > 0:
+        builder.writeln()
+
+    builder.write("]")
+    return builder.getvalue()

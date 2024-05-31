@@ -57,5 +57,5 @@ class Trigger(BaseStruct):
     condition_display_orders: list[int] =    Retriever(uint32,                                        default = 0, repeat = 0,        on_write = [sync_con_disp_ords])
     # @formatter:on
 
-    def __init__(self, struct_ver: Version = TRIGGER_LATEST + DE_LATEST, initialise_defaults = True, **retriever_inits):
+    def __init__(self, struct_ver: Version = TRIGGER_LATEST, initialise_defaults = True, **retriever_inits):
         super().__init__(struct_ver, initialise_defaults = initialise_defaults, **retriever_inits)

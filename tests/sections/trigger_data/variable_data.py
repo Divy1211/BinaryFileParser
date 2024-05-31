@@ -17,5 +17,5 @@ class VariableData(BaseStruct):
     unknown: bytes =                     Retriever(Bytes[8],                  min_ver = Version((3, 5)),  default = b"\x00"*8)
     # @formatter:on
 
-    def __init__(self, struct_ver: Version = TRIGGER_LATEST + DE_LATEST, initialise_defaults = True, **retriever_inits):
+    def __init__(self, struct_ver: Version = TRIGGER_LATEST, initialise_defaults = True, **retriever_inits):
         super().__init__(struct_ver, initialise_defaults = initialise_defaults, **retriever_inits)

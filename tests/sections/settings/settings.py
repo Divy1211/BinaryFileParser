@@ -1,18 +1,18 @@
 from binary_file_parser import BaseStruct, ByteStream, Retriever, Version
-from binary_file_parser.types import float32, str16
+from binary_file_parser.types import float32
 
 from tests.sections.scx_versions import DE_LATEST
-from tests.sections.tribe_scenario.bitmap import BackgroundImage
-from tests.sections.tribe_scenario.cinematics import Cinematics
-from tests.sections.tribe_scenario.data_header import DataHeader
-from tests.sections.tribe_scenario.diplomacy import Diplomacy
-from tests.sections.tribe_scenario.global_victory import GlobalVictory
-from tests.sections.tribe_scenario.messages import Messages
-from tests.sections.tribe_scenario.options import Options
-from tests.sections.tribe_scenario.player_options import PlayerOptions
+from tests.sections.settings.bitmap import BackgroundImage
+from tests.sections.settings.cinematics import Cinematics
+from tests.sections.settings.data_header import DataHeader
+from tests.sections.settings.diplomacy import Diplomacy
+from tests.sections.settings.global_victory import GlobalVictory
+from tests.sections.settings.messages import Messages
+from tests.sections.settings.options import Options
+from tests.sections.settings.player_options import PlayerOptions
 
 
-class TribeScenario(BaseStruct):
+class Settings(BaseStruct):
     # @formatter:off
     data_header: DataHeader =           Retriever(DataHeader,                                  default_factory = DataHeader)
     messages: Messages =                Retriever(Messages,                                    default_factory = Messages)

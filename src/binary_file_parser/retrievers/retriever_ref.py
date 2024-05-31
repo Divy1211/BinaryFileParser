@@ -17,7 +17,7 @@ T = TypeVar("T")
 
 class RetrieverRef(Generic[T]):
     """
-    Create a new reference to an existing retriever
+    Create a new reference to an existing retriever, combiner or another ref
     """
     def __init__(self, *retrievers: Retriever | RetrieverCombiner | RetrieverRef | int):
         """
@@ -39,7 +39,7 @@ class RetrieverRef(Generic[T]):
         ]
         last_retriever = self.retrievers[-1]
         self.last = last_retriever if isinstance(last_retriever, int) else last_retriever.p_name
-        # owner._add_ref(self)
+        owner._add_ref(self)
 
     def __set__(self, instance: BaseStruct, value: T) -> None:
         item = instance._struct

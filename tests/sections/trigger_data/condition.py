@@ -55,5 +55,5 @@ class Condition(BaseStruct):
     include_changeable_weapon_objects: int = RetrieverRef(_properties, 27)
     # @formatter:on
 
-    def __init__(self, struct_ver: Version = TRIGGER_LATEST + DE_LATEST, initialise_defaults = True, **retriever_inits):
+    def __init__(self, struct_ver: Version = TRIGGER_LATEST, initialise_defaults = True, **retriever_inits):
         super().__init__(struct_ver, initialise_defaults = initialise_defaults, **retriever_inits)

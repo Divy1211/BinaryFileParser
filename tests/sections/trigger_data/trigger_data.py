@@ -41,5 +41,5 @@ class TriggerData(BaseStruct):
         ver_str = str(float64._from_bytes(stream.peek(8)))
         return Version(map(int, ver_str.split(".")))
 
-    def __init__(self, struct_ver: Version = TRIGGER_LATEST + DE_LATEST, initialise_defaults = True, **retriever_inits):
+    def __init__(self, struct_ver: Version = TRIGGER_LATEST, initialise_defaults = True, **retriever_inits):
         super().__init__(struct_ver, initialise_defaults = initialise_defaults, **retriever_inits)

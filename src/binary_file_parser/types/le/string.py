@@ -104,7 +104,7 @@ class FixedLenNTStr(FixedLenStr):
         return str(takewhile(partial(ne, "\x00"), value))
 
 
-class StackedStrs(BaseStr):
+class StrArray(BaseStr):
     __slots__ = "struct_symbol", "num_strings"
 
     def __init__(self, size: int, struct_symbol: str, num_strings: int = -1):
@@ -142,20 +142,34 @@ class StackedStrs(BaseStr):
 
         return length_bytes+b"".join(bytes_)
 
-    def __getitem__(self, item: int) -> StackedStrs:
+    def __getitem__(self, item: int) -> StrArray:
         return self.__class__(self._size, self.struct_symbol, item)
 
 
 c_str = CStr(4)
+"""A C style null terminated string"""
 str8 = Str(1, "<B")
+"""A string whose length in bytes is indicated by a ``uint8`` at the start"""
 str16 = Str(2, "<H")
+"""A string whose length in bytes is indicated by a ``uint16`` at the start"""
 str32 = Str(4, "<I")
+"""A string whose length in bytes is indicated by a ``uint32`` at the start"""
 str64 = Str(8, "<Q")
+"""A string whose length in bytes is indicated by a ``uint64`` at the start"""
 nt_str8 = NullTermStr(1, "<B")
+"""Same as ``str8`` but removes a null terminated character from the end of the string if present.
+Also appends one on write if one is not already present"""
 nt_str16 = NullTermStr(2, "<H")
+"""Same as ``str16`` but removes a null terminated character from the end of the string if present.
+Also appends one on write if one is not already present"""
 nt_str32 = NullTermStr(4, "<I")
+"""Same as ``str32`` but removes a null terminated character from the end of the string if present.
+Also appends one on write if one is not already present"""
 nt_str64 = NullTermStr(8, "<Q")
-StackedStr8s = StackedStrs(1, '<B', -1)
-StackedStr16s = StackedStrs(2, '<H', -1)
-StackedStr32s = StackedStrs(4, '<I', -1)
-StackedStr64s = StackedStrs(8, '<Q', -1)
+"""Same as ``str64`` but removes a null terminated character from the end of the string if present.
+Also appends one on write if one is not already present"""
+StrArray8 = StrArray(1, '<B', -1)
+"""Represents a list of strings"""
+StrArray16 = StrArray(2, '<H', -1)
+StrArray32 = StrArray(4, '<I', -1)
+StrArray64 = StrArray(8, '<Q', -1)

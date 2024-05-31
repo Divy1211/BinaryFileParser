@@ -6,6 +6,11 @@ from binary_file_parser.types.version import Version
 
 
 class Bytes(Parseable):
+    """
+    Represents raw bytes. Usage:
+
+    >>> Bytes[20]
+    """
     __slots__ = ()
 
     def _from_stream(self, stream: ByteStream, *, struct_ver: Version = Version((0,))) -> bytes:

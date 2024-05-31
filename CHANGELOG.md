@@ -3,7 +3,17 @@
 - `RetrieverRef` can now accept an arbitrary number of retrievers to be able to reference data from sub structs.
 - `RetrieverRef` can now accept an `int` as part of its arguments to index lists where required
 - `RetrieverRef` needs to be given at least one argument
+- `RetrieverRef` can now accept `Retriever` or `Combiner` or other `Ref`s as arguments
 - `RetrieverCombiner` must be given at least one argument
+- `RetrieverCombiner` can now accept `Retriever` or `Ref`s or other `Combiner`s as arguments
+- `VersionError` now also subclasses `AttributeError`
+- `DefaultValueError` now also subclasses `ValueError`
+- Diffing structs now returns a dict of name-value pairs instead of just a list of retrievers.
+  - Note: This is an expensive operation and should only be used for debug purposes. diff's behaviour is subject to change!
+- Added `StackedStr8s`, `StackedStr161s`, `StackedStr32s` and `StackedStr64s` datatypes
+- Added `Manager` superclass for creating grouped retriever references and functions on them. Use this to provide a more coherent API
+    for struct modification when the internal struct is messy
+- Added docstrings to datatypes, explaining their expected layouts
 
 ## 0.2.0
 

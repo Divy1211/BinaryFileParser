@@ -1,15 +1,15 @@
 from __future__ import annotations
 
 from binary_file_parser import BaseStruct, Retriever, RetrieverCombiner, RetrieverRef, Version
-from binary_file_parser.types import StackedStr32s
+from binary_file_parser.types import StrArray32
 from tests.sections.scx_versions import DE_LATEST
 
 
 class LegacyAiFile(BaseStruct):
     """This struct is useless"""
 
-    _strings1: list[str] = Retriever(StackedStr32s[2], max_ver = Version((1,  7)), default_factory = lambda _: [""]*2)
-    _strings2: list[str] = Retriever(StackedStr32s[3], min_ver = Version((1,  8)), default_factory = lambda _: [""]*3)
+    _strings1: list[str] = Retriever(StrArray32[2], max_ver = Version((1,  7)), default_factory = lambda _: [""] * 2)
+    _strings2: list[str] = Retriever(StrArray32[3], min_ver = Version((1,  8)), default_factory = lambda _: [""] * 3)
 
     # refs
     _strings: list[str] = RetrieverCombiner(_strings2, _strings1)

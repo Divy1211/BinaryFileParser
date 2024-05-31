@@ -6,4 +6,4 @@ from .global_victory import *
 from .messages import *
 from .options import *
 from .player_options import *
-from .tribe_scenario import TribeScenario
+from .settings import Settings

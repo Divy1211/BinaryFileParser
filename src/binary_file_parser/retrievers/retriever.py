@@ -31,7 +31,6 @@ class Retriever(MapValidate):
         default: object = None,
         default_factory: Callable[[Version], Any] = None,
         repeat: int = 1,
-        # atype: Type[RefList] = RefList,
         remaining_compressed: bool = False,
         on_read: list[Callable[[RetrieverSub, BaseStructSub], None]] | None = None,  # todo: add implementations for common on_x operations
         on_write: list[Callable[[RetrieverSub, BaseStructSub], None]] | None = None,
@@ -59,8 +58,6 @@ class Retriever(MapValidate):
                 0: skips reading value entirely, set property to []
                 1: single value is read and assigned to the property
                 >1: a list of values is read and assigned to the property
-        # :param atype:
-        #     The array like type to use when constructing lists for retrievers with dynamic repeats
         :param remaining_compressed:
             If set to true, the decompress/compress methods are used on the remaining bytes before reading/writing the
             remaining retriever properties
@@ -78,7 +75,6 @@ class Retriever(MapValidate):
         """
         super().__init__(mappers, validators, on_get, on_set)
         self.dtype = dtype
-        # self.atype = atype
         self.min_ver = min_ver
         self.max_ver = max_ver
 
@@ -98,24 +94,6 @@ class Retriever(MapValidate):
         self.on_read = on_read or []
         self.on_write = on_write or []
 
-        # if self._repeat == 1:
-        #     self.validators.append(lambda retriever, instance, x: dtype.is_valid(x))
-        # else:
-        #     self.validators.append(lambda retriever, instance, iterable: all(map(dtype.is_valid, iterable)))
-
-    @property
-    def is_self_versioned(self) -> bool:
-        """
-        True if the dtype of this retriever is a struct that implements its own versioning.
-        """
-        try:
-            self.dtype.__class__._get_version(stream = ByteStream.from_bytes(b"\x00" * 8))
-            return True
-        except EOFError:
-            return True
-        except (VersionError, AttributeError):
-            return False
-
     def supported(self, ver: Version) -> bool:
         """
         Determine if this retriever property is supported in the specified version
@@ -134,22 +112,6 @@ class Retriever(MapValidate):
             raise VersionError(
                 f"{self.p_name!r} is not supported in your scenario version {instance.struct_ver}"
             )
-
-        # if not isinstance(value, list):
-        #     super().__set__(instance, value)
-        #     return
-        #
-        # if not isinstance(value, RefList):
-        #     value = self.atype(value, instance.struct_ver, instance.parent)
-        #
-        # if len(value) == 0:
-        #     super().__set__(instance, value)
-        #     return
-        #
-        # if id(getattr(value[0], "parent", instance.parent)) != id(instance.parent):
-        #     value.parent = instance.parent
-        # if getattr(value[0], "struct_ver", instance.struct_ver) != instance.struct_ver:
-        #     value.struct_ver = instance.struct_ver
 
         super().__set__(instance, value)
 
@@ -207,30 +169,11 @@ class Retriever(MapValidate):
                 return self.default
             return [self.default]*repeat
 
-            # return self.atype(
-            #     [self.default]*repeat,
-            #     instance.struct_ver, instance
-            # )
-
         if self.default_factory is not None:
             if repeat == 1:
                 val = self.default_factory(instance.struct_ver)
-                # if isinstance(val, list):
-                #     return self.atype(val, instance.struct_ver, instance)
                 return val
             return [self.default_factory(instance.struct_ver) for _ in range(repeat)]
-            # return self.atype(
-            #     (self.default_factory(instance.struct_ver, instance) for _ in range(repeat)),
-            #     instance.struct_ver, instance
-            # )
-
-        # if self.dtype.is_struct:
-        #     if repeat == 1:
-        #         return self.dtype(struct_ver = instance.struct_ver, parent = instance).map()
-        #     return self.atype(
-        #         (self.dtype(struct_ver = instance.struct_ver, parent = instance).map() for _ in range(repeat)),
-        #         instance.struct_ver, instance
-        #     )
 
         raise DefaultValueError(
             f"Unable to auto-initialise '{self.p_name}' as a default value is not provided"
@@ -268,7 +211,6 @@ class Retriever(MapValidate):
         ls: list = [None] * repeat
         for i in range(repeat):
             ls[i] = getobj()
-        # setattr(instance, self.p_name, self.atype(ls, instance.struct_ver, instance))
         setattr(instance, self.p_name, ls)
         call_on_reads()
 
@@ -302,3 +244,6 @@ class Retriever(MapValidate):
             bytes_.write(self.dtype._to_bytes(value))
 
         return bytes_.getvalue()
+
+    def __str__(self) -> str:
+        return self.p_name

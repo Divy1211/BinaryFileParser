@@ -48,24 +48,48 @@ class Array(BaseArray):
         return length_bytes+super()._to_bytes(value)
 
 class Array8(Array):
+    """
+    Represents an array whose length is indicated by a uint8 followed by that many elements of the indicated type.
+    Usage:
+
+    >>> Array8[int32]
+    """
     __slots__ = ()
 
     def __class_getitem__(cls, item: ParseableType) -> Array8:
         return cls(1, item, '<B')
 
 class Array16(Array):
+    """
+    Represents an array whose length is indicated by a ``uint16`` followed by that many elements of the indicated type.
+    Usage:
+
+    >>> Array16[int32]
+    """
     __slots__ = ()
 
     def __class_getitem__(cls, item: ParseableType) -> Array16:
         return cls(2, item, '<H')
 
 class Array32(Array):
+    """
+    Represents an array whose length is indicated by a ``uint32`` followed by that many elements of the indicated type.
+    Usage:
+
+    >>> Array32[int32]
+    """
     __slots__ = ()
 
     def __class_getitem__(cls, item: ParseableType) -> Array32:
         return cls(4, item, '<I')
 
 class Array64(Array):
+    """
+    Represents an array whose length is indicated by a ``uint64`` followed by that many elements of the indicated type.
+    Usage:
+
+    >>> Array64[int32]
+    """
     __slots__ = ()
 
     def __class_getitem__(cls, item: ParseableType) -> Array64:
@@ -73,6 +97,12 @@ class Array64(Array):
 
 
 class FixedLenArray(BaseArray):
+    """
+    Represents an array whose length is known. This length is not read from/written to bytes
+    Usage:
+
+    >>> FixedLenArray[int32, 5]
+    """
     __slots__ = ()
 
     def __init__(self, size: int, dtype: ParseableType, struct_symbol: str, length: int):
@@ -130,6 +160,12 @@ class StackedArrays(BaseArray):
 
 
 class StackedArray8s(StackedArrays):
+    """
+    Represents a 2D array where the number of rows is indicated by a ``uint8``, followed by that many ``uint8s``,
+    indicating the length of each row, followed by that many elements for each row.
+
+    >>> StackedArray8s[int32]
+    """
     __slots__ = ()
 
     def __class_getitem__(cls, item: ParseableType | tuple[ParseableType, int]) -> StackedArrays:
@@ -139,6 +175,12 @@ class StackedArray8s(StackedArrays):
 
 
 class StackedArray16s(StackedArrays):
+    """
+    Represents a 2D array where the number of rows is indicated by a ``uint16``, followed by that many ``uint16s``,
+    indicating the length of each row, followed by that many elements for each row.
+
+    >>> StackedArray16s[int32]
+    """
     __slots__ = ()
 
     def __class_getitem__(cls, item: ParseableType | tuple[ParseableType, int]) -> StackedArrays:
@@ -148,6 +190,12 @@ class StackedArray16s(StackedArrays):
 
 
 class StackedArray32s(StackedArrays):
+    """
+    Represents a 2D array where the number of rows is indicated by a ``uint32``, followed by that many ``uint32s``,
+    indicating the length of each row, followed by that many elements for each row.
+
+    >>> StackedArray32s[int32]
+    """
     __slots__ = ()
 
     def __class_getitem__(cls, item: ParseableType | tuple[ParseableType, int]) -> StackedArrays:
@@ -157,6 +205,12 @@ class StackedArray32s(StackedArrays):
 
 
 class StackedArray64s(StackedArrays):
+    """
+    Represents a 2D array where the number of rows is indicated by a ``uint64``, followed by that many ``uint64s``,
+    indicating the length of each row, followed by that many elements for each row.
+
+    >>> StackedArray64s[int32]
+    """
     __slots__ = ()
 
     def __class_getitem__(cls, item: ParseableType | tuple[ParseableType, int]) -> StackedArrays:
