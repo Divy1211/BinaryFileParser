@@ -1,6 +1,6 @@
 from binary_file_parser import BaseStruct, Retriever, Version
-from tests.sections.settings.diplomacy.tile_f import TileF
-from tests.sections.scx_versions import DE_LATEST
+from AoE2ScenarioParser.sections.settings.diplomacy.tile_f import TileF
+from AoE2ScenarioParser.sections.scx_versions import DE_LATEST
 
 
 class AreaF(BaseStruct):

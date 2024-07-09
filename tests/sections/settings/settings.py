@@ -1,27 +1,27 @@
 from binary_file_parser import BaseStruct, ByteStream, Retriever, Version
 from binary_file_parser.types import float32
 
-from tests.sections.scx_versions import DE_LATEST
-from tests.sections.settings.bitmap import BackgroundImage
-from tests.sections.settings.cinematics import Cinematics
-from tests.sections.settings.data_header import DataHeader
-from tests.sections.settings.diplomacy import Diplomacy
-from tests.sections.settings.global_victory import GlobalVictory
-from tests.sections.settings.messages import Messages
-from tests.sections.settings.options import Options
-from tests.sections.settings.player_options import PlayerOptions
+from AoE2ScenarioParser.sections.scx_versions import DE_LATEST
+from AoE2ScenarioParser.sections.settings.bitmap import BackgroundImage
+from AoE2ScenarioParser.sections.settings.cinematics import Cinematics
+from AoE2ScenarioParser.sections.settings.data_header import DataHeader
+from AoE2ScenarioParser.sections.settings.diplomacy import Diplomacy
+from AoE2ScenarioParser.sections.settings.global_victory import GlobalVictory
+from AoE2ScenarioParser.sections.settings.messages import Messages
+from AoE2ScenarioParser.sections.settings.options import Options
+from AoE2ScenarioParser.sections.settings.player_options import PlayerOptions
 
 
 class Settings(BaseStruct):
     # @formatter:off
-    data_header: DataHeader =           Retriever(DataHeader,                                  default_factory = DataHeader)
-    messages: Messages =                Retriever(Messages,                                    default_factory = Messages)
-    cinematics: Cinematics =            Retriever(Cinematics,                                  default_factory = Cinematics)
+    data_header: DataHeader           = Retriever(DataHeader,                                  default_factory = DataHeader)
+    messages: Messages                = Retriever(Messages,                                    default_factory = Messages)
+    cinematics: Cinematics            = Retriever(Cinematics,                                  default_factory = Cinematics)
     background_image: BackgroundImage = Retriever(BackgroundImage, min_ver = Version((1,  9)), default_factory = BackgroundImage)
-    player_options: PlayerOptions =     Retriever(PlayerOptions,                               default_factory = PlayerOptions)
-    global_victory: GlobalVictory =     Retriever(GlobalVictory,                               default_factory = GlobalVictory)
-    diplomacy: Diplomacy =              Retriever(Diplomacy,                                   default_factory = Diplomacy)
-    options: Options =                  Retriever(Options,                                     default_factory = Options)
+    player_options: PlayerOptions     = Retriever(PlayerOptions,                               default_factory = PlayerOptions)
+    global_victory: GlobalVictory     = Retriever(GlobalVictory,                               default_factory = GlobalVictory)
+    diplomacy: Diplomacy              = Retriever(Diplomacy,                                   default_factory = Diplomacy)
+    options: Options                  = Retriever(Options,                                     default_factory = Options)
     # @formatter:on
 
     @classmethod

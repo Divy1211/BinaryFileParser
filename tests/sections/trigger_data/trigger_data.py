@@ -4,9 +4,9 @@ from binary_file_parser import BaseStruct, Retriever, Version
 from binary_file_parser.types import (
     Array32, ByteStream, float64, int8, uint32,
 )
-from tests.sections.scx_versions import DE_LATEST, TRIGGER_LATEST
-from tests.sections.trigger_data.trigger import Trigger
-from tests.sections.trigger_data.variable_data import VariableData
+from AoE2ScenarioParser.sections.scx_versions import DE_LATEST, TRIGGER_LATEST
+from AoE2ScenarioParser.sections.trigger_data.trigger import Trigger
+from AoE2ScenarioParser.sections.trigger_data.variable_data import VariableData
 
 
 class TriggerData(BaseStruct):
@@ -25,11 +25,11 @@ class TriggerData(BaseStruct):
             instance.trigger_display_orders = list(range(num_triggers))
 
     # @formatter:off
-    version: float =                     Retriever(float64,                                              default = 3.6)
-    objectives_state: int =              Retriever(int8,                      min_ver = Version((1, 5)), default = 0)
-    triggers: list[Trigger] =            Retriever(Array32[Trigger],                                     default_factory = lambda _: [],             on_read = [set_disp_ords_repeat])
-    trigger_display_orders: list[int] =  Retriever(uint32,                    min_ver = Version((1, 4)), default = 0,                    repeat = 0, on_write = [sync_disp_ords])
-    variable_data: VariableData =        Retriever(VariableData,              min_ver = Version((2, 2)), default_factory = VariableData)
+    version: float                     = Retriever(float64,                                              default = 3.6)
+    objectives_state: int              = Retriever(int8,                      min_ver = Version((1, 5)), default = 0)
+    triggers: list[Trigger]            = Retriever(Array32[Trigger],                                     default_factory = lambda _: [],             on_read = [set_disp_ords_repeat])
+    trigger_display_orders: list[int]  = Retriever(uint32,                    min_ver = Version((1, 4)), default = 0,                    repeat = 0, on_write = [sync_disp_ords])
+    variable_data: VariableData        = Retriever(VariableData,              min_ver = Version((2, 2)), default_factory = VariableData)
     # @formatter:on
 
     @classmethod

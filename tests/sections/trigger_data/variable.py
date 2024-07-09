@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from binary_file_parser import BaseStruct, Retriever, Version
 from binary_file_parser.types import nt_str32, uint32
-from tests.sections.scx_versions import DE_LATEST, TRIGGER_LATEST
+from AoE2ScenarioParser.sections.scx_versions import DE_LATEST, TRIGGER_LATEST
 
 
 class Variable(BaseStruct):
     # @formatter:off
-    id: int =   Retriever(uint32, default = 0)
+    id: int   = Retriever(uint32, default = 0)
     name: str = Retriever(nt_str32, default = "_Variable")
     # @formatter:on
 

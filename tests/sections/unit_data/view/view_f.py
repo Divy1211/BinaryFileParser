@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from binary_file_parser import BaseStruct, Retriever, Version
 from binary_file_parser.types import float32
-from tests.sections.scx_versions import DE_LATEST
+from AoE2ScenarioParser.sections.scx_versions import DE_LATEST
 
 
 class ViewF(BaseStruct):
