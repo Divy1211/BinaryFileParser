@@ -5,8 +5,8 @@ from binary_file_parser.types import (
     bool32, bool8, FixedLenNTStr, float32, int32, str16,
     uint16, uint32,
 )
-from AoE2ScenarioParser.sections.settings.data_header.player_base_options import PlayerBaseOptions
-from AoE2ScenarioParser.sections.scx_versions import DE_LATEST
+from tests.sections.settings.data_header.player_base_options import PlayerBaseOptions
+from tests.sections.scx_versions import DE_LATEST
 
 
 class DataHeader(BaseStruct):

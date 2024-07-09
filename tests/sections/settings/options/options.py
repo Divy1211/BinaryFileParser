@@ -3,9 +3,9 @@ from __future__ import annotations
 from binary_file_parser import BaseStruct, Retriever, RetrieverCombiner, RetrieverRef, Version
 from binary_file_parser.types import bool32, bool8, int32, StackedArray32s, str16, uint16, uint32, uint8
 
-from AoE2ScenarioParser.sections.settings.options.view import View
-from AoE2ScenarioParser.sections.settings.options.legacy_disables import LegacyDisables
-from AoE2ScenarioParser.sections.scx_versions import DE_LATEST
+from tests.sections.settings.options.view import View
+from tests.sections.settings.options.legacy_disables import LegacyDisables
+from tests.sections.scx_versions import DE_LATEST
 
 
 class Options(BaseStruct):

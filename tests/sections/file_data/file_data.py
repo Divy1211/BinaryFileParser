@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from binary_file_parser import BaseStruct, Retriever, Version
 from binary_file_parser.types import Array32, bool32, str16, str32
-from AoE2ScenarioParser.sections.file_data.ai_error import AiError
-from AoE2ScenarioParser.sections.file_data.ai_file import AiFile
-from AoE2ScenarioParser.sections.scx_versions import DE_LATEST
+from tests.sections.file_data.ai_error import AiError
+from tests.sections.file_data.ai_file import AiFile
+from tests.sections.scx_versions import DE_LATEST
 
 
 class FileData(BaseStruct):

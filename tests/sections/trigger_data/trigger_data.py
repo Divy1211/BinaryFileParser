@@ -4,9 +4,9 @@ from binary_file_parser import BaseStruct, Retriever, Version
 from binary_file_parser.types import (
     Array32, ByteStream, float64, int8, uint32,
 )
-from AoE2ScenarioParser.sections.scx_versions import DE_LATEST, TRIGGER_LATEST
-from AoE2ScenarioParser.sections.trigger_data.trigger import Trigger
-from AoE2ScenarioParser.sections.trigger_data.variable_data import VariableData
+from tests.sections.scx_versions import DE_LATEST, TRIGGER_LATEST
+from tests.sections.trigger_data.trigger import Trigger
+from tests.sections.trigger_data.variable_data import VariableData
 
 
 class TriggerData(BaseStruct):

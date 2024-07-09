@@ -1,4 +1,4 @@
-from AoE2ScenarioParser.sections.settings import *
+from tests.sections.settings import *
 from .file_data import *
 from .file_header import *
 from .map_data import *

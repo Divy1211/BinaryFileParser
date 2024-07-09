@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from binary_file_parser import BaseStruct, Retriever, RetrieverRef, Version
 from binary_file_parser.types import Array32, int32, nt_str32
-from AoE2ScenarioParser.sections.scx_versions import DE_LATEST, TRIGGER_LATEST
+from tests.sections.scx_versions import DE_LATEST, TRIGGER_LATEST
 
 
 class Effect(BaseStruct):

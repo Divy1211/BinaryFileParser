@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from binary_file_parser import BaseStruct, Retriever, Version
 from binary_file_parser.types import FixedLenNTStr, int32, str16, uint8
-from AoE2ScenarioParser.sections.settings.data_header import PlayerBaseOptions, Resources
-from AoE2ScenarioParser.sections.settings.player_options.legacy_ai_file import LegacyAiFile
-from AoE2ScenarioParser.sections.scx_versions import DE_LATEST
+from tests.sections.settings.data_header import PlayerBaseOptions, Resources
+from tests.sections.settings.player_options.legacy_ai_file import LegacyAiFile
+from tests.sections.scx_versions import DE_LATEST
 
 
 class PlayerOptions(BaseStruct):

@@ -3,7 +3,7 @@ from __future__ import annotations
 from binary_file_parser import BaseStruct, ByteStream, Retriever, Version
 from binary_file_parser.types import bool8, uint32
 
-from AoE2ScenarioParser.sections.map_data.terrain_tile import TerrainTile
+from tests.sections.map_data.terrain_tile import TerrainTile
 
 
 class MapData(BaseStruct):

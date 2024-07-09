@@ -1,7 +1,7 @@
 from binary_file_parser import BaseStruct, Retriever, Version
 from binary_file_parser.types import bool32, bool8, FixedLenArray, int32, int8, uint32
-from AoE2ScenarioParser.sections.settings.diplomacy.legacy_victory_info import LegacyVictoryInfo
-from AoE2ScenarioParser.sections.scx_versions import DE_LATEST
+from tests.sections.settings.diplomacy.legacy_victory_info import LegacyVictoryInfo
+from tests.sections.scx_versions import DE_LATEST
 
 
 class Diplomacy(BaseStruct):

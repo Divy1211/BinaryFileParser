@@ -5,9 +5,9 @@ from binary_file_parser.types import (
     Array16, bool8, FixedLenArray, nt_str16, uint32,
     uint8,
 )
-from AoE2ScenarioParser.sections.scx_versions import DE_LATEST
-from AoE2ScenarioParser.sections.unit_data.victory_options import VictoryOptions
-from AoE2ScenarioParser.sections.unit_data.view import ViewF, ViewI
+from tests.sections.scx_versions import DE_LATEST
+from tests.sections.unit_data.victory_options import VictoryOptions
+from tests.sections.unit_data.view import ViewF, ViewI
 
 
 class ScenarioPlayerData(BaseStruct):

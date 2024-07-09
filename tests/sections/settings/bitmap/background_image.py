@@ -3,8 +3,8 @@ from __future__ import annotations
 from binary_file_parser import BaseStruct, Retriever, Version
 from binary_file_parser.types import Bytes, int16, int32, str16, uint32
 
-from AoE2ScenarioParser.sections.settings.bitmap.bitmap_info_header import BitmapInfoHeader
-from AoE2ScenarioParser.sections.scx_versions import DE_LATEST
+from tests.sections.settings.bitmap.bitmap_info_header import BitmapInfoHeader
+from tests.sections.scx_versions import DE_LATEST
 
 
 class BackgroundImage(BaseStruct):

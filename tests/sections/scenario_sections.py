@@ -6,13 +6,13 @@ from os import path
 
 from binary_file_parser import BaseStruct, ByteStream, Retriever, Version, VersionError
 
-from AoE2ScenarioParser.sections import FileData
-from AoE2ScenarioParser.sections.file_header import FileHeader
-from AoE2ScenarioParser.sections.map_data import MapData
-from AoE2ScenarioParser.sections.scx_versions import DE_LATEST
-from AoE2ScenarioParser.sections.settings import Settings
-from AoE2ScenarioParser.sections.trigger_data import TriggerData
-from AoE2ScenarioParser.sections.unit_data import UnitData
+from tests.sections import FileData
+from tests.sections.file_header import FileHeader
+from tests.sections.map_data import MapData
+from tests.sections.scx_versions import DE_LATEST
+from tests.sections.settings import Settings
+from tests.sections.trigger_data import TriggerData
+from tests.sections.unit_data import UnitData
 
 
 class ScenarioSections(BaseStruct):

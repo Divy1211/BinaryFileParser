@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from binary_file_parser import BaseStruct, Retriever, Version
 from binary_file_parser.types import Array32, bool32, bool8, Bytes, int32, nt_str32, uint32, uint8
-from AoE2ScenarioParser.sections.scx_versions import DE_LATEST, TRIGGER_LATEST
-from AoE2ScenarioParser.sections.trigger_data.condition import Condition
-from AoE2ScenarioParser.sections.trigger_data.effect import Effect
+from tests.sections.scx_versions import DE_LATEST, TRIGGER_LATEST
+from tests.sections.trigger_data.condition import Condition
+from tests.sections.trigger_data.effect import Effect
 
 
 class Trigger(BaseStruct):

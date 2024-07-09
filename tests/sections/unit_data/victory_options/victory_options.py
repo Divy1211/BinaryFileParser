@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from binary_file_parser import BaseStruct, ByteStream, Retriever, Version
 from binary_file_parser.types import float32, int32, uint8
-from AoE2ScenarioParser.sections.unit_data.victory_options.victory_condition import VictoryCondition
-from AoE2ScenarioParser.sections.unit_data.victory_options.victory_point import VictoryPoint
+from tests.sections.unit_data.victory_options.victory_condition import VictoryCondition
+from tests.sections.unit_data.victory_options.victory_point import VictoryPoint
 
 
 class VictoryOptions(BaseStruct):

@@ -4,7 +4,7 @@ from time import time
 
 from binary_file_parser import BaseStruct, ByteStream, Retriever, Version
 from binary_file_parser.types import bool32, FixedLenStr, int32, nt_str32, uint32
-from AoE2ScenarioParser.sections.file_header.dlc_options import DLCOptions
+from tests.sections.file_header.dlc_options import DLCOptions
 
 
 class FileHeader(BaseStruct):

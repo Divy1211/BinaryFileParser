@@ -1,7 +1,7 @@
 from binary_file_parser import BaseStruct, Retriever, Version
 from binary_file_parser.types import bool32, int32, uint32
-from AoE2ScenarioParser.sections.settings.diplomacy.area_f import AreaF
-from AoE2ScenarioParser.sections.scx_versions import DE_LATEST
+from tests.sections.settings.diplomacy.area_f import AreaF
+from tests.sections.scx_versions import DE_LATEST
 
 
 class LegacyVictoryInfo(BaseStruct):

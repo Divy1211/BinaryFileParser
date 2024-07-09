@@ -4,10 +4,10 @@ from binary_file_parser import BaseStruct, Retriever, RetrieverCombiner, Version
 from binary_file_parser.types import (
     Array32, uint32,
 )
-from AoE2ScenarioParser.sections.scx_versions import DE_LATEST
-from AoE2ScenarioParser.sections.unit_data.scenario_player_data import ScenarioPlayerData
-from AoE2ScenarioParser.sections.unit_data.world_player_data import WorldPlayerData
-from AoE2ScenarioParser.sections.unit_data.unit import Unit
+from tests.sections.scx_versions import DE_LATEST
+from tests.sections.unit_data.scenario_player_data import ScenarioPlayerData
+from tests.sections.unit_data.world_player_data import WorldPlayerData
+from tests.sections.unit_data.unit import Unit
 
 
 class UnitData(BaseStruct):

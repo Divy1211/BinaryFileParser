@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from binary_file_parser import BaseStruct, Retriever, Version
 from binary_file_parser.types import Array32, Bytes, FixedLenArray, int32
-from AoE2ScenarioParser.sections.scx_versions import DE_LATEST, TRIGGER_LATEST
-from AoE2ScenarioParser.sections.trigger_data.variable import Variable
+from tests.sections.scx_versions import DE_LATEST, TRIGGER_LATEST
+from tests.sections.trigger_data.variable import Variable
 
 
 class VariableData(BaseStruct):

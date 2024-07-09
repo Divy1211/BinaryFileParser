@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from binary_file_parser import BaseStruct, Retriever, Version
 from binary_file_parser.types import bool32, uint32
-from AoE2ScenarioParser.sections.settings.data_header.resources import Resources
-from AoE2ScenarioParser.sections.scx_versions import DE_LATEST
+from tests.sections.settings.data_header.resources import Resources
+from tests.sections.scx_versions import DE_LATEST
 
 
 class PlayerBaseOptions(BaseStruct):
