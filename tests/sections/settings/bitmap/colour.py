@@ -3,13 +3,11 @@ from binary_file_parser.types import uint8
 
 
 class Colour(BaseStruct):
-    red: int =   Retriever(uint8, default = 0)
+    red: int   = Retriever(uint8, default = 0)
     green: int = Retriever(uint8, default = 0)
-    blue: int =  Retriever(uint8, default = 0)
+    blue: int  = Retriever(uint8, default = 0)
     alpha: int = Retriever(uint8, default = 0)
-    """
-    unused
-    """
+    """unused"""
 
     def __init__(
         self,

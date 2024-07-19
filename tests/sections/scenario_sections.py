@@ -5,7 +5,8 @@ from contextlib import suppress
 from os import path
 
 from binary_file_parser import BaseStruct, ByteStream, Retriever, Version, VersionError
-from tests.sections.file_data import FileData
+
+from tests.sections import FileData
 from tests.sections.file_header import FileHeader
 from tests.sections.map_data import MapData
 from tests.sections.scx_versions import DE_LATEST
@@ -33,20 +34,23 @@ class ScenarioSections(BaseStruct):
     def sync_resources(_, instance: ScenarioSections):
         with suppress(VersionError):
             for i in range(8):
-                instance.unit_data.world_player_data[i].food = instance.settings.player_options.starting_resources[i].food
-                instance.unit_data.world_player_data[i].wood = instance.settings.player_options.starting_resources[i].wood
-                instance.unit_data.world_player_data[i].stone = instance.settings.player_options.starting_resources[i].stone
-                instance.unit_data.world_player_data[i].gold = instance.settings.player_options.starting_resources[i].gold
-                instance.unit_data.world_player_data[i].ore_x = instance.settings.player_options.starting_resources[i].ore_x
-                instance.unit_data.world_player_data[i].trade_goods = instance.settings.player_options.starting_resources[i].trade_goods
+                world_data = instance.unit_data.world_player_data[i]
+                player_resources = instance.settings.player_options.starting_resources[i]
+
+                world_data.food = player_resources.food
+                world_data.wood = player_resources.wood
+                world_data.stone = player_resources.stone
+                world_data.gold = player_resources.gold
+                world_data.ore_x = player_resources.ore_x
+                world_data.trade_goods = player_resources.trade_goods
 
     # @formatter:off
-    file_header: FileHeader =       Retriever(FileHeader,                                  default_factory = FileHeader, on_write = [sync_num_triggers])
-    settings: Settings =            Retriever(Settings,                                    default_factory = Settings,   remaining_compressed = True)
-    map_data: MapData =             Retriever(MapData,                                     default_factory = MapData)
-    unit_data: UnitData =           Retriever(UnitData,                                    default_factory = UnitData,   on_write = [sync_resources])
-    trigger_data: TriggerData =     Retriever(TriggerData,     min_ver = Version((1, 14)), default_factory = TriggerData)
-    file_data: FileData =           Retriever(FileData,        min_ver = Version((1, 17)), default_factory = FileData,   on_write = [sync_script_file_path])
+    file_header: FileHeader   = Retriever(FileHeader,                                  default_factory = FileHeader, on_write = [sync_num_triggers])
+    settings: Settings        = Retriever(Settings,                                    default_factory = Settings,   remaining_compressed = True)
+    map_data: MapData         = Retriever(MapData,                                     default_factory = MapData)
+    unit_data: UnitData       = Retriever(UnitData,                                    default_factory = UnitData,   on_write = [sync_resources])
+    trigger_data: TriggerData = Retriever(TriggerData,     min_ver = Version((1, 14)), default_factory = TriggerData)
+    file_data: FileData       = Retriever(FileData,        min_ver = Version((1, 17)), default_factory = FileData,   on_write = [sync_script_file_path])
     # @formatter:on
 
     @classmethod
@@ -70,7 +74,7 @@ class ScenarioSections(BaseStruct):
 
     @classmethod
     def from_file(cls, file_name: str, *, file_version: Version = Version((0,)), strict = True) -> ScenarioSections:
-        return cls._from_file(file_name, file_version = file_version, strict = strict)
+        return cls._from_file(file_name, file_version=file_version, strict=strict)
 
     def to_file(self, file_name: str, overwrite_original_file_name = True):
         if overwrite_original_file_name:
@@ -80,4 +84,4 @@ class ScenarioSections(BaseStruct):
     def __init__(self, struct_ver: Version = DE_LATEST, initialise_defaults = True, **retriever_inits):
         # todo: correctly initialise struct_ver `from_default` for all self versioned structs
         #  for default values that are different across different versions, use default_factory
-        super().__init__(struct_ver, initialise_defaults = initialise_defaults, **retriever_inits)
+        super().__init__(struct_ver, initialise_defaults=initialise_defaults, **retriever_inits)

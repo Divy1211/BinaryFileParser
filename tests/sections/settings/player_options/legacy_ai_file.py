@@ -8,18 +8,18 @@ from tests.sections.scx_versions import DE_LATEST
 class LegacyAiFile(BaseStruct):
     """This struct is useless"""
 
-    _strings1: list[str] = Retriever(StrArray32[2], max_ver = Version((1,  7)), default_factory = lambda _: [""] * 2)
-    _strings2: list[str] = Retriever(StrArray32[3], min_ver = Version((1,  8)), default_factory = lambda _: [""] * 3)
+    _strings1: list[str] = Retriever(StrArray32[2], max_ver = Version((1, 7)), default_factory = lambda _: [""] * 2)
+    _strings2: list[str] = Retriever(StrArray32[3], min_ver = Version((1, 8)), default_factory = lambda _: [""] * 3)
 
     # refs
     _strings: list[str] = RetrieverCombiner(_strings2, _strings1)
 
-
+    # @formatter:off
     build_list: str = RetrieverRef(_strings, 0)
     """unused?"""
     city_plans: str = RetrieverRef(_strings, 1)
     """unused?"""
-    ai_rules: str =   RetrieverRef(_strings, 2)
+    ai_rules: str   = RetrieverRef(_strings, 2)
     """From the .per file of an AI"""
     # @formatter:on
 
