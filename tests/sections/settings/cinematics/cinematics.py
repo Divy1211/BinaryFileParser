@@ -9,7 +9,7 @@ class Cinematics(BaseStruct):
     # @formatter:off
     pregame: str = Retriever(str16, default = "")
     victory: str = Retriever(str16, default = "")
-    loss: str =    Retriever(str16, default = "")
+    loss: str    = Retriever(str16, default = "")
     # @formatter:on
 
     def __init__(self, struct_ver: Version = DE_LATEST, initialise_defaults = True, **retriever_inits):

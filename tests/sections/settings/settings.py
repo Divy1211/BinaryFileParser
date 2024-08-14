@@ -14,14 +14,14 @@ from tests.sections.settings.player_options import PlayerOptions
 
 class Settings(BaseStruct):
     # @formatter:off
-    data_header: DataHeader =           Retriever(DataHeader,                                  default_factory = DataHeader)
-    messages: Messages =                Retriever(Messages,                                    default_factory = Messages)
-    cinematics: Cinematics =            Retriever(Cinematics,                                  default_factory = Cinematics)
+    data_header: DataHeader           = Retriever(DataHeader,                                  default_factory = DataHeader)
+    messages: Messages                = Retriever(Messages,                                    default_factory = Messages)
+    cinematics: Cinematics            = Retriever(Cinematics,                                  default_factory = Cinematics)
     background_image: BackgroundImage = Retriever(BackgroundImage, min_ver = Version((1,  9)), default_factory = BackgroundImage)
-    player_options: PlayerOptions =     Retriever(PlayerOptions,                               default_factory = PlayerOptions)
-    global_victory: GlobalVictory =     Retriever(GlobalVictory,                               default_factory = GlobalVictory)
-    diplomacy: Diplomacy =              Retriever(Diplomacy,                                   default_factory = Diplomacy)
-    options: Options =                  Retriever(Options,                                     default_factory = Options)
+    player_options: PlayerOptions     = Retriever(PlayerOptions,                               default_factory = PlayerOptions)
+    global_victory: GlobalVictory     = Retriever(GlobalVictory,                               default_factory = GlobalVictory)
+    diplomacy: Diplomacy              = Retriever(Diplomacy,                                   default_factory = Diplomacy)
+    options: Options                  = Retriever(Options,                                     default_factory = Options)
     # @formatter:on
 
     @classmethod

@@ -7,10 +7,10 @@ from tests.sections.scx_versions import DE_LATEST
 
 class AiError(BaseStruct):
     # @formatter:off
-    file_name: str =   Retriever(FixedLenNTStr[260], default = "")
+    file_name: str   = Retriever(FixedLenNTStr[260], default = "")
     line_number: int = Retriever(int32,              default = -1)
-    message: str =     Retriever(FixedLenNTStr[128], default = -1)
-    code: str =        Retriever(uint32,             default = 0)
+    message: str     = Retriever(FixedLenNTStr[128], default = -1)
+    code: str        = Retriever(uint32,             default = 0)
     """
     - 0: ConstantAlreadyDefined
     - 1: FileOpenFailed

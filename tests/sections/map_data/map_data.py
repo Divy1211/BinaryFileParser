@@ -16,11 +16,11 @@ class MapData(BaseStruct):
         instance.width = instance.height = int(len(instance.terrain_tiles) ** 0.5)
 
     # @formatter:off
-    dead_food: int =                   Retriever(uint32, min_ver = Version((1, )), default = 0xDEAD_F00D) # yES
-    version =                          Retriever(uint32, min_ver = Version((1, )), default = 2)
-    no_waves_on_shore: bool =          Retriever(bool8,  min_ver = Version((2, )), default = False)
-    width: int =                       Retriever(uint32,                           default = 144, on_set = [set_terrain_data_repeat], on_write = [update_width_height])
-    height: int =                      Retriever(uint32,                           default = 144, on_set = [set_terrain_data_repeat])
+    dead_food: int                   = Retriever(uint32, min_ver = Version((1, )), default = 0xDEAD_F00D) # yES
+    version                          = Retriever(uint32, min_ver = Version((1, )), default = 2)
+    no_waves_on_shore: bool          = Retriever(bool8,  min_ver = Version((2, )), default = False)
+    width: int                       = Retriever(uint32,                           default = 144, on_set = [set_terrain_data_repeat], on_write = [update_width_height])
+    height: int                      = Retriever(uint32,                           default = 144, on_set = [set_terrain_data_repeat])
     terrain_tiles: list[TerrainTile] = Retriever(TerrainTile,                      default_factory = TerrainTile, repeat = 144**2)
     # @formatter:on
 

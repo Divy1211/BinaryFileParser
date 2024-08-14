@@ -21,12 +21,12 @@ class BackgroundImage(BaseStruct):
     # @formatter:off
     background_image_filename: str = Retriever(str16,                                        default = "")
     # todo: does size needs to be set correctly? testing needed
-    size: int =                      Retriever(uint32,           min_ver = Version((1, 10)), default = 0)
-    width: int =                     Retriever(uint32,           min_ver = Version((1, 10)), default = 0)
-    height: int =                    Retriever(int32,            min_ver = Version((1, 10)), default = 0,                        on_read = [set_bmp_header_repeat, set_img_repeat], on_write = [set_bmp_header_repeat])
-    orientation: int =               Retriever(int16,            min_ver = Version((1, 10)), default = 1)
-    info_header: BitmapInfoHeader =  Retriever(BitmapInfoHeader, min_ver = Version((1, 10)), default_factory = BitmapInfoHeader)
-    pixels: list[bytes] =            Retriever(Bytes[1],         min_ver = Version((1, 10)), default = b"\x00",                  repeat = -1)
+    size: int                      = Retriever(uint32,           min_ver = Version((1, 10)), default = 0)
+    width: int                     = Retriever(uint32,           min_ver = Version((1, 10)), default = 0)
+    height: int                    = Retriever(int32,            min_ver = Version((1, 10)), default = 0,                        on_read = [set_bmp_header_repeat, set_img_repeat], on_write = [set_bmp_header_repeat])
+    orientation: int               = Retriever(int16,            min_ver = Version((1, 10)), default = 1)
+    info_header: BitmapInfoHeader  = Retriever(BitmapInfoHeader, min_ver = Version((1, 10)), default_factory = BitmapInfoHeader)
+    pixels: list[bytes]            = Retriever(Bytes[1],         min_ver = Version((1, 10)), default = b"\x00",                  repeat = -1)
     # @formatter:on
 
     def __init__(self, struct_ver: Version = DE_LATEST, initialise_defaults = True, **retriever_inits):

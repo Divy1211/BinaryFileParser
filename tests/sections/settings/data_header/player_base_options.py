@@ -8,12 +8,12 @@ from tests.sections.scx_versions import DE_LATEST
 
 class PlayerBaseOptions(BaseStruct):
     # @formatter:off
-    active: bool =             Retriever(bool32,                                default = False)
-    starting_resources: int =  Retriever(Resources, max_ver = Version((1, 13)), default_factory = Resources)
-    human: bool =              Retriever(bool32,                                default = False)
-    civilization: int =        Retriever(uint32,                                default = 65537)
-    architecture: int =        Retriever(uint32,    min_ver = Version((1, 40)), default = 65537)
-    posture: int =             Retriever(uint32,                                default = 4)
+    active: bool             = Retriever(bool32,                                default = False)
+    starting_resources: int  = Retriever(Resources, max_ver = Version((1, 13)), default_factory = Resources)
+    human: bool              = Retriever(bool32,                                default = False)
+    civilization: int        = Retriever(uint32,                                default = 65537)
+    architecture: int        = Retriever(uint32,    min_ver = Version((1, 40)), default = 65537)
+    posture: int             = Retriever(uint32,                                default = 4)
 
     # todo: add correct defaults for different versions, or there will be crashes in DE
     # _civilization_1_36: int = Retriever(uint32, default = 36,                             max_ver = Version((1, 40)))

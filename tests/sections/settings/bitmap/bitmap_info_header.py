@@ -19,18 +19,18 @@ class BitmapInfoHeader(BaseStruct):
 
     # @formatter:off
     # todo: this should be set from the # of bytes in this header, is it unused?
-    size: int =                  Retriever(uint32, default = 40)
-    width: int =                 Retriever(int32,  default = 0)
-    height: int =                Retriever(int32,  default = 0)
-    num_planes: int =            Retriever(uint16, default = 1)
-    num_bits_per_pixel: int =    Retriever(uint16, default = 1)
-    compression: int =           Retriever(uint32, default = 0)
-    image_size: int =            Retriever(uint32, default = 0)
-    x_pixels_per_meter: int =    Retriever(int32,  default = 0)
-    y_pixels_per_meter: int =    Retriever(int32,  default = 0)
-    num_colours: int =           Retriever(uint32, default = 0, on_read = [set_colours_repeat], on_write = [update_num_colours])
+    size: int                  = Retriever(uint32, default = 40)
+    width: int                 = Retriever(int32,  default = 0)
+    height: int                = Retriever(int32,  default = 0)
+    num_planes: int            = Retriever(uint16, default = 1)
+    num_bits_per_pixel: int    = Retriever(uint16, default = 1)
+    compression: int           = Retriever(uint32, default = 0)
+    image_size: int            = Retriever(uint32, default = 0)
+    x_pixels_per_meter: int    = Retriever(int32,  default = 0)
+    y_pixels_per_meter: int    = Retriever(int32,  default = 0)
+    num_colours: int           = Retriever(uint32, default = 0, on_read = [set_colours_repeat], on_write = [update_num_colours])
     num_important_colours: int = Retriever(uint32, default = 0)
-    colours: list[Colour] =      Retriever(Colour, default_factory = Colour, repeat = 0)
+    colours: list[Colour]      = Retriever(Colour, default_factory = Colour, repeat = 0)
     # @formatter:on
 
     def __init__(self, struct_ver: Version = DE_LATEST, initialise_defaults = True, **retriever_inits):

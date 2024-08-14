@@ -9,12 +9,12 @@ class WorldPlayerData(BaseStruct):
     """All data here is duplicated except pop limit"""
 
     # @formatter:off
-    food: float =             Retriever(float32,                             default = 200)
-    wood: float =             Retriever(float32,                             default = 200)
-    gold: float =             Retriever(float32,                             default = 200)
-    stone: float =            Retriever(float32,                             default = 200)
-    ore_x: float =            Retriever(float32, min_ver = Version((1, 18)), default = 100)
-    trade_goods: float =      Retriever(float32, min_ver = Version((1, 18)), default = 0.0)
+    food: float             = Retriever(float32,                             default = 200)
+    wood: float             = Retriever(float32,                             default = 200)
+    gold: float             = Retriever(float32,                             default = 200)
+    stone: float            = Retriever(float32,                             default = 200)
+    ore_x: float            = Retriever(float32, min_ver = Version((1, 18)), default = 100)
+    trade_goods: float      = Retriever(float32, min_ver = Version((1, 18)), default = 0.0)
     population_limit: float = Retriever(float32, min_ver = Version((1, 20)), default = 200.0)
     # @formatter:on
 

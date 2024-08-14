@@ -4,8 +4,8 @@ from binary_file_parser.types import Array32, uint32
 
 class DLCOptions(BaseStruct):
     # @formatter:off
-    version: int =             Retriever(uint32, min_ver = Version((1000, )), default = 1000)
-    game_dataset: int =        Retriever(uint32,                              default = 1)
+    version: int             = Retriever(uint32, min_ver = Version((1000, )), default = 1000)
+    game_dataset: int        = Retriever(uint32,                              default = 1)
     """
     - 0: AoC
     - 1: HD+

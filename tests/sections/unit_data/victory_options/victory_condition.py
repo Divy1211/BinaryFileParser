@@ -21,19 +21,19 @@ class VictoryCondition(BaseStruct):
     - 10 DestroyPlayer,
     - 11 Points,
     """
-    object_type: int =   Retriever(int32,   default = 0)
-    player_id: int =     Retriever(int32,   default = 0)
-    area_x1: float =     Retriever(float32, default = 0)
-    area_y1: float =     Retriever(float32, default = 0)
-    area_x2: float =     Retriever(float32, default = 0)
-    area_y2: float =     Retriever(float32, default = 0)
-    number: int =        Retriever(int32,   default = 0)
-    count: int =         Retriever(int32,   default = 0)
+    object_type: int   = Retriever(int32,   default = 0)
+    player_id: int     = Retriever(int32,   default = 0)
+    area_x1: float     = Retriever(float32, default = 0)
+    area_y1: float     = Retriever(float32, default = 0)
+    area_x2: float     = Retriever(float32, default = 0)
+    area_y2: float     = Retriever(float32, default = 0)
+    number: int        = Retriever(int32,   default = 0)
+    count: int         = Retriever(int32,   default = 0)
     source_object: int = Retriever(int32,   default = 0)
     target_object: int = Retriever(int32,   default = 0)
     victory_group: int = Retriever(int8,    default = 0)
-    ally_flag: int =     Retriever(int8,    default = 0)
-    state: int =         Retriever(int8,    default = 0)
+    ally_flag: int     = Retriever(int8,    default = 0)
+    state: int         = Retriever(int8,    default = 0)
     """
     - 0: Not achieved
     - 1: Failed
