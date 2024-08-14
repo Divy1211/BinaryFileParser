@@ -74,7 +74,7 @@ class ScenarioSections(BaseStruct):
 
     @classmethod
     def from_file(cls, file_name: str, *, file_version: Version = Version((0,)), strict = True) -> ScenarioSections:
-        return cls._from_file(file_name, file_version=file_version, strict=strict)
+        return cls._from_file(file_name, file_version = file_version, strict=strict)
 
     def to_file(self, file_name: str, overwrite_original_file_name = True):
         if overwrite_original_file_name:
@@ -84,4 +84,4 @@ class ScenarioSections(BaseStruct):
     def __init__(self, struct_ver: Version = DE_LATEST, initialise_defaults = True, **retriever_inits):
         # todo: correctly initialise struct_ver `from_default` for all self versioned structs
         #  for default values that are different across different versions, use default_factory
-        super().__init__(struct_ver, initialise_defaults=initialise_defaults, **retriever_inits)
+        super().__init__(struct_ver, initialise_defaults = initialise_defaults, **retriever_inits)
