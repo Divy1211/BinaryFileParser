@@ -5,6 +5,7 @@ from contextlib import suppress
 from os import path
 
 from binary_file_parser import BaseStruct, ByteStream, Retriever, Version, VersionError
+
 from tests.sections.file_data import FileData
 from tests.sections.file_header import FileHeader
 from tests.sections.map_data import MapData
@@ -81,3 +82,7 @@ class ScenarioSections(BaseStruct):
         # todo: correctly initialise struct_ver `from_default` for all self versioned structs
         #  for default values that are different across different versions, use default_factory
         super().__init__(struct_ver, initialise_defaults = initialise_defaults, **retriever_inits)
+
+        from tests.managers import MessageManager
+
+        self.message_manager = MessageManager(self)
