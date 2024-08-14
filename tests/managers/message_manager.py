@@ -1,7 +1,13 @@
-from binary_file_parser import Retriever, RetrieverRef
-from binary_file_parser.types.manager import Manager
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+from binary_file_parser import Manager, RetrieverRef
 
 from tests.sections import Messages, ScenarioSections, Settings
+
+if TYPE_CHECKING:
+    from binary_file_parser import Retriever
 
 def ret(t) -> Retriever:
     """thxPyC"""
