@@ -126,8 +126,6 @@ class Retriever(MapValidate):
         try:
             return super().__get__(instance, owner)
         except AttributeError:
-            if self.default is None and self.default_factory is not None:
-                raise ValueError(f"No default value specified for retriever {self.p_name!r}")
             return self.from_default(instance)
 
     @property

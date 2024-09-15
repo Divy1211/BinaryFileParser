@@ -298,7 +298,10 @@ class BaseStruct(Parseable):
 
         return diff_retrievers
 
-    def __repr__(self, ident: int = 0) -> str:
+    def _dbg_repr(self) -> str:
+        return self.__repr__(get = lambda obj, attr: getattr(obj, attr, None))
+
+    def __repr__(self, ident: int = 0, get = getattr) -> str:
         builder = TabbedStringIO(ident)
         builder.write(f"{self.__class__.__name__}(")
 
@@ -310,9 +313,9 @@ class BaseStruct(Parseable):
             for retriever in self._retrievers:
                 if not retriever.supported(self.struct_ver):
                     continue
-                obj = getattr(self, retriever.p_name)
+                obj = get(self, retriever.p_name)
                 if isinstance(obj, BaseStruct):
-                    builder.writeln(f"{retriever.p_name} = {obj.__repr__(builder.ident)},")
+                    builder.writeln(f"{retriever.p_name} = {obj.__repr__(builder.ident, get)},")
                 if isinstance(obj, list):
                     builder.writeln(f"{retriever.p_name} = {_ls_repr(obj, builder.ident)},")
                 else:
@@ -347,16 +350,16 @@ class BaseStruct(Parseable):
     # todo: write hex (decompressed) to file
     # todo: file/header/decompressed in both hex/val <-> data
 
-def _ls_repr(ls: list, ident: int = 0):
+def _ls_repr(ls: list, ident: int = 0, get = getattr) -> str:
     builder = TabbedStringIO(ident)
     builder.write("[")
 
     with builder.tabbed():
         for item in ls:
             if isinstance(item, BaseStruct):
-                builder.writeln(item.__repr__(builder.ident))
+                builder.writeln(item.__repr__(builder.ident, get))
             if isinstance(item, list):
-                builder.writeln(_ls_repr(item, builder.ident))
+                builder.writeln(_ls_repr(item, builder.ident, get))
             else:
                 builder.writeln(repr(item))
             builder.write(",")
