@@ -4,7 +4,7 @@ import sys
 from io import BytesIO
 from typing import Any, Callable, Type, TypeVar
 
-from binary_file_parser.errors import DefaultValueError, VersionError
+from binary_file_parser.errors import DefaultAttributeError, VersionError
 from binary_file_parser.types import BaseStruct, ByteStream, Parseable, Version
 from binary_file_parser.retrievers.map_validate import MapValidate
 
@@ -83,7 +83,7 @@ class Retriever(MapValidate):
             or default is not None
             and isinstance(default, BaseStruct)
         ):
-            raise DefaultValueError(
+            raise DefaultAttributeError(
                 "Using mutable types for default values is not allowed. Use a default_factory instead!"
             )
 
@@ -173,7 +173,7 @@ class Retriever(MapValidate):
                 return val
             return [self.default_factory(instance.struct_ver) for _ in range(repeat)]
 
-        raise DefaultValueError(
+        raise DefaultAttributeError(
             f"Unable to auto-initialise '{self.p_name}' as a default value is not provided"
         )
 
