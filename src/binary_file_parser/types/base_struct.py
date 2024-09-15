@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from contextlib import suppress
-from typing import TYPE_CHECKING
+from typing import Type, TYPE_CHECKING
 
 from alive_progress import alive_it
 
@@ -135,7 +135,7 @@ class BaseStruct(Parseable):
     @classmethod
     def _from_stream(
         cls, stream: ByteStream, *, struct_ver: Version = Version((0,)), strict: bool = False,
-        show_progress: bool = False,
+        show_progress: bool = False
     ) -> BaseStruct:
         """
         Create a struct object from a ByteStream
@@ -165,12 +165,8 @@ class BaseStruct(Parseable):
             if show_progress:
                 retriever_ls.text = f"            -> {retriever.p_name.title().replace('_', ' ')}"
             if retriever.remaining_compressed:
-                stream = ByteStream.from_bytes(cls._decompress(stream.remaining()))
-            try:
-                retriever.from_stream(instance, stream)
-            except:
-                print(retriever.p_name)
-                raise
+                stream = stream.__class__.from_bytes(cls._decompress(stream.remaining()))
+            retriever.from_stream(instance, stream)
 
         file_len = len(stream.content)
 
@@ -184,7 +180,7 @@ class BaseStruct(Parseable):
     @classmethod
     def _from_bytes(
         cls, bytes_: bytes, *, struct_ver: Version = Version((0,)), strict = False,
-        show_progress: bool = False,
+        show_progress: bool = False, stream_cls: Type[ByteStream] = ByteStream
     ) -> BaseStruct:
         """
         Create a struct object from bytes
@@ -196,13 +192,13 @@ class BaseStruct(Parseable):
 
         :return: An instance of a subtype of BaseStruct
         """
-        stream = ByteStream.from_bytes(bytes_)
+        stream = stream_cls.from_bytes(bytes_)
         return cls._from_stream(stream, struct_ver = struct_ver, strict = strict, show_progress = show_progress)
 
     @classmethod
     def _from_file(
         cls, file_name: str, *, file_version: Version = Version((0,)), strict = True,
-        show_progress: bool = True,
+        show_progress: bool = True, stream_cls: Type[ByteStream] = ByteStream
     ) -> BaseStruct:
         """
         Create a struct object from file
@@ -214,7 +210,7 @@ class BaseStruct(Parseable):
 
         :return: An instance of a subtype of BaseStruct
         """
-        stream = ByteStream.from_file(file_name)
+        stream = stream_cls.from_file(file_name)
         return cls._from_stream(stream, struct_ver = file_version, strict = strict, show_progress = show_progress)
 
     def _to_bytes(self, *, show_progress = False) -> bytes:

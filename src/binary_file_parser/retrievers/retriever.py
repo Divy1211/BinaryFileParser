@@ -5,7 +5,7 @@ from io import BytesIO
 from typing import Any, Callable, Type, TypeVar
 
 from binary_file_parser.errors import DefaultAttributeError, VersionError
-from binary_file_parser.types import BaseStruct, ByteStream, Parseable, Version
+from binary_file_parser.types import BaseStruct, ByteStream, DebugByteStream, Parseable, Version
 from binary_file_parser.retrievers.map_validate import MapValidate
 
 T = TypeVar("T")
@@ -186,6 +186,7 @@ class Retriever(MapValidate):
         """
         if not self.supported(instance.struct_ver):
             return
+        DebugByteStream.reader_ret = self.p_name
 
         def call_on_reads():
             for func in self.on_read:
