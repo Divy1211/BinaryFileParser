@@ -1,3 +1,11 @@
+## 0.2.2 (Unreleased)
+
+- Added `ret`, `ref`, and `com` as type casting functions. Recommended use is only inside the classbody, as they cause overhead in `on_xxx` functions
+- Changed `Manager` to only allow using `RetrieverRef`s
+- Added `DebugByteStream` which logs the bytes it reads for each specified retriever to `bfp.log`
+- Changed `DefaultValueError` to `DefaultAttributeError`, used when trying to instantiate a `BaseStruct` from default without having default values
+- Added a `_dbg_repr` to base struct which can print partially initialised `BaseStruct` objects
+
 ## 0.2.1
 
 - `RetrieverRef` can now accept an arbitrary number of retrievers to be able to reference data from sub structs.

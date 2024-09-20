@@ -1,5 +1,6 @@
 venv/*
 dist/*
+build/*
 src/binary_file_parser.egg-info/*
 docs/*
 mkdocs.yml
