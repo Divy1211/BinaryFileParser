@@ -4,4 +4,4 @@ __version_info__ = (0, 2, 1)
 
 from .errors import *
 from .retrievers import *
-from .types import BaseStruct, ByteStream, Manager, Parseable, Version
+from .types import BaseStruct, ByteStream, DebugByteStream, Manager, Parseable, Version

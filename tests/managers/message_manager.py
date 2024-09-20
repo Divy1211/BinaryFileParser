@@ -1,17 +1,9 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from binary_file_parser import Manager, RetrieverRef
 
 from tests.sections import Messages, ScenarioSections, Settings
 
-if TYPE_CHECKING:
-    from binary_file_parser import Retriever
-
-def ret(t) -> Retriever:
-    """thxPyC"""
-    return t
 
 class MessageManager(Manager):
     instructions: str =        RetrieverRef(ret(ScenarioSections.settings), ret(Settings.messages), ret(Messages.instructions))

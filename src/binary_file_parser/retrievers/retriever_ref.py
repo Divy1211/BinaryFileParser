@@ -52,7 +52,7 @@ class RetrieverRef(Generic[T]):
                 setattr(item, self.last, value)
             return
         raise VersionError(
-            f"{self.name!r} is not supported in your struct version {instance.struct_ver}"
+            f"{self.name!r} is not supported in your struct version {item.struct_ver}"
         )
 
     def __get__(self, instance: BaseStruct, owner: Type[BaseStruct]) -> RetrieverRef | T:
@@ -64,7 +64,7 @@ class RetrieverRef(Generic[T]):
                 item = get(item)
             return item
         raise VersionError(
-            f"{self.name!r} is not supported in your struct version {instance.struct_ver}"
+            f"{self.name!r} is not supported in your struct version {item.struct_ver}"
         )
 
     # todo: fix this
