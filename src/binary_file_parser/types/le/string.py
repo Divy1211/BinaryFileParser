@@ -101,7 +101,7 @@ class FixedLenNTStr(FixedLenStr):
 
     def _from_bytes(self, bytes_: bytes, *, struct_ver: Version = Version((0,))) -> str:
         value = super()._from_bytes(bytes_, struct_ver = struct_ver)
-        return str(takewhile(partial(ne, "\x00"), value))
+        return ''.join(takewhile(partial(ne, "\x00"), value))
 
 
 class StrArray(BaseStr):
