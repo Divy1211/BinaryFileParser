@@ -213,6 +213,25 @@ class BaseStruct(Parseable):
         stream = stream_cls.from_file(file_name)
         return cls._from_stream(stream, struct_ver = file_version, strict = strict, show_progress = show_progress)
 
+    @classmethod
+    def _from_compressed_file(
+        cls, file_name: str, *, file_version: Version = Version((0,)), strict = True,
+        show_progress: bool = True, stream_cls: Type[ByteStream] = ByteStream
+    ) -> BaseStruct:
+        """
+        Create a struct object from file
+
+        :param file_name: The path of the file to create the struct object from
+        :param file_version: The version of the structure to create. Overwritten if `get_version` is defined
+        :param strict: Raise an error if struct parsing finishes successfully but the stream has left over bytes
+        :param show_progress: When true, display a progress bar
+
+        :return: An instance of a subtype of BaseStruct
+        """
+        stream = stream_cls.from_file(file_name)
+        stream = stream_cls.from_bytes(cls._decompress(stream.remaining()))
+        return cls._from_stream(stream, struct_ver = file_version, strict = strict, show_progress = show_progress)
+
     def _to_bytes(self, *, show_progress = False) -> bytes:
         """
         Convert the struct object to bytes
@@ -262,6 +281,15 @@ class BaseStruct(Parseable):
         """
         with open(file_name, "wb") as file:
             file.write(self._to_bytes(show_progress = show_progress))
+
+    def _to_compressed_file(self, file_name: str, *, show_progress: bool = True):
+        """
+        Write the bytes of the struct object to a file
+
+        :param file_name: The name of the file to write to
+        :param show_progress: When true, display a progress bar
+        """
+        file.write(self._compress(self._to_bytes(show_progress = show_progress)))
 
     def _diff(self, other: BaseStruct) -> dict[str, tuple | dict]:
         """
