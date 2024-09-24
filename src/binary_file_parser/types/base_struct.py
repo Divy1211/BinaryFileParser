@@ -312,7 +312,7 @@ class BaseStruct(Parseable):
                 obj = get(self, retriever.p_name)
                 if isinstance(obj, BaseStruct):
                     builder.writeln(f"{retriever.p_name} = {obj.__repr__(builder.ident, get)},")
-                if isinstance(obj, list):
+                elif isinstance(obj, list):
                     builder.writeln(f"{retriever.p_name} = {_ls_repr(obj, builder.ident)},")
                 else:
                     builder.writeln(f"{retriever.p_name} = {obj!r},")
