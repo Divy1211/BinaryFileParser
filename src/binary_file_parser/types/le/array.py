@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 import struct
+from contextlib import suppress
 from typing import Type, TYPE_CHECKING
 
+from binary_file_parser.errors import VersionError
 from binary_file_parser.types.parseable import Parseable
 from binary_file_parser.types.version import Version
 from binary_file_parser.types.byte_stream import ByteStream
 
 if TYPE_CHECKING:
+    from binary_file_parser.types.base_struct import BaseStruct
     ParseableType = Type[Parseable] | Parseable
 
 class BaseArray(Parseable):
@@ -218,6 +221,111 @@ class StackedArray64s(StackedArrays):
     __slots__ = ()
 
     def __class_getitem__(cls, item: ParseableType | tuple[ParseableType, int]) -> StackedArrays:
+        if isinstance(item, tuple):
+            return cls(item[1], item[0], '<Q', item[1])
+        return cls(8, item, '<Q')
+
+
+class StackedAttrArray(BaseArray):
+    def __init__(self, size: int, dtype: Type[BaseStruct], struct_symbol: str, length: int = -1):
+        super().__init__(size, dtype, struct_symbol)
+        self.length = length
+        self.stype = dtype
+
+    def _from_stream(self, stream: ByteStream, *, struct_ver: Version = Version((0,))) -> list:
+        length = self.length
+        if length == -1:
+            length = struct.unpack(self.struct_symbol, stream.get(self._size))[0]
+
+        ls: list = [None] * length
+        for i in range(length):
+            obj = self.stype(struct_ver, initialise_defaults = False)
+            with suppress(VersionError):
+                obj._get_version(stream, struct_ver)
+            ls[i] = obj
+
+        for retriever in self.stype._retrievers:
+            for instance in ls:
+                retriever.from_stream(instance, stream)
+
+        return ls
+
+    def _to_bytes(self, value: list) -> bytes:
+        if self.length != -1 and len(value) != self.length:
+            raise TypeError(f"Expected an array of length {self.length}, found array with length: {len(value)}")
+
+        length_bytes = b""
+        length = self.length
+        if length == -1:
+            length = len(value)
+            length_bytes = struct.pack(self.struct_symbol, length)
+
+        bytes_: list[bytes] = [b""] * (len(self.stype._retrievers) * length)
+        for i, retriever in enumerate(self.stype._retrievers):
+            for j, instance in enumerate(value):
+                bytes_[length * i + j] = retriever.to_bytes(instance)
+
+        return length_bytes+b"".join(bytes_)
+
+class StackedAttrArray8(StackedAttrArray):
+    """
+    Represents an array of struct objects where the number of objects is indicated by a ``uint8``, followed by a list of
+    that length for each attribute of the base struct
+
+    >>> StackedAttrArray8[BaseStruct]
+    >>> StackedAttrArray8[BaseStruct, 4] # indicate the number of objects as fixed. This excludes it from being read from/written to bytes
+    """
+    __slots__ = ()
+
+    def __class_getitem__(cls, item: Type[BaseStruct] | tuple[Type[BaseStruct], int]) -> StackedAttrArray:
+        if isinstance(item, tuple):
+            return cls(item[1], item[0], '<B', item[1])
+        return cls(1, item, '<B')
+
+
+class StackedAttrArray16(StackedAttrArray):
+    """
+    Represents an array of struct objects where the number of objects is indicated by a ``uint16``, followed by a list of
+    that length for each attribute of the base struct
+
+    >>> StackedAttrArray16[BaseStruct]
+    >>> StackedAttrArray16[BaseStruct, 4] # indicate the number of objects as fixed. This excludes it from being read from/written to bytes
+    """
+    __slots__ = ()
+
+    def __class_getitem__(cls, item: Type[BaseStruct] | tuple[Type[BaseStruct], int]) -> StackedAttrArray:
+        if isinstance(item, tuple):
+            return cls(item[1], item[0], '<H', item[1])
+        return cls(2, item, '<H')
+
+
+class StackedAttrArray32(StackedAttrArray):
+    """
+    Represents an array of struct objects where the number of objects is indicated by a ``uint32``, followed by a list of
+    that length for each attribute of the base struct
+
+    >>> StackedAttrArray32[BaseStruct]
+    >>> StackedAttrArray32[BaseStruct, 4] # indicate the number of objects as fixed. This excludes it from being read from/written to bytes
+    """
+    __slots__ = ()
+
+    def __class_getitem__(cls, item: Type[BaseStruct] | tuple[Type[BaseStruct], int]) -> StackedAttrArray:
+        if isinstance(item, tuple):
+            return cls(4, item[0], '<I', item[1])
+        return cls(4, item, '<I')
+
+
+class StackedAttrArray64(StackedAttrArray):
+    """
+    Represents an array of struct objects where the number of objects is indicated by a ``uint64``, followed by a list of
+    that length for each attribute of the base struct
+
+    >>> StackedAttrArray64[BaseStruct]
+    >>> StackedAttrArray64[BaseStruct, 4] # indicate the number of objects as fixed. This excludes it from being read from/written to bytes
+    """
+    __slots__ = ()
+
+    def __class_getitem__(cls, item: Type[BaseStruct] | tuple[Type[BaseStruct], int]) -> StackedAttrArray:
         if isinstance(item, tuple):
             return cls(item[1], item[0], '<Q', item[1])
         return cls(8, item, '<Q')

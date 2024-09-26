@@ -260,11 +260,7 @@ class BaseStruct(Parseable):
                 retriever_ls.text = f"            <- {retriever.p_name.title().replace('_', ' ')}"
             if retriever.remaining_compressed:
                 compress_idx = i
-            try:
-                bytes_[i] = retriever.to_bytes(self)
-            except:
-                print(retriever.p_name)
-                raise
+            bytes_[i] = retriever.to_bytes(self)
 
         compressed = b""
         if compress_idx != length:
@@ -289,7 +285,8 @@ class BaseStruct(Parseable):
         :param file_name: The name of the file to write to
         :param show_progress: When true, display a progress bar
         """
-        file.write(self._compress(self._to_bytes(show_progress = show_progress)))
+        with open(file_name, "wb") as file:
+            file.write(self._compress(self._to_bytes(show_progress = show_progress)))
 
     def _diff(self, other: BaseStruct) -> dict[str, tuple | dict]:
         """
@@ -382,7 +379,7 @@ def _ls_repr(ls: list, ident: int = 0, get = getattr) -> str:
         for item in ls:
             if isinstance(item, BaseStruct):
                 builder.writeln(item.__repr__(builder.ident, get))
-            if isinstance(item, list):
+            elif isinstance(item, list):
                 builder.writeln(_ls_repr(item, builder.ident, get))
             else:
                 builder.writeln(repr(item))

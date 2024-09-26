@@ -1,5 +1,6 @@
 from .array import (
-    Array8, Array16, Array32, Array64, FixedLenArray, StackedArray8s, StackedArray16s, StackedArray32s, StackedArray64s
+    Array8, Array16, Array32, Array64, FixedLenArray, StackedArray8s, StackedArray16s, StackedArray32s, StackedArray64s,
+    StackedAttrArray8, StackedAttrArray16, StackedAttrArray32, StackedAttrArray64,
 )
 from .bool import bool8, bool16, bool32, bool64
 from .bytes import Bytes, void
