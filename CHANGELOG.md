@@ -1,5 +1,6 @@
 ## 0.2.2 (Unreleased)
 
+- Added `OptionW` data types. They also work with `StackedAttrArrayW`
 - Added `StackedAttrArrayW` data types.
 - Added `ret`, `ref`, and `com` as type casting functions. Recommended use is only inside the classbody, as they cause overhead in `on_xxx` functions
 - Changed `Manager` to only allow using `RetrieverRef`s

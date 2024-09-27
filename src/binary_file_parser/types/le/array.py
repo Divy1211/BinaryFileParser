@@ -5,6 +5,7 @@ from contextlib import suppress
 from typing import Type, TYPE_CHECKING
 
 from binary_file_parser.errors import VersionError
+from binary_file_parser.types.le.option import Option
 from binary_file_parser.types.parseable import Parseable
 from binary_file_parser.types.version import Version
 from binary_file_parser.types.byte_stream import ByteStream
@@ -227,15 +228,35 @@ class StackedArray64s(StackedArrays):
 
 
 class StackedAttrArray(BaseArray):
-    def __init__(self, size: int, dtype: Type[BaseStruct], struct_symbol: str, length: int = -1):
+    def __init__(self, size: int, dtype: Type[BaseStruct | Option], struct_symbol: str, length: int = -1):
         super().__init__(size, dtype, struct_symbol)
         self.length = length
         self.stype = dtype
+
+    def _read_opt(self, stream: ByteStream, struct_ver: Version, length: int) -> list:
+        ls = [None] * length
+        exists = struct.unpack(f"<{self.stype.struct_symbol[1:] * length}", stream.get(self.stype._size * length))
+        for i, exist in enumerate(exists):
+            if exist != 0:
+                ls[i] = self.stype.dtype._from_stream(stream, struct_ver = struct_ver)
+        return ls
+
+    def _write_opt(self, value: list, length: int) -> list[bytes]:
+        bytes_ = [b""] * (length + 1)
+        bytes_[0] = struct.pack(f"<{self.stype.struct_symbol[1:] * length}", *map(lambda x: x is not None,  value))
+        for i, val in enumerate(value, 1):
+            if val is None:
+                continue
+            bytes_[i] = self.stype.dtype._to_bytes(val)
+        return bytes_
 
     def _from_stream(self, stream: ByteStream, *, struct_ver: Version = Version((0,))) -> list:
         length = self.length
         if length == -1:
             length = struct.unpack(self.struct_symbol, stream.get(self._size))[0]
+
+        if isinstance(self.stype, Option):
+            return self._read_opt(stream, struct_ver, length)
 
         ls: list = [None] * length
         for i in range(length):
@@ -260,6 +281,10 @@ class StackedAttrArray(BaseArray):
             length = len(value)
             length_bytes = struct.pack(self.struct_symbol, length)
 
+        if isinstance(self.stype, Option):
+            bytes_ = self._write_opt(value, length)
+            return length_bytes+b"".join(bytes_)
+
         bytes_: list[bytes] = [b""] * (len(self.stype._retrievers) * length)
         for i, retriever in enumerate(self.stype._retrievers):
             for j, instance in enumerate(value):
@@ -277,7 +302,7 @@ class StackedAttrArray8(StackedAttrArray):
     """
     __slots__ = ()
 
-    def __class_getitem__(cls, item: Type[BaseStruct] | tuple[Type[BaseStruct], int]) -> StackedAttrArray:
+    def __class_getitem__(cls, item: Type[BaseStruct | Option] | tuple[Type[BaseStruct | Option], int]) -> StackedAttrArray:
         if isinstance(item, tuple):
             return cls(item[1], item[0], '<B', item[1])
         return cls(1, item, '<B')
@@ -293,7 +318,7 @@ class StackedAttrArray16(StackedAttrArray):
     """
     __slots__ = ()
 
-    def __class_getitem__(cls, item: Type[BaseStruct] | tuple[Type[BaseStruct], int]) -> StackedAttrArray:
+    def __class_getitem__(cls, item: Type[BaseStruct | Option] | tuple[Type[BaseStruct | Option], int]) -> StackedAttrArray:
         if isinstance(item, tuple):
             return cls(item[1], item[0], '<H', item[1])
         return cls(2, item, '<H')
@@ -309,7 +334,7 @@ class StackedAttrArray32(StackedAttrArray):
     """
     __slots__ = ()
 
-    def __class_getitem__(cls, item: Type[BaseStruct] | tuple[Type[BaseStruct], int]) -> StackedAttrArray:
+    def __class_getitem__(cls, item: Type[BaseStruct | Option] | tuple[Type[BaseStruct | Option], int]) -> StackedAttrArray:
         if isinstance(item, tuple):
             return cls(4, item[0], '<I', item[1])
         return cls(4, item, '<I')
@@ -325,7 +350,7 @@ class StackedAttrArray64(StackedAttrArray):
     """
     __slots__ = ()
 
-    def __class_getitem__(cls, item: Type[BaseStruct] | tuple[Type[BaseStruct], int]) -> StackedAttrArray:
+    def __class_getitem__(cls, item: Type[BaseStruct | Option] | tuple[Type[BaseStruct | Option], int]) -> StackedAttrArray:
         if isinstance(item, tuple):
             return cls(item[1], item[0], '<Q', item[1])
         return cls(8, item, '<Q')
