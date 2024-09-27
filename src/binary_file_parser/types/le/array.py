@@ -24,20 +24,19 @@ class BaseArray(Parseable):
         self.length = -1
 
     def _from_stream(self, stream: ByteStream, *, struct_ver: Version = Version((0,))) -> list:
-        ls = [None] * self.length
-        for i in range(self.length):
-            ls[i] = self.dtype._from_stream(stream, struct_ver = struct_ver)
-        return ls
+        return [
+            self.dtype._from_stream(stream, struct_ver = struct_ver)
+            for _ in range(self.length)
+        ]
 
     def _from_bytes(self, bytes_: bytes, *, struct_ver: Version = Version((0,))) -> list:
         return self._from_stream(ByteStream.from_bytes(bytes_), struct_ver = struct_ver)
 
     def _to_bytes(self, value: list) -> bytes:
-        ls = [b""]*self.length
-        for i, val in enumerate(value):
-            ls[i] = self.dtype._to_bytes(val)
-        return b"".join(ls)
-
+        return b"".join(
+            self.dtype._to_bytes(val)
+            for val in value
+        )
 
 class Array(BaseArray):
     __slots__ = ()
@@ -129,19 +128,28 @@ class StackedArrays(BaseArray):
         super().__init__(size, dtype, struct_symbol)
         self.num_arrays = num_arrays
 
+    def _read_with_length(self, stream: ByteStream, *, struct_ver: Version = Version((0,)), length: int) -> list:
+        self.length = length
+        return super()._from_stream(stream, struct_ver = struct_ver)
+
+    def _write_with_length(self, val: list, length: int) -> bytes:
+        self.length = length
+        return super()._to_bytes(val)
+
     def _from_stream(self, stream: ByteStream, *, struct_ver: Version = Version((0,))) -> list[list]:
         num_arrays = self.num_arrays
         if num_arrays == -1:
             num_arrays = struct.unpack(self.struct_symbol, stream.get(self._size))[0]
 
-        lengths: list[int] = [struct.unpack(self.struct_symbol, stream.get(self._size))[0] for _ in range(num_arrays)]
-        ls: list[list] = [[] for _ in range(num_arrays)]
+        lengths: list[int] = [
+            struct.unpack(self.struct_symbol, stream.get(self._size))[0]
+            for _ in range(num_arrays)
+        ]
 
-        for i, length in enumerate(lengths):
-            self.length = length
-            ls[i] = super()._from_stream(stream, struct_ver = struct_ver)
-
-        return ls
+        return [
+            self._read_with_length(stream, struct_ver = struct_ver, length = length)
+            for length in lengths
+        ]
 
     def _to_bytes(self, value: list[list]) -> bytes:
         if self.num_arrays != -1 and len(value) != self.num_arrays:
@@ -153,14 +161,20 @@ class StackedArrays(BaseArray):
             num_arrays = len(value)
             length_bytes = struct.pack(self.struct_symbol, num_arrays)
 
-        bytes_: list[bytes] = [b""]*(2*num_arrays)
-        lengths = [len(ls) for ls in value]
-        for i, length in enumerate(lengths):
-            self.length = length
-            bytes_[i] = struct.pack(self.struct_symbol, length)
-            bytes_[num_arrays+i] = super()._to_bytes(value[i])
+        len_bytes = (
+            struct.pack(self.struct_symbol, len(ls))
+            for ls in value
+        )
 
-        return length_bytes+b"".join(bytes_)
+        ls_bytes = (
+            self._write_with_length(ls, len(ls))
+            for ls in value
+        )
+
+        return length_bytes + b"".join(
+            *len_bytes,
+            *ls_bytes
+        )
 
 
 class StackedArray8s(StackedArrays):
@@ -234,21 +248,35 @@ class StackedAttrArray(BaseArray):
         self.stype = dtype
 
     def _read_opt(self, stream: ByteStream, struct_ver: Version, length: int) -> list:
-        ls = [None] * length
-        exists = struct.unpack(f"<{self.stype.struct_symbol[1:] * length}", stream.get(self.stype._size * length))
-        for i, exist in enumerate(exists):
-            if exist != 0:
-                ls[i] = self.stype.dtype._from_stream(stream, struct_ver = struct_ver)
-        return ls
+        exists = struct.unpack(
+            f"<{self.stype.struct_symbol[1:] * length}",
+            stream.get(self.stype._size * length)
+        )
+        return [
+            self.stype.dtype._from_stream(stream, struct_ver = struct_ver) if does_exist else None
+            for does_exist in exists
+        ]
 
-    def _write_opt(self, value: list, length: int) -> list[bytes]:
-        bytes_ = [b""] * (length + 1)
-        bytes_[0] = struct.pack(f"<{self.stype.struct_symbol[1:] * length}", *map(lambda x: x is not None,  value))
-        for i, val in enumerate(value, 1):
-            if val is None:
-                continue
-            bytes_[i] = self.stype.dtype._to_bytes(val)
-        return bytes_
+    def _write_opt(self, value: list, length: int) -> bytes:
+        exist_bytes = struct.pack(
+            f"<{self.stype.struct_symbol[1:] * length}",
+            *map(lambda x: x is not None,  value)
+        )
+        ls_bytes = (
+            self.stype.dtype._to_bytes(ls)
+            for ls in value
+            if ls is not None
+        )
+        return b"".join(
+            *exist_bytes,
+            *ls_bytes
+        )
+
+    def _read_with_ver(self, stream: ByteStream, *, struct_ver: Version = Version((0,))) -> BaseStruct:
+        instance = self.stype(struct_ver, initialise_defaults = False)
+        with suppress(VersionError):
+            instance._get_version(stream, struct_ver)
+        return instance
 
     def _from_stream(self, stream: ByteStream, *, struct_ver: Version = Version((0,))) -> list:
         length = self.length
@@ -258,18 +286,16 @@ class StackedAttrArray(BaseArray):
         if isinstance(self.stype, Option):
             return self._read_opt(stream, struct_ver, length)
 
-        ls: list = [None] * length
-        for i in range(length):
-            obj = self.stype(struct_ver, initialise_defaults = False)
-            with suppress(VersionError):
-                obj._get_version(stream, struct_ver)
-            ls[i] = obj
+        instances = [
+            self._read_with_ver(stream, struct_ver = struct_ver)
+            for _ in range(length)
+        ]
 
         for retriever in self.stype._retrievers:
-            for instance in ls:
+            for instance in instances:
                 retriever.from_stream(instance, stream)
 
-        return ls
+        return instances
 
     def _to_bytes(self, value: list) -> bytes:
         if self.length != -1 and len(value) != self.length:
@@ -282,15 +308,15 @@ class StackedAttrArray(BaseArray):
             length_bytes = struct.pack(self.struct_symbol, length)
 
         if isinstance(self.stype, Option):
-            bytes_ = self._write_opt(value, length)
-            return length_bytes+b"".join(bytes_)
+            return length_bytes+self._write_opt(value, length)
 
-        bytes_: list[bytes] = [b""] * (len(self.stype._retrievers) * length)
-        for i, retriever in enumerate(self.stype._retrievers):
-            for j, instance in enumerate(value):
-                bytes_[length * i + j] = retriever.to_bytes(instance)
+        ls_bytes = (
+            retriever.to_bytes(instance)
+            for retriever in self.stype._retrievers
+            for instance in value
+        )
 
-        return length_bytes+b"".join(bytes_)
+        return length_bytes+b"".join(ls_bytes)
 
 class StackedAttrArray8(StackedAttrArray):
     """

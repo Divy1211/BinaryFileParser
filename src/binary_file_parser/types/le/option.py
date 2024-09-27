@@ -30,8 +30,8 @@ class Option(Parseable, Generic[T]):
 
     def _to_bytes(self, value: T | None) -> bytes:
         if value is None:
-            return struct.pack(self.struct_symbol, 0)
-        return struct.pack(self.struct_symbol, 1) + self.dtype._to_bytes(value)
+            return struct.pack(self.struct_symbol, False)
+        return struct.pack(self.struct_symbol, True) + self.dtype._to_bytes(value)
 
 class Option8(Option):
     """
