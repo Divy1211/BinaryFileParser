@@ -20,7 +20,7 @@ class Option(Parseable, Generic[T]):
         self.struct_symbol = struct_symbol
 
     def _from_stream(self, stream: ByteStream, *, struct_ver: Version = Version((0,))) -> T | None:
-        exists = struct.unpack(self.struct_symbol, stream.get(self._size))[0] != 0
+        exists = struct.unpack(self.struct_symbol, stream.get(self._size))[0]
         if not exists:
             return None
         return self.dtype._from_stream(stream, struct_ver = struct_ver)

@@ -313,7 +313,9 @@ class BaseStruct(Parseable):
                     diff_retrievers[retriever.p_name] = (None, "...")
                 case val1, val2:
                     if isinstance(val1, BaseStruct):
-                        diff_retrievers[retriever.p_name] = val1._diff(val2)
+                        sub_diff = val1._diff(val2)
+                        if len(sub_diff) > 0:
+                            diff_retrievers[retriever.p_name] = sub_diff
                     elif val1 != val2:
                         diff_retrievers[retriever.p_name] = diff
 
