@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import itertools
 import struct
 from contextlib import suppress
 from typing import Type, TYPE_CHECKING
@@ -171,10 +172,10 @@ class StackedArrays(BaseArray):
             for ls in value
         )
 
-        return length_bytes + b"".join(
-            *len_bytes,
-            *ls_bytes
-        )
+        return length_bytes + b"".join(itertools.chain(
+            len_bytes,
+            ls_bytes
+        ))
 
 
 class StackedArray8s(StackedArrays):
@@ -267,10 +268,7 @@ class StackedAttrArray(BaseArray):
             for ls in value
             if ls is not None
         )
-        return b"".join(
-            *exist_bytes,
-            *ls_bytes
-        )
+        return exist_bytes + b"".join(ls_bytes)
 
     def _read_with_ver(self, stream: ByteStream, *, struct_ver: Version = Version((0,))) -> BaseStruct:
         instance = self.stype(struct_ver, initialise_defaults = False)
