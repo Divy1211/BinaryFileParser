@@ -1,4 +1,4 @@
-## 0.2.2 (Unreleased)
+## 0.2.2
 
 - Added `OptionW` data types. They also work with `StackedAttrArrayW`
 - Added `StackedAttrArrayW` data types.
