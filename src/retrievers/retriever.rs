@@ -60,6 +60,7 @@ impl Retriever {
         let data_type = match py_bfp_type {
             PyBfpType::Int8 => data_type.extract::<Int8>(py)?.into(),
             PyBfpType::Int16 => data_type.extract::<Int16>(py)?.into(),
+            _ => { todo!() }
         };
         
         Ok((
