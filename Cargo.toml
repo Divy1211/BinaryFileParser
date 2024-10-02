@@ -1,0 +1,20 @@
+[package]
+name = "bfp-rs"
+version = "0.1.0"
+edition = "2021"
+
+[profile.release]
+opt-level = 3
+codegen-units = 1
+lto = true
+
+[features]
+inline_always = []
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+name = "bfp_rs"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = "0.22.0"
