@@ -15,9 +15,27 @@ fn le(py: Python, types: &Bound<PyModule>) -> PyResult<()> {
     py_run!(py, le, "import sys; sys.modules['bfp_rs.types.le'] = le");
     types.add_submodule(&le)?;
 
-    le.add_class::<types::le::int8::Int8>()?;
-    le.add_class::<types::le::int16::Int16>()?;
+    le.add_class::<types::le::int::UInt8>()?;
+    le.add_class::<types::le::int::UInt16>()?;
+    le.add_class::<types::le::int::UInt32>()?;
+    le.add_class::<types::le::int::UInt64>()?;
+    le.add_class::<types::le::int::UInt128>()?;
+    
+    le.add_class::<types::le::int::Int8>()?;
+    le.add_class::<types::le::int::Int16>()?;
+    le.add_class::<types::le::int::Int32>()?;
+    le.add_class::<types::le::int::Int64>()?;
+    le.add_class::<types::le::int::Int128>()?;
+    
+    le.add_class::<types::le::float::Float32>()?;
+    le.add_class::<types::le::float::Float64>()?;
 
+    le.add_class::<types::le::bool::Bool8>()?;
+    le.add_class::<types::le::bool::Bool16>()?;
+    le.add_class::<types::le::bool::Bool32>()?;
+    le.add_class::<types::le::bool::Bool64>()?;
+    le.add_class::<types::le::bool::Bool128>()?;
+    
     Ok(())
 }
 

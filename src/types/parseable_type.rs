@@ -27,7 +27,7 @@ pub enum ParseableType {
     
     Option(Option<Box<ParseableType>>),
     
-    Struct(BaseStruct)
+    Struct(Box<BaseStruct>)
 }
 
 impl_from_for_parseable_type!(u8, UInt8);
@@ -55,4 +55,4 @@ impl_from_for_parseable_type!(Vec<u8>, Bytes);
 
 impl_from_for_parseable_type!(Option<Box<ParseableType>>, Option);
 
-impl_from_for_parseable_type!(BaseStruct, Struct);
+impl_from_for_parseable_type!(Box<BaseStruct>, Struct);

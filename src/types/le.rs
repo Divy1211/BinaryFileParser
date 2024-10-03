@@ -1,2 +1,3 @@
-pub mod int8;
-pub mod int16;
+pub mod int;
+pub mod float;
+pub mod bool;

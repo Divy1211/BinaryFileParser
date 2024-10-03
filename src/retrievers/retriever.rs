@@ -6,9 +6,7 @@ use crate::errors::version_error::VersionError;
 use crate::retrievers::map_validate::MapValidate;
 use crate::types::base_struct::BaseStruct;
 use crate::types::bfp_type::{BfpType};
-use crate::types::le::int16::Int16;
-use crate::types::le::int8::Int8;
-use crate::types::py_bfp_type::PyBfpType;
+use crate::types::py_bfp_type::{to_bfp_type};
 use crate::types::version::Version;
 
 #[pyclass(module = "bfp_rs", extends = MapValidate)]
@@ -52,16 +50,7 @@ impl Retriever {
         on_get: Option<Vec<PyObject>>,
         on_set: Option<Vec<PyObject>>,
     ) -> PyResult<(Self, MapValidate)> {
-        let py_bfp_type = data_type
-            .getattr(py, "to_py_bfp_type")?
-            .call_bound(py, (), None)?
-            .extract::<PyBfpType>(py)?;
-        
-        let data_type = match py_bfp_type {
-            PyBfpType::Int8 => data_type.extract::<Int8>(py)?.into(),
-            PyBfpType::Int16 => data_type.extract::<Int16>(py)?.into(),
-            _ => { todo!() }
-        };
+        let data_type = to_bfp_type(py, data_type)?;
         
         Ok((
             Retriever {
