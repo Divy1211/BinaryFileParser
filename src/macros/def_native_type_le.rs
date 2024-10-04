@@ -8,11 +8,6 @@ macro_rules! def_num_type_le {
         impl Parseable for $name {
             type Type = $native_type;
 
-            #[inline(always)]
-            fn to_bfp_type(&self) -> BfpType {
-                BfpType::$name(self.clone())
-            }
-
             #[cfg_attr(feature = "inline_always", inline(always))]
             fn from_stream(&self, stream: &mut ByteStream) -> io::Result<Self::Type> {
                 let bytes = stream.get($size)?.try_into().unwrap();
@@ -38,11 +33,6 @@ macro_rules! def_bool_type_le {
         
         impl Parseable for $name {
             type Type = bool;
-        
-            #[inline(always)]
-            fn to_bfp_type(&self) -> BfpType {
-                BfpType::$name(self.clone())
-            }
         
             #[cfg_attr(feature = "inline_always", inline(always))]
             fn from_stream(&self, stream: &mut ByteStream) -> io::Result<Self::Type> {

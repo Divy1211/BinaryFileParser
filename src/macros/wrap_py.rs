@@ -8,11 +8,6 @@ macro_rules! wrap_py {
                 Self {}
             }
         
-            #[pyo3(name = "_to_bfp_type")]
-            fn to_bfp_type_py(&self) -> PyResult<BfpType> {
-                Ok(self.to_bfp_type())
-            }
-        
             #[pyo3(name = "to_bytes")]
             fn to_bytes_py(slf: PyRef<Self>, value: <Self as Parseable>::Type) -> PyResult<Bound<PyBytes>> {
                 let bytes = slf.to_bytes(&value);

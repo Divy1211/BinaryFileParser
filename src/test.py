@@ -1,8 +1,11 @@
 from bfp_rs.types import Version, BfpType
 from bfp_rs.types.le import int8, int16, float64
-from bfp_rs import Retriever
+from bfp_rs import Retriever, BaseStruct
 
+class Test(BaseStruct):
+    a = Retriever(BfpType.Int8(int8()))
 
-# a = Retriever(float64())
+class Test2:
+    a = Retriever(BfpType.Int8(int8()))
 
-print(BfpType.Rect((1, 2), 10, 10).top_left)
+print(Test.retrievers, Test2.retrievers)
