@@ -44,7 +44,7 @@ fn types(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
     py_run!(py, types, "import sys; sys.modules['bfp_rs.types'] = types");
     bfp.add_submodule(&types)?;
     types.add_class::<types::version::Version>()?;
-    types.add_class::<types::py_bfp_type::PyBfpType>()?;
+    types.add_class::<types::bfp_type::BfpType>()?;
 
     le(py, &types)?;
 

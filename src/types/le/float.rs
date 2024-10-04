@@ -4,7 +4,7 @@ use pyo3::prelude::*;
 use pyo3::pyclass;
 use pyo3::types::PyBytes;
 use crate::{def_num_type_le, wrap_py};
-use crate::types::py_bfp_type::PyBfpType;
+use crate::types::bfp_type::BfpType;
 use crate::types::byte_stream::ByteStream;
 use crate::types::parseable::Parseable;
 

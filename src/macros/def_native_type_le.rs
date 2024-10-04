@@ -9,8 +9,8 @@ macro_rules! def_num_type_le {
             type Type = $native_type;
 
             #[inline(always)]
-            fn to_py_bfp_type(&self) -> PyBfpType {
-                PyBfpType::$name
+            fn to_bfp_type(&self) -> BfpType {
+                BfpType::$name(self.clone())
             }
 
             #[cfg_attr(feature = "inline_always", inline(always))]
@@ -40,8 +40,8 @@ macro_rules! def_bool_type_le {
             type Type = bool;
         
             #[inline(always)]
-            fn to_py_bfp_type(&self) -> PyBfpType {
-                PyBfpType::$name
+            fn to_bfp_type(&self) -> BfpType {
+                BfpType::$name(self.clone())
             }
         
             #[cfg_attr(feature = "inline_always", inline(always))]

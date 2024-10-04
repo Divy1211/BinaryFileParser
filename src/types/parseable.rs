@@ -1,13 +1,13 @@
 use std::fs::File;
 use std::io;
 use std::io::Write;
-use crate::types::py_bfp_type::PyBfpType;
+use crate::types::bfp_type::BfpType;
 use crate::types::byte_stream::ByteStream;
 
 pub trait Parseable {
     type Type;
     
-    fn to_py_bfp_type(&self) -> PyBfpType;
+    fn to_bfp_type(&self) -> BfpType;
     
     fn from_stream(&self, stream: &mut ByteStream) -> io::Result<Self::Type>;
 

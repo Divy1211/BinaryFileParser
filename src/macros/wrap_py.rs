@@ -8,9 +8,9 @@ macro_rules! wrap_py {
                 Self {}
             }
         
-            #[pyo3(name = "to_py_bfp_type")]
-            fn to_py_bfp_type_py(&self) -> PyResult<PyBfpType> {
-                Ok(self.to_py_bfp_type())
+            #[pyo3(name = "_to_bfp_type")]
+            fn to_bfp_type_py(&self) -> PyResult<BfpType> {
+                Ok(self.to_bfp_type())
             }
         
             #[pyo3(name = "to_bytes")]
