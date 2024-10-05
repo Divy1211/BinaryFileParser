@@ -9,7 +9,7 @@ use crate::types::bfp_type::BfpType;
 #[pyclass(module = "bfp_rs")]
 #[derive(Clone)]
 pub struct Struct {
-    retrievers: Arc<RwLock<Vec<Retriever>>>,
+    pub retrievers: Arc<RwLock<Vec<Retriever>>>,
 }
 
 impl Struct {
@@ -25,15 +25,16 @@ impl Struct {
         let struct_ = base_struct_cls
             .getattr("struct")?
             .extract::<Struct>()?;
-        
+
         Ok(BfpType::Struct(struct_))
     }
 
-    pub fn append(&self, retriever: &Bound<Retriever>) -> PyResult<()> {
+    pub fn append(&self, retriever: &Bound<Retriever>) -> PyResult<usize> {
         let mut retriever = retriever.extract::<Retriever>()?;
         let mut retrievers = self.retrievers.write().unwrap();
-        retriever.idx = retrievers.len();
+        let idx = retrievers.len();
+        retriever.idx = idx;
         retrievers.push(retriever);
-        Ok(())
+        Ok(idx)
     }
 }

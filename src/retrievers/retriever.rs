@@ -25,7 +25,7 @@ pub struct Retriever {
 
     on_read: Arc<Vec<PyObject>>,
     on_write: Arc<Vec<PyObject>>,
-    
+
     pub idx: usize,
 }
 

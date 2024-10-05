@@ -34,9 +34,9 @@ impl BaseStruct {
                 cls.setattr("struct", &struct_)?;
                 struct_
             },
-        };
-        
-        struct_.borrow().append(retriever)?;
+        }.borrow();
+        let idx = struct_.append(retriever)?;
+        retriever.borrow_mut().idx = idx;
         Ok(())
     }
 }
