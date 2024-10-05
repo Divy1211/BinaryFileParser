@@ -1,8 +1,8 @@
 use pyo3::prelude::*;
-use pyo3::types::{PyList, PyType};
-use pyo3::{PyTypeInfo};
+use pyo3::types::{PyType};
 use pyo3::exceptions::PyTypeError;
 use crate::retrievers::retriever::Retriever;
+use crate::types::r#struct::Struct;
 use crate::types::version::Version;
 
 #[pyclass(module = "bfp_rs", subclass)]
@@ -15,7 +15,7 @@ pub struct BaseStruct {
 impl BaseStruct {
     #[new]
     #[pyo3(signature = (ver = Version::new(vec!(-1))))]
-    fn new(ver: Version) -> Self {
+    fn new_py(ver: Version) -> Self {
         BaseStruct { ver }
     }
 
@@ -27,19 +27,16 @@ impl BaseStruct {
             ))
         }
         let py = cls.py();
-        let ls = match cls.getattr("retrievers") {
-            Ok(ls) => ls,
+        let struct_ = match cls.getattr("struct") {
+            Ok(struct_) => struct_.downcast_into::<Struct>()?,
             Err(_) => {
-                let ls = PyList::empty_bound(py).into_any();
-                cls.setattr("retrievers", &ls)?;
-                ls
+                let struct_ = Bound::new(py, Struct::new())?;
+                cls.setattr("struct", &struct_)?;
+                struct_
             },
         };
-
-        let ls = ls.downcast::<PyList>()?;
-
-        ls.append(retriever)?;
-
+        
+        struct_.borrow().append(retriever)?;
         Ok(())
     }
 }

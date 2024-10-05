@@ -1,3 +1,4 @@
+use std::sync::Arc;
 use pyo3::{pyclass, PyObject};
 use pyo3::prelude::*;
 use pyo3::types::PyType;
@@ -9,20 +10,23 @@ use crate::types::bfp_type::{BfpType};
 use crate::types::version::Version;
 
 #[pyclass(module = "bfp_rs", extends = MapValidate)]
+#[derive(Clone)]
 pub struct Retriever {
     data_type: BfpType,
 
     min_ver: Version,
     max_ver: Version,
 
-    default: PyObject,
-    default_factory: PyObject,
+    default: Arc<PyObject>,
+    default_factory: Arc<PyObject>,
 
     repeat: i32,
     remaining_compressed: bool,
 
-    on_read: Vec<PyObject>,
-    on_write: Vec<PyObject>,
+    on_read: Arc<Vec<PyObject>>,
+    on_write: Arc<Vec<PyObject>>,
+    
+    pub idx: usize,
 }
 
 #[pymethods]
@@ -54,12 +58,13 @@ impl Retriever {
                 data_type,
                 min_ver,
                 max_ver,
-                default: default.unwrap_or(py.None()),
-                default_factory: default_factory.unwrap_or(py.None()),
+                default: Arc::new(default.unwrap_or(py.None())),
+                default_factory: Arc::new(default_factory.unwrap_or(py.None())),
                 repeat,
                 remaining_compressed,
-                on_read: on_read.unwrap_or_else(Vec::new),
-                on_write: on_write.unwrap_or_else(Vec::new),
+                on_read: Arc::new(on_read.unwrap_or_else(Vec::new)),
+                on_write: Arc::new(on_write.unwrap_or_else(Vec::new)),
+                idx: 0,
             },
             MapValidate::new(mappers, validators, on_get, on_set)
         ))
@@ -115,6 +120,7 @@ impl Retriever {
         let mut slf2 = slf.borrow_mut();
         let super_ = slf2.as_mut();
         super_.__set_name__(owner, name);
+        drop(slf2);
 
         BaseStruct::_add_retriever(owner, &slf)?;
 

@@ -69,6 +69,7 @@ fn binary_file_parser(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
     bfp.add_class::<retrievers::map_validate::MapValidate>()?;
     bfp.add_class::<types::byte_stream::ByteStream>()?;
     bfp.add_class::<types::base_struct::BaseStruct>()?;
+    bfp.add_class::<types::r#struct::Struct>()?;
     bfp.add_class::<retrievers::retriever::Retriever>()?;
 
     errors(py, bfp)?;

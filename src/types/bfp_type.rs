@@ -2,6 +2,7 @@ use pyo3::pyclass;
 use crate::types::le::bool::{Bool128, Bool16, Bool32, Bool64, Bool8};
 use crate::types::le::float::{Float32, Float64};
 use crate::types::le::int::{Int128, Int16, Int32, Int64, Int8, UInt128, UInt16, UInt32, UInt64, UInt8};
+use crate::types::r#struct::Struct;
 
 #[pyclass]
 #[derive(Clone)]
@@ -26,4 +27,6 @@ pub enum BfpType {
     Bool32(Bool32),
     Bool64(Bool64),
     Bool128(Bool128),
+    
+    Struct(Struct),
 }
