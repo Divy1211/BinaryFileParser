@@ -6,6 +6,8 @@ use pyo3::types::PyBytes;
 use crate::{def_num_type_le, wrap_py};
 use crate::types::byte_stream::ByteStream;
 use crate::types::parseable::Parseable;
+use crate::types::version::Version;
+
 
 def_num_type_le!(UInt8, "uint8", u8, 1);
 def_num_type_le!(UInt16, "uint16", u16, 2);

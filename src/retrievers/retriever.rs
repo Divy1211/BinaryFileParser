@@ -7,6 +7,9 @@ use crate::errors::version_error::VersionError;
 use crate::retrievers::map_validate::MapValidate;
 use crate::types::base_struct::BaseStruct;
 use crate::types::bfp_type::{BfpType};
+use crate::types::byte_stream::ByteStream;
+use crate::types::parseable::Parseable;
+use crate::types::parseable_type::ParseableType;
 use crate::types::version::Version;
 
 #[pyclass(module = "bfp_rs", extends = MapValidate)]
@@ -70,8 +73,9 @@ impl Retriever {
         ))
     }
 
-    fn supported(&self, ver: &Version) -> bool {
-        self.min_ver <= *ver && *ver <= self.max_ver
+    #[pyo3(name = "supported")]
+    fn supported_py(&self, ver: &Version) -> bool {
+        self.supported(ver)
     }
 
     fn __get__<'a, 'py>(
@@ -82,6 +86,7 @@ impl Retriever {
         if instance.is_none() {
             return Ok(slf.into_any())
         }
+        print!("hello from rust");
         let slf2 = slf.borrow();
         let instance2 = instance.downcast::<BaseStruct>()?.borrow();
         let super_ = slf2.as_ref();
@@ -101,6 +106,7 @@ impl Retriever {
         instance: &'a Bound<'py, BaseStruct>,
         value: &'a Bound<'py, PyAny>,
     ) -> PyResult<()> {
+        println!("test test");
         let slf2 = slf.borrow();
         let instance2 = instance.borrow();
         let super_ = slf2.as_ref();
@@ -130,5 +136,16 @@ impl Retriever {
     fn secret_name(slf: PyRef<Self>) -> String {
         let name = &slf.as_ref().name;
         format!("_{name}")
+    }
+}
+
+impl Retriever {
+    #[cfg_attr(feature = "inline_always", inline(always))]
+    pub fn supported(&self, ver: &Version) -> bool {
+        self.min_ver <= *ver && *ver <= self.max_ver
+    }
+
+    pub fn from_stream(&self, stream: &mut ByteStream, ver: &Version) -> std::io::Result<ParseableType> {
+        self.data_type.from_stream(stream, ver)
     }
 }

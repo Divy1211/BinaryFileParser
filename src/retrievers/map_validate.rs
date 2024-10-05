@@ -49,6 +49,7 @@ impl MapValidate {
         for func in &slf.on_get {
             func.call_bound(py, (&slf, instance,), None)?;
         }
+        println!("hello from map validate");
         instance.getattr(slf.secret_name().as_str())
     }
 
