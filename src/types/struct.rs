@@ -6,13 +6,13 @@ use crate::retrievers::retriever::Retriever;
 use crate::types::base_struct::BaseStruct;
 use crate::types::bfp_type::BfpType;
 use crate::types::byte_stream::ByteStream;
-use crate::types::parseable::Parseable;
 use crate::types::version::Version;
 
 #[pyclass(module = "bfp_rs")]
 #[derive(Clone)]
 pub struct Struct {
     pub retrievers: Arc<RwLock<Vec<Retriever>>>,
+    pub py_type: Arc<Py<PyType>>,
 }
 
 #[pymethods]
@@ -37,8 +37,11 @@ impl Struct {
 }
 
 impl Struct {
-    pub fn new() -> Self {
-        Struct { retrievers: Arc::new(RwLock::new(Vec::with_capacity(1))) }
+    pub fn new(py_type: Py<PyType>) -> Self {
+        Struct {
+            retrievers: Arc::new(RwLock::new(Vec::with_capacity(1))),
+            py_type: Arc::new(py_type),
+        }
     }
 
     pub fn from_stream(&self, stream: &mut ByteStream, ver: &Version) -> std::io::Result<BaseStruct> {
@@ -50,7 +53,6 @@ impl Struct {
             }
             data.push(retriever.from_stream(stream, &ver)?)
         }
-        
         Ok(BaseStruct::new(ver.clone(), data))
     }
 

@@ -1,6 +1,7 @@
 use std::fs::File;
 use std::io;
 use std::io::Write;
+use std::sync::{Arc, RwLock};
 use pyo3::prelude::*;
 use pyo3::types::{PyType};
 use pyo3::exceptions::PyTypeError;
@@ -11,15 +12,16 @@ use crate::types::r#struct::Struct;
 use crate::types::version::Version;
 
 #[pyclass(module = "bfp_rs", subclass)]
+#[derive(Debug)]
 pub struct BaseStruct {
     #[pyo3(get)]
     pub ver: Version,
-    pub data: Vec<ParseableType>,
+    pub data: Arc<RwLock<Vec<ParseableType>>>,
 }
 
 impl BaseStruct {
     pub fn new(ver: Version, data: Vec<ParseableType>) -> Self {
-        BaseStruct { ver, data }
+        BaseStruct { ver, data: Arc::new(RwLock::new(data)) }
     }
 }
 
@@ -28,7 +30,7 @@ impl BaseStruct {
     #[new]
     #[pyo3(signature = (ver = Version::new(vec!(-1))))]
     fn new_py(ver: Version) -> Self {
-        BaseStruct { ver, data: vec![] }
+        BaseStruct { ver, data: Arc::new(RwLock::new(vec![])) }
     }
     
     #[classmethod]
@@ -42,7 +44,7 @@ impl BaseStruct {
         let struct_ = match cls.getattr("struct") {
             Ok(struct_) => struct_.downcast_into::<Struct>()?,
             Err(_) => {
-                let struct_ = Bound::new(py, Struct::new())?;
+                let struct_ = Bound::new(py, Struct::new(cls.extract()?))?;
                 cls.setattr("struct", &struct_)?;
                 struct_
             },
@@ -51,10 +53,10 @@ impl BaseStruct {
         retriever.borrow_mut().idx = idx;
         Ok(())
     }
-
+    
     #[classmethod]
     #[pyo3(signature = (stream, ver = Version::new(vec![0,])))]
-    fn from_stream(cls: &Bound<PyType>, stream: &mut ByteStream, ver: Version) -> io::Result<BaseStruct> {
+    fn from_stream(cls: &Bound<PyType>, stream: &mut ByteStream, ver: Version) -> io::Result<Self> {
         let struct_ = cls
             .getattr("struct").unwrap()
             .downcast_into::<Struct>().unwrap()

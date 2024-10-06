@@ -45,19 +45,23 @@ impl Parseable for BfpType {
             BfpType::UInt32(val) => { val.from_stream(stream, ver)?.into() }
             BfpType::UInt64(val) => { val.from_stream(stream, ver)?.into() }
             BfpType::UInt128(val) => { val.from_stream(stream, ver)?.into() }
+            
             BfpType::Int8(val) => { val.from_stream(stream, ver)?.into() }
             BfpType::Int16(val) => { val.from_stream(stream, ver)?.into() }
             BfpType::Int32(val) => { val.from_stream(stream, ver)?.into() }
             BfpType::Int64(val) => { val.from_stream(stream, ver)?.into() }
             BfpType::Int128(val) => { val.from_stream(stream, ver)?.into() }
+            
             BfpType::Float32(val) => { val.from_stream(stream, ver)?.into() }
             BfpType::Float64(val) => { val.from_stream(stream, ver)?.into() }
+            
             BfpType::Bool8(val) => { val.from_stream(stream, ver)?.into() }
             BfpType::Bool16(val) => { val.from_stream(stream, ver)?.into() }
             BfpType::Bool32(val) => { val.from_stream(stream, ver)?.into() }
             BfpType::Bool64(val) => { val.from_stream(stream, ver)?.into() }
             BfpType::Bool128(val) => { val.from_stream(stream, ver)?.into() }
-            BfpType::Struct(val) => { Box::new(val.from_stream(stream, ver)?).into() }
+            
+            BfpType::Struct(val) => { val.from_stream(stream, ver)?.into() }
         })
     }
 

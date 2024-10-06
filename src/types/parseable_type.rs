@@ -1,6 +1,7 @@
 use crate::impl_from_for_parseable_type;
 use crate::types::base_struct::BaseStruct;
 
+#[derive(Debug)]
 pub enum ParseableType {
     UInt8(u8),
     UInt16(u16),
@@ -27,7 +28,7 @@ pub enum ParseableType {
     
     Option(Option<Box<ParseableType>>),
     
-    Struct(Box<BaseStruct>)
+    Struct(BaseStruct)
 }
 
 impl_from_for_parseable_type!(u8, UInt8);
@@ -55,4 +56,4 @@ impl_from_for_parseable_type!(Vec<u8>, Bytes);
 
 impl_from_for_parseable_type!(Option<Box<ParseableType>>, Option);
 
-impl_from_for_parseable_type!(Box<BaseStruct>, Struct);
+impl_from_for_parseable_type!(BaseStruct, Struct);

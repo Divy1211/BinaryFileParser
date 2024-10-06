@@ -5,7 +5,7 @@ use pyo3::types::{PyTuple, PyType};
 
 
 #[pyclass(module = "bfp_rs", frozen)]
-#[derive(PartialEq, PartialOrd, Eq, Ord, Clone)]
+#[derive(PartialEq, PartialOrd, Eq, Ord, Clone, Debug)]
 pub struct Version {
     ver: Vec<i32>
 }
