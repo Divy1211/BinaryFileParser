@@ -18,7 +18,7 @@ pub struct Struct {
 #[pymethods]
 impl Struct {
     #[classmethod]
-    fn __class_getitem__(_cls: &Bound<'_, PyType>, base_struct_cls: &Bound<'_, PyType>) -> PyResult<BfpType> {
+    fn __class_getitem__(_cls: &Bound<PyType>, base_struct_cls: &Bound<PyType>) -> PyResult<BfpType> {
         let struct_ = base_struct_cls
             .getattr("struct")?
             .extract::<Struct>()?;
@@ -28,7 +28,7 @@ impl Struct {
 
     pub fn append(&self, retriever: &Bound<Retriever>) -> PyResult<usize> {
         let mut retriever = retriever.extract::<Retriever>()?;
-        let mut retrievers = self.retrievers.write().unwrap();
+        let mut retrievers = self.retrievers.write().unwrap(); // assert this is a GIL bound action
         let idx = retrievers.len();
         retriever.idx = idx;
         retrievers.push(retriever);
@@ -45,13 +45,13 @@ impl Struct {
     }
 
     pub fn from_stream(&self, stream: &mut ByteStream, ver: &Version) -> std::io::Result<BaseStruct> {
-        let retrievers = self.retrievers.read().unwrap();
+        let retrievers = self.retrievers.read().unwrap(); // assert retrievers should never be modified after instantiation todo: change to Arc<Vec<>> and use a builder pattern
         let mut data = Vec::with_capacity(retrievers.len());
         for retriever in retrievers.iter() {
             if !retriever.supported(&ver) {
-                continue;
+                data.push(None);
             }
-            data.push(retriever.from_stream(stream, &ver)?)
+            data.push(Some(retriever.from_stream(stream, &ver)?))
         }
         Ok(BaseStruct::new(ver.clone(), data))
     }

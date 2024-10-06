@@ -12,30 +12,41 @@ use crate::types::r#struct::Struct;
 use crate::types::version::Version;
 
 #[pyclass(module = "bfp_rs", subclass)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct BaseStruct {
     #[pyo3(get)]
     pub ver: Version,
-    pub data: Arc<RwLock<Vec<ParseableType>>>,
+    pub data: Arc<RwLock<Vec<Option<ParseableType>>>>,
 }
 
 impl BaseStruct {
-    pub fn new(ver: Version, data: Vec<ParseableType>) -> Self {
+    pub fn new(ver: Version, data: Vec<Option<ParseableType>>) -> Self {
         BaseStruct { ver, data: Arc::new(RwLock::new(data)) }
+    }
+
+    pub fn len(cls: &Bound<PyType>) -> PyResult<usize> {
+        let struct_ = cls
+            .getattr("struct")?
+            .extract::<Struct>()?;
+
+        let retrievers = struct_.retrievers.read().unwrap(); // assert retrievers should not be modified after instantiation
+        Ok(retrievers.len())
     }
 }
 
 #[pymethods]
 impl BaseStruct {
     #[new]
+    #[classmethod]
     #[pyo3(signature = (ver = Version::new(vec!(-1))))]
-    fn new_py(ver: Version) -> Self {
-        BaseStruct { ver, data: Arc::new(RwLock::new(vec![])) }
+    fn new_py(cls: &Bound<PyType>, ver: Version) -> PyResult<Self> {
+        let vec = vec![None; BaseStruct::len(cls)?];
+        Ok(BaseStruct { ver, data: Arc::new(RwLock::new(vec)) })
     }
-    
+
     #[classmethod]
     pub fn _add_retriever(cls: &Bound<PyType>, retriever: &Bound<Retriever>) -> PyResult<()> {
-        if !cls.is_subclass_of::<BaseStruct>().unwrap() {
+        if !cls.is_subclass_of::<BaseStruct>().unwrap() { // assert cls is PyType
             return Err(PyTypeError::new_err(
                 "Cannot create retrievers in classes that do not subclass BaseStruct"
             ))
@@ -53,13 +64,13 @@ impl BaseStruct {
         retriever.borrow_mut().idx = idx;
         Ok(())
     }
-    
+
     #[classmethod]
     #[pyo3(signature = (stream, ver = Version::new(vec![0,])))]
     fn from_stream(cls: &Bound<PyType>, stream: &mut ByteStream, ver: Version) -> io::Result<Self> {
         let struct_ = cls
-            .getattr("struct").unwrap()
-            .downcast_into::<Struct>().unwrap()
+            .getattr("struct").unwrap() // assert cls is BaseStruct subclass
+            .downcast_into::<Struct>().unwrap() // assert BaseStruct subclasses have a "struct" attribute
             .borrow();
         struct_.from_stream(stream, &ver)
     }

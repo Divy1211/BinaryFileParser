@@ -9,4 +9,5 @@ class Test(BaseStruct):
 class Test2(BaseStruct):
     test = Retriever(Struct[Test])
 
-test = Test2.from_stream(ByteStream.from_bytes(b"\x10\x00"))
+test = Test()
+

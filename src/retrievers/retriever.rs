@@ -4,7 +4,6 @@ use pyo3::prelude::*;
 use pyo3::types::PyType;
 
 use crate::errors::version_error::VersionError;
-use crate::retrievers::map_validate::MapValidate;
 use crate::types::base_struct::BaseStruct;
 use crate::types::bfp_type::{BfpType};
 use crate::types::byte_stream::ByteStream;
@@ -12,7 +11,7 @@ use crate::types::parseable::Parseable;
 use crate::types::parseable_type::ParseableType;
 use crate::types::version::Version;
 
-#[pyclass(module = "bfp_rs", extends = MapValidate)]
+#[pyclass(module = "bfp_rs")]
 #[derive(Clone)]
 pub struct Retriever {
     data_type: BfpType,
@@ -28,14 +27,18 @@ pub struct Retriever {
 
     on_read: Arc<Vec<PyObject>>,
     on_write: Arc<Vec<PyObject>>,
-
+    
+    mappers: Arc<Vec<PyObject>>,
+    validators: Arc<Vec<PyObject>>,
+    
+    name: String,
     pub idx: usize,
 }
 
 #[pymethods]
 impl Retriever {
     #[new]
-    #[pyo3(signature = (data_type, min_ver = Version::new(vec!(-1)), max_ver = Version::new(vec!(1000)), default = None, default_factory = None, repeat = 1, remaining_compressed = false, on_read = None, on_write = None, mappers = None, validators = None, on_get = None, on_set = None))]
+    #[pyo3(signature = (data_type, min_ver = Version::new(vec!(-1)), max_ver = Version::new(vec!(1000)), default = None, default_factory = None, repeat = 1, remaining_compressed = false, on_read = None, on_write = None, mappers = None, validators = None))]
     fn new(
         py: Python,
         data_type: BfpType,
@@ -53,24 +56,22 @@ impl Retriever {
         on_write: Option<Vec<PyObject>>,
         mappers: Option<Vec<PyObject>>,
         validators: Option<Vec<PyObject>>,
-        on_get: Option<Vec<PyObject>>,
-        on_set: Option<Vec<PyObject>>,
-    ) -> PyResult<(Self, MapValidate)> {
-        Ok((
-            Retriever {
-                data_type,
-                min_ver,
-                max_ver,
-                default: Arc::new(default.unwrap_or(py.None())),
-                default_factory: Arc::new(default_factory.unwrap_or(py.None())),
-                repeat,
-                remaining_compressed,
-                on_read: Arc::new(on_read.unwrap_or_else(Vec::new)),
-                on_write: Arc::new(on_write.unwrap_or_else(Vec::new)),
-                idx: 0,
-            },
-            MapValidate::new(mappers, validators, on_get, on_set)
-        ))
+    ) -> PyResult<Self> {
+        Ok(Retriever {
+            data_type,
+            min_ver,
+            max_ver,
+            default: Arc::new(default.unwrap_or(py.None())),
+            default_factory: Arc::new(default_factory.unwrap_or(py.None())),
+            repeat,
+            remaining_compressed,
+            on_read: Arc::new(on_read.unwrap_or_else(Vec::new)),
+            on_write: Arc::new(on_write.unwrap_or_else(Vec::new)),
+            idx: 0,
+            name: String::new(),
+            mappers: Arc::new(mappers.unwrap_or_else(Vec::new)),
+            validators: Arc::new(validators.unwrap_or_else(Vec::new)),
+        })
     }
 
     #[pyo3(name = "supported")]
@@ -79,26 +80,27 @@ impl Retriever {
     }
 
     fn __get__<'a, 'py>(
-        slf: Bound<'py, Self>,
-        instance: &'a Bound<'py, PyAny>,
+        slf: Bound<'py, Retriever>,
+        instance: &'a Bound<'py, BaseStruct>,
         owner: &'a Bound<'py, PyType>,
     ) -> PyResult<Bound<'py, PyAny>> {
         if instance.is_none() {
             return Ok(slf.into_any())
         }
-        print!("hello from rust");
-        let slf2 = slf.borrow();
-        let instance2 = instance.downcast::<BaseStruct>()?.borrow();
-        let super_ = slf2.as_ref();
-        if !slf2.supported(&instance2.ver) {
-            let name = &super_.name;
-            let ver = &instance2.ver;
+        let slf = slf.borrow();
+        let instance = instance.borrow();
+        if !slf.supported(&instance.ver) {
+            let ver = &instance.ver;
             return Err(VersionError::new_err(format!(
-                "{name} is not supported in struct version {ver}"
+                "{} is not supported in struct version {ver}", slf.name
             )))
         }
-        let super_ = slf.into_any().downcast_into::<MapValidate>()?;
-        MapValidate::__get__(super_, &instance.as_any(), owner)
+        let data = instance.data.read().unwrap(); // assert this is a GIL bound action
+        
+        Ok(
+            data[slf.idx].clone().unwrap() // assert this value should exist past the version check
+                .to_bound(slf.py())
+        )
     }
 
     fn __set__<'a, 'py>(
@@ -106,36 +108,27 @@ impl Retriever {
         instance: &'a Bound<'py, BaseStruct>,
         value: &'a Bound<'py, PyAny>,
     ) -> PyResult<()> {
-        println!("test test");
-        let slf2 = slf.borrow();
-        let instance2 = instance.borrow();
-        let super_ = slf2.as_ref();
-        if !slf2.supported(&instance2.ver) {
-            let name = &super_.name;
-            let ver = &instance2.ver;
+        let slf = slf.borrow();
+        let instance = instance.borrow();
+        if !slf.supported(&instance.ver) {
+            let ver = &instance.ver;
             return Err(VersionError::new_err(format!(
-                "{name} is not supported in struct version {ver}"
+                "{} is not supported in struct version {ver}", slf.name
             )))
         }
-
-        let super_ = slf.into_any().downcast_into::<MapValidate>()?;
-        MapValidate::__set__(super_, &instance.as_any(), value)
+        let mut data = instance.data.write().unwrap(); // assert this is a GIL bound action
+        data[slf.idx] = Some(ParseableType::from_bound(value, &slf.data_type));
+        Ok(())
     }
 
     fn __set_name__(slf: Bound<Self>, owner: &Bound<PyType>, name: &str) -> PyResult<()> {
         let mut slf2 = slf.borrow_mut();
-        let super_ = slf2.as_mut();
-        super_.__set_name__(owner, name);
+        slf2.name = name.to_string();
         drop(slf2);
 
         BaseStruct::_add_retriever(owner, &slf)?;
 
         Ok(())
-    }
-
-    fn secret_name(slf: PyRef<Self>) -> String {
-        let name = &slf.as_ref().name;
-        format!("_{name}")
     }
 }
 
