@@ -32,6 +32,16 @@ impl BaseStruct {
         let retrievers = struct_.retrievers.read().unwrap(); // assert retrievers should not be modified after instantiation
         Ok(retrievers.len())
     }
+    
+    pub fn with_cls<'py>(val: BaseStruct, cls: &Bound<'py, PyType>) -> PyResult<Bound<'py, PyAny>> {
+        let obj = cls.call0()?;
+        {
+            let mut obj = obj.downcast::<BaseStruct>()?.borrow_mut();
+            obj.ver = val.ver;
+            obj.data = val.data;
+        }
+        Ok(obj)
+    }
 }
 
 #[pymethods]
@@ -63,6 +73,18 @@ impl BaseStruct {
         let idx = struct_.append(retriever)?;
         retriever.borrow_mut().idx = idx;
         Ok(())
+    }
+
+    #[classmethod]
+    #[pyo3(signature = (stream, ver = Version::new(vec![0,])))]
+    fn test_from_stream<'py>(cls: &Bound<'py, PyType>, stream: &mut ByteStream, ver: Version) -> PyResult<Bound<'py, PyAny>> {
+        let struct_ = cls
+            .getattr("struct").unwrap()// assert cls is BaseStruct subclass
+            .downcast_into::<Struct>().unwrap() // assert BaseStruct subclasses have a "struct" attribute
+            .borrow();
+
+        let base = struct_.from_stream(stream, &ver)?;
+        Ok(BaseStruct::with_cls(base, cls)?)
     }
 
     #[classmethod]

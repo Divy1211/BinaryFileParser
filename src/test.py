@@ -7,7 +7,13 @@ class Test(BaseStruct):
     two = Retriever(BfpType.Int8(int8()))
 
 class Test2(BaseStruct):
-    test = Retriever(Struct[Test])
+    uwu = Retriever(Struct[Test])
 
-test = Test()
+test = Test2.test_from_stream(ByteStream.from_bytes(b"\x10\x11"))
 
+# print(test.uwu)
+# print(Test())
+# print(Test())
+test.uwu = test
+
+print(test.uwu)

@@ -1,4 +1,5 @@
 use pyo3::pyclass;
+use crate::types::base_struct::BaseStruct;
 use crate::types::byte_stream::ByteStream;
 use crate::types::le::bool::{Bool128, Bool16, Bool32, Bool64, Bool8};
 use crate::types::le::float::{Float32, Float64};
@@ -61,7 +62,7 @@ impl Parseable for BfpType {
             BfpType::Bool64(val) => { val.from_stream(stream, ver)?.into() }
             BfpType::Bool128(val) => { val.from_stream(stream, ver)?.into() }
             
-            BfpType::Struct(val) => { val.from_stream(stream, ver)?.into() }
+            BfpType::Struct(val) => { ParseableType::Struct(val.from_stream(stream, ver)?, val.py_type.clone()) }
         })
     }
 

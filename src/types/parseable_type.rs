@@ -1,5 +1,7 @@
-use pyo3::{Bound, IntoPy, PyAny, Python};
+use std::sync::Arc;
+use pyo3::{Bound, IntoPy, Py, PyAny, PyResult, Python};
 use pyo3::prelude::PyAnyMethods;
+use pyo3::types::PyType;
 use crate::impl_from_for_parseable_type;
 use crate::types::base_struct::BaseStruct;
 use crate::types::bfp_type::BfpType;
@@ -31,7 +33,7 @@ pub enum ParseableType {
     
     Option(Option<Box<ParseableType>>),
     
-    Struct(BaseStruct)
+    Struct(BaseStruct, Arc<Py<PyType>>)
 }
 
 impl_from_for_parseable_type!(u8, UInt8);
@@ -59,11 +61,9 @@ impl_from_for_parseable_type!(Vec<u8>, Bytes);
 
 impl_from_for_parseable_type!(Option<Box<ParseableType>>, Option);
 
-impl_from_for_parseable_type!(BaseStruct, Struct);
-
 impl ParseableType {
-    pub fn to_bound(self, py: Python) -> Bound<'_, PyAny> {
-        match self {
+    pub fn to_bound(self, py: Python) -> PyResult<Bound<'_, PyAny>> {
+        Ok(match self {
             ParseableType::UInt8(val) => { val.into_py(py).into_bound(py) }
             ParseableType::UInt16(val) => { val.into_py(py).into_bound(py) }
             ParseableType::UInt32(val) => { val.into_py(py).into_bound(py) }
@@ -88,34 +88,34 @@ impl ParseableType {
             
             ParseableType::Option(val) => { todo!() }
             
-            ParseableType::Struct(val) => { Bound::new(py, val).unwrap().into_any() }
-        }
+            ParseableType::Struct(val, py_type) => { BaseStruct::with_cls(val, py_type.bind(py))? }
+        })
     }
     
-    pub fn from_bound(value: &Bound<'_, PyAny>, data_type: &BfpType) -> Self {
-        match data_type {
-            BfpType::UInt8(_) => { value.extract::<u8>().unwrap().into() }
-            BfpType::UInt16(_) => { value.extract::<u16>().unwrap().into() }
-            BfpType::UInt32(_) => { value.extract::<u32>().unwrap().into() }
-            BfpType::UInt64(_) => { value.extract::<u64>().unwrap().into() }
-            BfpType::UInt128(_) => { value.extract::<u128>().unwrap().into() }
+    pub fn from_bound(value: &Bound<'_, PyAny>, data_type: &BfpType) -> PyResult<Self> {
+        Ok(match data_type {
+            BfpType::UInt8(_) => { value.extract::<u8>()?.into() }
+            BfpType::UInt16(_) => { value.extract::<u16>()?.into() }
+            BfpType::UInt32(_) => { value.extract::<u32>()?.into() }
+            BfpType::UInt64(_) => { value.extract::<u64>()?.into() }
+            BfpType::UInt128(_) => { value.extract::<u128>()?.into() }
             
-            BfpType::Int8(_) => { value.extract::<i8>().unwrap().into() }
-            BfpType::Int16(_) => { value.extract::<i16>().unwrap().into() }
-            BfpType::Int32(_) => { value.extract::<i32>().unwrap().into() }
-            BfpType::Int64(_) => { value.extract::<i64>().unwrap().into() }
-            BfpType::Int128(_) => { value.extract::<i128>().unwrap().into() }
+            BfpType::Int8(_) => { value.extract::<i8>()?.into() }
+            BfpType::Int16(_) => { value.extract::<i16>()?.into() }
+            BfpType::Int32(_) => { value.extract::<i32>()?.into() }
+            BfpType::Int64(_) => { value.extract::<i64>()?.into() }
+            BfpType::Int128(_) => { value.extract::<i128>()?.into() }
             
-            BfpType::Float32(_) => { value.extract::<f32>().unwrap().into() }
-            BfpType::Float64(_) => { value.extract::<f64>().unwrap().into() }
+            BfpType::Float32(_) => { value.extract::<f32>()?.into() }
+            BfpType::Float64(_) => { value.extract::<f64>()?.into() }
             
-            BfpType::Bool8(_) => { value.extract::<bool>().unwrap().into() }
-            BfpType::Bool16(_) => { value.extract::<bool>().unwrap().into() }
-            BfpType::Bool32(_) => { value.extract::<bool>().unwrap().into() }
-            BfpType::Bool64(_) => { value.extract::<bool>().unwrap().into() }
-            BfpType::Bool128(_) => { value.extract::<bool>().unwrap().into() }
+            BfpType::Bool8(_) => { value.extract::<bool>()?.into() }
+            BfpType::Bool16(_) => { value.extract::<bool>()?.into() }
+            BfpType::Bool32(_) => { value.extract::<bool>()?.into() }
+            BfpType::Bool64(_) => { value.extract::<bool>()?.into() }
+            BfpType::Bool128(_) => { value.extract::<bool>()?.into() }
             
-            BfpType::Struct(_) => { value.extract::<BaseStruct>().unwrap().into() }
-        }
+            BfpType::Struct(struct_) => { ParseableType::Struct(value.extract::<BaseStruct>()?, struct_.py_type.clone()) }
+        })
     }
 }

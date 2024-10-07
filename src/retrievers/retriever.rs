@@ -99,7 +99,7 @@ impl Retriever {
         
         Ok(
             data[slf.idx].clone().unwrap() // assert this value should exist past the version check
-                .to_bound(slf.py())
+                .to_bound(slf.py())?
         )
     }
 
@@ -117,7 +117,8 @@ impl Retriever {
             )))
         }
         let mut data = instance.data.write().unwrap(); // assert this is a GIL bound action
-        data[slf.idx] = Some(ParseableType::from_bound(value, &slf.data_type));
+        println!("test");
+        data[slf.idx] = Some(ParseableType::from_bound(value, &slf.data_type)?);
         Ok(())
     }
 
@@ -137,7 +138,7 @@ impl Retriever {
     pub fn supported(&self, ver: &Version) -> bool {
         self.min_ver <= *ver && *ver <= self.max_ver
     }
-
+    
     pub fn from_stream(&self, stream: &mut ByteStream, ver: &Version) -> std::io::Result<ParseableType> {
         self.data_type.from_stream(stream, ver)
     }
