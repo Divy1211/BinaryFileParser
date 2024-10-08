@@ -56,7 +56,7 @@ impl BaseStruct {
 
     #[classmethod]
     pub fn _add_retriever(cls: &Bound<PyType>, retriever: &Bound<Retriever>) -> PyResult<()> {
-        if !cls.is_subclass_of::<BaseStruct>().unwrap() { // assert cls is PyType
+        if !cls.is_subclass_of::<BaseStruct>()? {
             return Err(PyTypeError::new_err(
                 "Cannot create retrievers in classes that do not subclass BaseStruct"
             ))

@@ -10,7 +10,7 @@ macro_rules! def_num_type_le {
 
             #[cfg_attr(feature = "inline_always", inline(always))]
             fn from_stream(&self, stream: &mut ByteStream, _version: &Version) -> io::Result<Self::Type> {
-                let bytes = stream.get($size)?.try_into().unwrap(); // unwrap asserts $size
+                let bytes = stream.get($size)?.try_into().unwrap(); // assert $size
                 Ok(Self::Type::from_le_bytes(bytes))
             }
 
@@ -36,7 +36,7 @@ macro_rules! def_bool_type_le {
         
             #[cfg_attr(feature = "inline_always", inline(always))]
             fn from_stream(&self, stream: &mut ByteStream, _version: &Version) -> io::Result<Self::Type> {
-                let bytes = stream.get($size)?.try_into().unwrap(); // unwrap asserts $size
+                let bytes = stream.get($size)?.try_into().unwrap(); // assert $size
                 Ok(<$native_type>::from_le_bytes(bytes) != 0)
             }
         

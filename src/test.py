@@ -11,7 +11,7 @@ class Test2(BaseStruct):
 
 test = Test2.test_from_stream(ByteStream.from_bytes(b"\x10\x11"))
 
-# print(test.uwu)
+print(test.uwu)
 # print(Test())
 # print(Test())
 test.uwu = test

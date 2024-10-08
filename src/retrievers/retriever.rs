@@ -98,7 +98,7 @@ impl Retriever {
         let data = instance.data.read().unwrap(); // assert this is a GIL bound action
         
         Ok(
-            data[slf.idx].clone().unwrap() // assert this value should exist past the version check
+            data[slf.idx].clone().unwrap() // assert this value should exist past the version check todo: default init break this assertion
                 .to_bound(slf.py())?
         )
     }

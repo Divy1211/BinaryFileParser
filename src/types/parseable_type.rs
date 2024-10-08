@@ -1,6 +1,7 @@
 use std::sync::Arc;
 use pyo3::{Bound, IntoPy, Py, PyAny, PyResult, Python};
-use pyo3::prelude::PyAnyMethods;
+use pyo3::exceptions::PyTypeError;
+use pyo3::prelude::{PyAnyMethods, PyTypeMethods};
 use pyo3::types::PyType;
 use crate::impl_from_for_parseable_type;
 use crate::types::base_struct::BaseStruct;
@@ -115,7 +116,19 @@ impl ParseableType {
             BfpType::Bool64(_) => { value.extract::<bool>()?.into() }
             BfpType::Bool128(_) => { value.extract::<bool>()?.into() }
             
-            BfpType::Struct(struct_) => { ParseableType::Struct(value.extract::<BaseStruct>()?, struct_.py_type.clone()) }
+            BfpType::Struct(struct_) => {
+                let py_type = struct_.py_type.bind(value.py());
+                if !value.is_exact_instance(py_type) {
+                    return Err(PyTypeError::new_err(
+                        format!(
+                            "'{}' object cannot be interpreted as a '{}'",
+                            value.get_type().fully_qualified_name()?.to_string(),
+                            py_type.fully_qualified_name()?.to_string()
+                        )
+                    ))
+                }
+                ParseableType::Struct(value.extract::<BaseStruct>()?, struct_.py_type.clone())
+            }
         })
     }
 }
