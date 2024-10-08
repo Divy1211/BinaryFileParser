@@ -1,19 +1,23 @@
-from bfp_rs.types import Version, BfpType
-from bfp_rs.types.le import int8, int16, float64
-from bfp_rs import Retriever, BaseStruct, Struct, ByteStream
+from bfp_rs.types import BfpType
+from bfp_rs.types.le import int8
+from bfp_rs import Retriever, BaseStruct, ByteStream
+
+from utils import timed
+
 
 class Test(BaseStruct):
-    one = Retriever(BfpType.Int8(int8()))
-    two = Retriever(BfpType.Int8(int8()))
+    one = Retriever(BfpType.Int8(int8()), repeat = 60_000_000)
 
-class Test2(BaseStruct):
-    uwu = Retriever(Struct[Test])
+# class Test2(BaseStruct):
+#     uwu = Retriever(Struct[Test])
 
-test = Test2.test_from_stream(ByteStream.from_bytes(b"\x10\x11"))
+with timed():
+    test = Test.test_from_stream(ByteStream.from_file(r"C:\Users\Divy\PycharmProjects\BinaryFileParser\asp_test\test.dat"))
 
-print(test.uwu)
-# print(Test())
-# print(Test())
-test.uwu = test
 
-print(test.uwu)
+# print(test.uwu)
+# # print(Test())
+# # print(Test())
+# test.uwu = test
+#
+# print(test.uwu)

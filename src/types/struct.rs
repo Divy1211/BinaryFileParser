@@ -51,7 +51,15 @@ impl Struct {
             if !retriever.supported(&ver) {
                 data.push(None);
             }
-            data.push(Some(retriever.from_stream(stream, &ver)?))
+            if retriever.repeat > 1 {
+                let mut v = Vec::with_capacity(retriever.repeat as usize);
+                for _ in 0..retriever.repeat {
+                    v.push(retriever.from_stream(stream, &ver)?);
+                }
+                data.push(Some(v.into()));
+            } else {
+                data.push(Some(retriever.from_stream(stream, &ver)?))
+            }
         }
         Ok(BaseStruct::new(ver.clone(), data))
     }

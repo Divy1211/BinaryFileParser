@@ -22,7 +22,7 @@ pub struct Retriever {
     default: Arc<PyObject>,
     default_factory: Arc<PyObject>,
 
-    repeat: i32,
+    pub repeat: i32,
     remaining_compressed: bool,
 
     on_read: Arc<Vec<PyObject>>,
