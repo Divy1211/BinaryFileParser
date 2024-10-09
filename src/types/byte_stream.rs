@@ -40,7 +40,7 @@ impl ByteStream {
         if len < self.progress + n {
             return Err(Error::new(
                 ErrorKind::UnexpectedEof,
-                format!("End of file reached (Requested {n} bytes, only {len} left.)")
+                format!("End of file reached (Requested {n} bytes, only {} left.)", len - self.progress)
             ));
         }
 
@@ -57,7 +57,7 @@ impl ByteStream {
         if len < self.progress + n {
             return Err(Error::new(
                 ErrorKind::UnexpectedEof,
-                format!("End of file reached (Requested {n} bytes, only {len} left.)")
+                format!("End of file reached (Requested {n} bytes, only {} left.)", len - self.progress)
             ));
         }
 

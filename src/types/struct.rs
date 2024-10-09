@@ -4,12 +4,13 @@ use pyo3::prelude::*;
 use pyo3::types::PyType;
 use crate::retrievers::retriever::Retriever;
 use crate::types::base_struct::BaseStruct;
+use crate::types::bfp_list::BfpList;
 use crate::types::bfp_type::BfpType;
 use crate::types::byte_stream::ByteStream;
 use crate::types::version::Version;
 
 #[pyclass(module = "bfp_rs")]
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Struct {
     pub retrievers: Arc<RwLock<Vec<Retriever>>>,
     pub py_type: Arc<Py<PyType>>,
@@ -52,11 +53,11 @@ impl Struct {
                 data.push(None);
             }
             if retriever.repeat > 1 {
-                let mut v = Vec::with_capacity(retriever.repeat as usize);
+                let mut ls = Vec::with_capacity(retriever.repeat as usize);
                 for _ in 0..retriever.repeat {
-                    v.push(retriever.from_stream(stream, &ver)?);
+                    ls.push(retriever.from_stream(stream, &ver)?);
                 }
-                data.push(Some(v.into()));
+                data.push(Some(BfpList::new(ls, retriever.data_type.clone()).into()));
             } else {
                 data.push(Some(retriever.from_stream(stream, &ver)?))
             }
@@ -64,7 +65,7 @@ impl Struct {
         Ok(BaseStruct::new(ver.clone(), data))
     }
 
-    pub fn to_bytes(&self, value: &BaseStruct) -> Vec<u8> {
+    pub fn to_bytes(&self, _value: &BaseStruct) -> Vec<u8> {
         todo!()
     }
 }

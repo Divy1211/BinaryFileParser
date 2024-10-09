@@ -2,7 +2,7 @@
 macro_rules! def_num_type_le {
     ($name:ident, $py_name:expr, $native_type:ty, $size:expr) => {
         #[pyclass(module = "bfp_rs.types.le", name = $py_name)]
-        #[derive(Clone)]
+        #[derive(Debug, Clone)]
         pub struct $name;
 
         impl Parseable for $name {
@@ -28,7 +28,7 @@ macro_rules! def_num_type_le {
 macro_rules! def_bool_type_le {
     ($name:ident, $py_name:expr, $native_type:ty, $size:expr) => {
         #[pyclass(module = "bfp_rs.types.le", name = $py_name)]
-        #[derive(Clone)]
+        #[derive(Debug, Clone)]
         pub struct $name;
         
         impl Parseable for $name {

@@ -1,4 +1,6 @@
-use pyo3::pyclass;
+use pyo3::{pyclass, Bound, PyAny, PyResult};
+use pyo3::exceptions::PyTypeError;
+use pyo3::prelude::{PyAnyMethods, PyTypeMethods};
 use crate::types::base_struct::BaseStruct;
 use crate::types::byte_stream::ByteStream;
 use crate::types::le::bool::{Bool128, Bool16, Bool32, Bool64, Bool8};
@@ -10,7 +12,7 @@ use crate::types::r#struct::Struct;
 use crate::types::version::Version;
 
 #[pyclass]
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub enum BfpType {
     UInt8(UInt8),
     UInt16(UInt16),
@@ -34,6 +36,81 @@ pub enum BfpType {
     Bool128(Bool128),
     
     Struct(Struct),
+}
+
+impl BfpType {
+    pub fn is_ord(&self) -> bool {
+        match self {
+            BfpType::Struct(_) => false,
+            _ => true,
+        }
+    }
+    
+    pub fn py_name(&self) -> String {
+        match self {
+            BfpType::UInt8(_) => { "int" }
+            BfpType::UInt16(_) => { "int" }
+            BfpType::UInt32(_) => { "int" }
+            BfpType::UInt64(_) => { "int" }
+            BfpType::UInt128(_) => { "int" }
+            
+            BfpType::Int8(_) => { "int" }
+            BfpType::Int16(_) => { "int" }
+            BfpType::Int32(_) => { "int" }
+            BfpType::Int64(_) => { "int" }
+            BfpType::Int128(_) => { "int" }
+            
+            BfpType::Float32(_) => { "float" }
+            BfpType::Float64(_) => { "float" }
+            
+            BfpType::Bool8(_) => { "bool" }
+            BfpType::Bool16(_) => { "bool" }
+            BfpType::Bool32(_) => { "bool" }
+            BfpType::Bool64(_) => { "bool" }
+            BfpType::Bool128(_) => { "bool" }
+            
+            BfpType::Struct(_) => { "BaseStruct" }
+        }.into()
+    }
+
+    pub fn to_parseable(&self, value: &Bound<'_, PyAny>) -> PyResult<ParseableType> {
+        Ok(match self {
+            BfpType::UInt8(_) => { value.extract::<u8>()?.into() }
+            BfpType::UInt16(_) => { value.extract::<u16>()?.into() }
+            BfpType::UInt32(_) => { value.extract::<u32>()?.into() }
+            BfpType::UInt64(_) => { value.extract::<u64>()?.into() }
+            BfpType::UInt128(_) => { value.extract::<u128>()?.into() }
+
+            BfpType::Int8(_) => { value.extract::<i8>()?.into() }
+            BfpType::Int16(_) => { value.extract::<i16>()?.into() }
+            BfpType::Int32(_) => { value.extract::<i32>()?.into() }
+            BfpType::Int64(_) => { value.extract::<i64>()?.into() }
+            BfpType::Int128(_) => { value.extract::<i128>()?.into() }
+
+            BfpType::Float32(_) => { value.extract::<f32>()?.into() }
+            BfpType::Float64(_) => { value.extract::<f64>()?.into() }
+
+            BfpType::Bool8(_) => { value.extract::<bool>()?.into() }
+            BfpType::Bool16(_) => { value.extract::<bool>()?.into() }
+            BfpType::Bool32(_) => { value.extract::<bool>()?.into() }
+            BfpType::Bool64(_) => { value.extract::<bool>()?.into() }
+            BfpType::Bool128(_) => { value.extract::<bool>()?.into() }
+
+            BfpType::Struct(struct_) => {
+                let py_type = struct_.py_type.bind(value.py());
+                if !value.is_exact_instance(py_type) {
+                    return Err(PyTypeError::new_err(
+                        format!(
+                            "'{}' object cannot be interpreted as a '{}'",
+                            value.get_type().fully_qualified_name()?.to_string(),
+                            py_type.fully_qualified_name()?.to_string()
+                        )
+                    ))
+                }
+                ParseableType::Struct(value.extract::<BaseStruct>()?, struct_.py_type.clone())
+            }
+        })
+    }
 }
 
 impl Parseable for BfpType {
@@ -61,12 +138,12 @@ impl Parseable for BfpType {
             BfpType::Bool32(val) => { val.from_stream(stream, ver)?.into() }
             BfpType::Bool64(val) => { val.from_stream(stream, ver)?.into() }
             BfpType::Bool128(val) => { val.from_stream(stream, ver)?.into() }
-            
+
             BfpType::Struct(val) => { ParseableType::Struct(val.from_stream(stream, ver)?, val.py_type.clone()) }
         })
     }
 
-    fn to_bytes(&self, value: &Self::Type) -> Vec<u8> {
+    fn to_bytes(&self, _value: &Self::Type) -> Vec<u8> {
         todo!()
     }
 }

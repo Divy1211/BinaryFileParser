@@ -6,3 +6,4 @@ pub mod parseable_type;
 pub mod base_struct;
 pub mod bfp_type;
 pub mod r#struct;
+pub mod bfp_list;

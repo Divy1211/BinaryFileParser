@@ -19,6 +19,22 @@ pub struct BaseStruct {
     pub data: Arc<RwLock<Vec<Option<ParseableType>>>>,
 }
 
+impl PartialEq for BaseStruct {
+    fn eq(&self, other: &Self) -> bool {
+        let data1 = self.data.read().unwrap(); // assert GIL bound action
+        let data2 = other.data.read().unwrap(); // assert GIL bound action
+        if data1.len() != data2.len() {
+            return false
+        }
+
+        data1.iter().zip(data2.iter())
+            .map(|(a, b)| a == b)
+            .all(|x| x)
+    }
+}
+
+impl Eq for BaseStruct {}
+
 impl BaseStruct {
     pub fn new(ver: Version, data: Vec<Option<ParseableType>>) -> Self {
         BaseStruct { ver, data: Arc::new(RwLock::new(data)) }
@@ -33,14 +49,14 @@ impl BaseStruct {
         Ok(retrievers.len())
     }
     
-    pub fn with_cls<'py>(val: BaseStruct, cls: &Bound<'py, PyType>) -> PyResult<Bound<'py, PyAny>> {
-        let obj = cls.call0()?;
+    pub fn with_cls<'py>(val: BaseStruct, cls: &Bound<'py, PyType>) -> Bound<'py, PyAny> {
+        let obj = cls.call0().unwrap();
         {
-            let mut obj = obj.downcast::<BaseStruct>()?.borrow_mut();
+            let mut obj = obj.downcast::<BaseStruct>().unwrap().borrow_mut();
             obj.ver = val.ver;
             obj.data = val.data;
         }
-        Ok(obj)
+        obj
     }
 }
 
@@ -77,38 +93,28 @@ impl BaseStruct {
 
     #[classmethod]
     #[pyo3(signature = (stream, ver = Version::new(vec![0,])))]
-    fn test_from_stream<'py>(cls: &Bound<'py, PyType>, stream: &mut ByteStream, ver: Version) -> PyResult<Bound<'py, PyAny>> {
+    fn from_stream<'py>(cls: &Bound<'py, PyType>, stream: &mut ByteStream, ver: Version) -> PyResult<Bound<'py, PyAny>> {
         let struct_ = cls
             .getattr("struct").unwrap()// assert cls is BaseStruct subclass
             .downcast_into::<Struct>().unwrap() // assert BaseStruct subclasses have a "struct" attribute
             .borrow();
 
         let base = struct_.from_stream(stream, &ver)?;
-        Ok(BaseStruct::with_cls(base, cls)?)
+        Ok(BaseStruct::with_cls(base, cls))
     }
 
-    #[classmethod]
-    #[pyo3(signature = (stream, ver = Version::new(vec![0,])))]
-    fn from_stream(cls: &Bound<PyType>, stream: &mut ByteStream, ver: Version) -> io::Result<Self> {
-        let struct_ = cls
-            .getattr("struct").unwrap() // assert cls is BaseStruct subclass
-            .downcast_into::<Struct>().unwrap() // assert BaseStruct subclasses have a "struct" attribute
-            .borrow();
-        struct_.from_stream(stream, &ver)
-    }
-
-    fn to_bytes(&self, value: &BaseStruct) -> Vec<u8> {
+    fn to_bytes(&self, _value: &BaseStruct) -> Vec<u8> {
         todo!()
     }
 
     #[classmethod]
-    fn from_bytes(cls: &Bound<PyType>, bytes: &[u8]) -> io::Result<BaseStruct> {
+    fn from_bytes<'py>(cls: &Bound<'py, PyType>, bytes: &[u8]) -> PyResult<Bound<'py, PyAny>> {
         let mut stream = ByteStream::from_bytes(bytes);
         BaseStruct::from_stream(cls, &mut stream, Version::new(vec![0, ]))
     }
 
     #[classmethod]
-    fn from_file(cls: &Bound<PyType>, filepath: &str) -> io::Result<BaseStruct> {
+    fn from_file<'py>(cls: &Bound<'py, PyType>, filepath: &str) -> PyResult<Bound<'py, PyAny>> {
         let mut stream = ByteStream::from_file(filepath)?;
         BaseStruct::from_stream(cls, &mut stream, Version::new(vec![0, ]))
     }

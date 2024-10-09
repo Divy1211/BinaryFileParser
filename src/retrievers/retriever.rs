@@ -12,9 +12,9 @@ use crate::types::parseable_type::ParseableType;
 use crate::types::version::Version;
 
 #[pyclass(module = "bfp_rs")]
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Retriever {
-    data_type: BfpType,
+    pub data_type: BfpType,
 
     min_ver: Version,
     max_ver: Version,
@@ -22,7 +22,7 @@ pub struct Retriever {
     default: Arc<PyObject>,
     default_factory: Arc<PyObject>,
 
-    pub repeat: i32,
+    pub repeat: isize,
     remaining_compressed: bool,
 
     on_read: Arc<Vec<PyObject>>,
@@ -49,7 +49,7 @@ impl Retriever {
         default: Option<PyObject>,
         default_factory: Option<PyObject>,
 
-        repeat: i32,
+        repeat: isize,
         remaining_compressed: bool,
 
         on_read: Option<Vec<PyObject>>,
@@ -82,7 +82,7 @@ impl Retriever {
     fn __get__<'a, 'py>(
         slf: Bound<'py, Retriever>,
         instance: &'a Bound<'py, BaseStruct>,
-        owner: &'a Bound<'py, PyType>,
+        _owner: &'a Bound<'py, PyType>,
     ) -> PyResult<Bound<'py, PyAny>> {
         if instance.is_none() {
             return Ok(slf.into_any())
@@ -99,7 +99,7 @@ impl Retriever {
         
         Ok(
             data[slf.idx].clone().unwrap() // assert this value should exist past the version check todo: default init break this assertion
-                .to_bound(slf.py())?
+                .to_bound(slf.py())
         )
     }
 
@@ -117,8 +117,7 @@ impl Retriever {
             )))
         }
         let mut data = instance.data.write().unwrap(); // assert this is a GIL bound action
-        println!("test");
-        data[slf.idx] = Some(ParseableType::from_bound(value, &slf.data_type)?);
+        data[slf.idx] = Some(slf.data_type.to_parseable(value)?);
         Ok(())
     }
 
