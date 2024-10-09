@@ -17,6 +17,7 @@ pub struct BaseStruct {
     #[pyo3(get)]
     pub ver: Version,
     pub data: Arc<RwLock<Vec<Option<ParseableType>>>>,
+    pub repeats: Arc<RwLock<Vec<Option<isize>>>>,
 }
 
 impl PartialEq for BaseStruct {
@@ -36,8 +37,12 @@ impl PartialEq for BaseStruct {
 impl Eq for BaseStruct {}
 
 impl BaseStruct {
-    pub fn new(ver: Version, data: Vec<Option<ParseableType>>) -> Self {
-        BaseStruct { ver, data: Arc::new(RwLock::new(data)) }
+    pub fn new(ver: Version, data: Vec<Option<ParseableType>>, repeats: Vec<Option<isize>>) -> Self {
+        BaseStruct {
+            ver,
+            data: Arc::new(RwLock::new(data)),
+            repeats: Arc::new(RwLock::new(repeats))
+        }
     }
 
     pub fn len(cls: &Bound<PyType>) -> PyResult<usize> {
@@ -53,8 +58,7 @@ impl BaseStruct {
         let obj = cls.call0().unwrap();
         {
             let mut obj = obj.downcast::<BaseStruct>().unwrap().borrow_mut();
-            obj.ver = val.ver;
-            obj.data = val.data;
+            *obj = val;
         }
         obj
     }
@@ -66,8 +70,9 @@ impl BaseStruct {
     #[classmethod]
     #[pyo3(signature = (ver = Version::new(vec!(-1))))]
     fn new_py(cls: &Bound<PyType>, ver: Version) -> PyResult<Self> {
-        let vec = vec![None; BaseStruct::len(cls)?];
-        Ok(BaseStruct { ver, data: Arc::new(RwLock::new(vec)) })
+        let data = vec![None; BaseStruct::len(cls)?];
+        let repeats = vec![None; BaseStruct::len(cls)?];
+        Ok(BaseStruct::new(ver, data, repeats))
     }
 
     #[classmethod]

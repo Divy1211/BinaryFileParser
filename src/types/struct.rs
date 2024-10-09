@@ -2,11 +2,12 @@ use std::sync::{Arc, RwLock};
 
 use pyo3::prelude::*;
 use pyo3::types::PyType;
-use crate::retrievers::retriever::Retriever;
+use crate::retrievers::retriever::{RetState, Retriever};
 use crate::types::base_struct::BaseStruct;
 use crate::types::bfp_list::BfpList;
 use crate::types::bfp_type::BfpType;
 use crate::types::byte_stream::ByteStream;
+use crate::types::parseable_type::ParseableType;
 use crate::types::version::Version;
 
 #[pyclass(module = "bfp_rs")]
@@ -48,21 +49,25 @@ impl Struct {
     pub fn from_stream(&self, stream: &mut ByteStream, ver: &Version) -> std::io::Result<BaseStruct> {
         let retrievers = self.retrievers.read().unwrap(); // assert retrievers should never be modified after instantiation todo: change to Arc<Vec<>> and use a builder pattern
         let mut data = Vec::with_capacity(retrievers.len());
+        let mut repeats = vec![None; retrievers.len()];
         for retriever in retrievers.iter() {
             if !retriever.supported(&ver) {
                 data.push(None);
             }
-            if retriever.repeat > 1 {
-                let mut ls = Vec::with_capacity(retriever.repeat as usize);
-                for _ in 0..retriever.repeat {
-                    ls.push(retriever.from_stream(stream, &ver)?);
+            
+            data.push(Some(match retriever.state(&repeats) {
+                RetState::None => { ParseableType::None }
+                RetState::Value => { retriever.from_stream(stream, &ver)? }
+                RetState::List => {
+                    let mut ls = Vec::with_capacity(retriever.repeat(&repeats) as usize);
+                    for _ in 0..retriever.repeat(&repeats) {
+                        ls.push(retriever.from_stream(stream, &ver)?);
+                    }
+                    BfpList::new(ls, retriever.data_type.clone()).into()
                 }
-                data.push(Some(BfpList::new(ls, retriever.data_type.clone()).into()));
-            } else {
-                data.push(Some(retriever.from_stream(stream, &ver)?))
-            }
+            }))
         }
-        Ok(BaseStruct::new(ver.clone(), data))
+        Ok(BaseStruct::new(ver.clone(), data, repeats))
     }
 
     pub fn to_bytes(&self, _value: &BaseStruct) -> Vec<u8> {

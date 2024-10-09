@@ -34,7 +34,7 @@ pub enum BfpType {
     Bool32(Bool32),
     Bool64(Bool64),
     Bool128(Bool128),
-    
+
     Struct(Struct),
 }
 
@@ -45,7 +45,7 @@ impl BfpType {
             _ => true,
         }
     }
-    
+
     pub fn py_name(&self) -> String {
         match self {
             BfpType::UInt8(_) => { "int" }
@@ -53,22 +53,22 @@ impl BfpType {
             BfpType::UInt32(_) => { "int" }
             BfpType::UInt64(_) => { "int" }
             BfpType::UInt128(_) => { "int" }
-            
+
             BfpType::Int8(_) => { "int" }
             BfpType::Int16(_) => { "int" }
             BfpType::Int32(_) => { "int" }
             BfpType::Int64(_) => { "int" }
             BfpType::Int128(_) => { "int" }
-            
+
             BfpType::Float32(_) => { "float" }
             BfpType::Float64(_) => { "float" }
-            
+
             BfpType::Bool8(_) => { "bool" }
             BfpType::Bool16(_) => { "bool" }
             BfpType::Bool32(_) => { "bool" }
             BfpType::Bool64(_) => { "bool" }
             BfpType::Bool128(_) => { "bool" }
-            
+
             BfpType::Struct(_) => { "BaseStruct" }
         }.into()
     }

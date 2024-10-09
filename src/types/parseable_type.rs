@@ -8,6 +8,7 @@ use crate::types::bfp_list::BfpList;
 
 #[derive(Debug, Clone)]
 pub enum ParseableType {
+    None,
     UInt8(u8),
     UInt16(u16),
     UInt32(u32),
@@ -65,6 +66,7 @@ pub enum ParseableType {
 impl PartialEq for ParseableType {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) { // todo fix
+            (ParseableType::None, ParseableType::None) => true,
             (ParseableType::UInt8(val1), ParseableType::UInt8(val2)) => val1 == val2,
             (ParseableType::UInt16(val1), ParseableType::UInt16(val2)) => val1 == val2,
             (ParseableType::UInt32(val1), ParseableType::UInt32(val2)) => val1 == val2,
@@ -118,6 +120,7 @@ impl_from_for_parseable_type!(Option<Box<ParseableType>>, Option);
 impl ParseableType {
     pub fn to_bound(self, py: Python) -> Bound<'_, PyAny> {
         match self {
+            ParseableType::None => { py.None().into_bound(py) }
             ParseableType::UInt8(val) => { val.into_py(py).into_bound(py) }
             ParseableType::UInt16(val) => { val.into_py(py).into_bound(py) }
             ParseableType::UInt32(val) => { val.into_py(py).into_bound(py) }

@@ -93,7 +93,7 @@ impl BfpList {
         Ok(ls.remove(item as usize).to_bound(slf.py()))
     }
 
-    fn clear<'py>(slf: PyRefMut<'py, BfpList>, mut item: isize) -> PyResult<()> {
+    fn clear<'py>(slf: PyRefMut<'py, BfpList>) -> PyResult<()> {
         let mut ls = slf.ls.write().unwrap(); // assert GIL bound action
         ls.clear();
         Ok(())

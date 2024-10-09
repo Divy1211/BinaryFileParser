@@ -1,11 +1,14 @@
 from bfp_rs.types import BfpType
 from bfp_rs.types.le import int8
-from bfp_rs import Retriever, BaseStruct, ByteStream
+from bfp_rs import Retriever, BaseStruct
+
+from utils import timed
+
 
 class Test(BaseStruct):
-    ls = Retriever(BfpType.Int8(int8()), repeat = 50)
+    ls = Retriever(BfpType.Int8(int8()), repeat = 60_000_000)
 
-test = Test.test_from_stream(ByteStream.from_bytes(bytes(range(50))))
+with timed():
+    test = Test.from_file(r"C:\Users\Divy\PycharmProjects\BinaryFileParser\asp_test\test.dat")
 
-test.ls = []
-print(test.ls)
+print(test.ls[24])

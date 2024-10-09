@@ -5,11 +5,18 @@ use pyo3::types::PyType;
 
 use crate::errors::version_error::VersionError;
 use crate::types::base_struct::BaseStruct;
+use crate::types::bfp_list::BfpList;
 use crate::types::bfp_type::{BfpType};
 use crate::types::byte_stream::ByteStream;
 use crate::types::parseable::Parseable;
 use crate::types::parseable_type::ParseableType;
 use crate::types::version::Version;
+
+pub enum RetState {
+    None,
+    Value,
+    List,
+}
 
 #[pyclass(module = "bfp_rs")]
 #[derive(Debug, Clone)]
@@ -22,7 +29,7 @@ pub struct Retriever {
     default: Arc<PyObject>,
     default_factory: Arc<PyObject>,
 
-    pub repeat: isize,
+    repeat: isize,
     remaining_compressed: bool,
 
     on_read: Arc<Vec<PyObject>>,
@@ -98,7 +105,7 @@ impl Retriever {
         let data = instance.data.read().unwrap(); // assert this is a GIL bound action
         
         Ok(
-            data[slf.idx].clone().unwrap() // assert this value should exist past the version check todo: default init break this assertion
+            data[slf.idx].clone().unwrap() // assert this value should exist past the version check todo: default init breaks this assertion
                 .to_bound(slf.py())
         )
     }
@@ -116,8 +123,20 @@ impl Retriever {
                 "{} is not supported in struct version {ver}", slf.name
             )))
         }
+        let repeats = instance.repeats.read().unwrap(); // assert this is a GIL bound action
         let mut data = instance.data.write().unwrap(); // assert this is a GIL bound action
-        data[slf.idx] = Some(slf.data_type.to_parseable(value)?);
+        
+        data[slf.idx] = Some(match slf.state(&repeats) {
+            RetState::None => { ParseableType::None }
+            RetState::Value => { slf.data_type.to_parseable(value)? }
+            RetState::List => {
+                let value = value.iter()?
+                    .map(|v| {
+                        slf.data_type.to_parseable(&v.unwrap())                       // assert v obtained from python
+                    }).collect::<PyResult<Vec<_>>>()?;
+                ParseableType::Array(BfpList::new(value, slf.data_type.clone()))
+            }
+        });
         Ok(())
     }
 
@@ -137,8 +156,30 @@ impl Retriever {
     pub fn supported(&self, ver: &Version) -> bool {
         self.min_ver <= *ver && *ver <= self.max_ver
     }
-    
+
+    #[cfg_attr(feature = "inline_always", inline(always))]
     pub fn from_stream(&self, stream: &mut ByteStream, ver: &Version) -> std::io::Result<ParseableType> {
         self.data_type.from_stream(stream, ver)
+    }
+
+    #[cfg_attr(feature = "inline_always", inline(always))]
+    pub fn state(&self, repeats: &Vec<Option<isize>>) -> RetState {
+        match repeats[self.idx] {
+            Some(_) => { RetState::List }
+            None => {
+                match self.repeat {
+                    -1 => { RetState::None },
+                    1 => { RetState::Value },
+                    _ => { RetState::List },
+                }
+            }
+        }
+    }
+    #[cfg_attr(feature = "inline_always", inline(always))]
+    pub fn repeat(&self, repeats: &Vec<Option<isize>>) -> isize {
+        match repeats[self.idx] {
+            Some(val) => { val }
+            None => { self.repeat }
+        }
     }
 }
