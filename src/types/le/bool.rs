@@ -3,6 +3,7 @@ use std::io;
 use pyo3::prelude::*;
 use pyo3::pyclass;
 use pyo3::types::PyBytes;
+
 use crate::{def_bool_type_le, wrap_py};
 use crate::types::byte_stream::ByteStream;
 use crate::types::parseable::Parseable;

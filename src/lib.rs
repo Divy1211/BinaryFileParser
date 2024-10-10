@@ -1,5 +1,6 @@
 use pyo3::prelude::*;
 use pyo3::py_run;
+
 use crate::errors::compression_error::CompressionError;
 use crate::errors::default_attribute_error::DefaultAttributeError;
 use crate::errors::parsing_error::ParsingError;

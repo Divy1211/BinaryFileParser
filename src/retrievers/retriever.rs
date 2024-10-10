@@ -1,12 +1,13 @@
 use std::sync::Arc;
-use pyo3::{pyclass, PyObject};
+
 use pyo3::prelude::*;
 use pyo3::types::PyType;
+use pyo3::{pyclass, PyObject};
 
 use crate::errors::version_error::VersionError;
 use crate::types::base_struct::BaseStruct;
 use crate::types::bfp_list::BfpList;
-use crate::types::bfp_type::{BfpType};
+use crate::types::bfp_type::BfpType;
 use crate::types::byte_stream::ByteStream;
 use crate::types::parseable::Parseable;
 use crate::types::parseable_type::ParseableType;
@@ -20,6 +21,7 @@ pub enum RetState {
 
 #[pyclass(module = "bfp_rs")]
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct Retriever {
     pub data_type: BfpType,
 
@@ -45,7 +47,14 @@ pub struct Retriever {
 #[pymethods]
 impl Retriever {
     #[new]
-    #[pyo3(signature = (data_type, min_ver = Version::new(vec!(-1)), max_ver = Version::new(vec!(1000)), default = None, default_factory = None, repeat = 1, remaining_compressed = false, on_read = None, on_write = None, mappers = None, validators = None))]
+    #[pyo3(signature = (
+        data_type,
+        min_ver = Version::new(vec!(-1)), max_ver = Version::new(vec!(1000)),
+        default = None, default_factory = None,
+        repeat = 1,
+        remaining_compressed = false,
+        on_read = None, on_write = None, mappers = None, validators = None
+    ))]
     fn new(
         py: Python,
         data_type: BfpType,
@@ -86,10 +95,10 @@ impl Retriever {
         self.supported(ver)
     }
 
-    fn __get__<'a, 'py>(
+    fn __get__<'py>(
         slf: Bound<'py, Retriever>,
-        instance: &'a Bound<'py, BaseStruct>,
-        _owner: &'a Bound<'py, PyType>,
+        instance: Bound<'py, BaseStruct>,
+        _owner: Bound<'py, PyType>,
     ) -> PyResult<Bound<'py, PyAny>> {
         if instance.is_none() {
             return Ok(slf.into_any())
@@ -102,18 +111,18 @@ impl Retriever {
                 "{} is not supported in struct version {ver}", slf.name
             )))
         }
-        let data = instance.data.read().unwrap(); // assert this is a GIL bound action
+        let data = instance.data.read().expect("GIL bound read");
         
         Ok(
-            data[slf.idx].clone().unwrap() // assert this value should exist past the version check todo: default init breaks this assertion
+            data[slf.idx].clone().expect("supported value is never Option::None")// todo: default init breaks this assertion
                 .to_bound(slf.py())
         )
     }
 
-    fn __set__<'a, 'py>(
-        slf: Bound<'py, Self>,
-        instance: &'a Bound<'py, BaseStruct>,
-        value: &'a Bound<'py, PyAny>,
+    fn __set__(
+        slf: Bound<Self>,
+        instance: Bound<BaseStruct>,
+        value: Bound<PyAny>,
     ) -> PyResult<()> {
         let slf = slf.borrow();
         let instance = instance.borrow();
@@ -123,16 +132,16 @@ impl Retriever {
                 "{} is not supported in struct version {ver}", slf.name
             )))
         }
-        let repeats = instance.repeats.read().unwrap(); // assert this is a GIL bound action
-        let mut data = instance.data.write().unwrap(); // assert this is a GIL bound action
+        let repeats = instance.repeats.read().expect("GIL bound read");
+        let mut data = instance.data.write().expect("GIL bound write");
         
         data[slf.idx] = Some(match slf.state(&repeats) {
             RetState::None => { ParseableType::None }
-            RetState::Value => { slf.data_type.to_parseable(value)? }
+            RetState::Value => { slf.data_type.to_parseable(&value)? }
             RetState::List => {
                 let value = value.iter()?
                     .map(|v| {
-                        slf.data_type.to_parseable(&v.unwrap())                       // assert v obtained from python
+                        slf.data_type.to_parseable(&v.expect("obtained from python"))
                     }).collect::<PyResult<Vec<_>>>()?;
                 ParseableType::Array(BfpList::new(value, slf.data_type.clone()))
             }
@@ -141,10 +150,8 @@ impl Retriever {
     }
 
     fn __set_name__(slf: Bound<Self>, owner: &Bound<PyType>, name: &str) -> PyResult<()> {
-        let mut slf2 = slf.borrow_mut();
-        slf2.name = name.to_string();
-        drop(slf2);
-
+        slf.borrow_mut().name = name.to_string();
+        
         BaseStruct::_add_retriever(owner, &slf)?;
 
         Ok(())

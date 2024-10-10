@@ -1,7 +1,7 @@
 use std::fs::File;
 use std::io;
-use std::io::{Error, ErrorKind};
 use std::io::prelude::*;
+use std::io::{Error, ErrorKind};
 
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyType};
@@ -13,6 +13,13 @@ pub struct ByteStream {
 }
 
 impl ByteStream {
+    pub fn empty() -> Self {
+        ByteStream {
+            bytes: vec![],
+            progress: 0,
+        }
+    }
+    
     pub fn from_file(filepath: &str) -> io::Result<Self> {
         let mut file = File::open(filepath)?;
         let mut bytes = Vec::new();

@@ -1,8 +1,8 @@
 use std::fmt::{Display, Formatter};
+
 use pyo3::prelude::*;
 use pyo3::class::basic::CompareOp;
 use pyo3::types::{PyTuple, PyType};
-
 
 #[pyclass(module = "bfp_rs", frozen)]
 #[derive(PartialEq, PartialOrd, Eq, Ord, Clone, Debug)]

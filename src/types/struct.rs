@@ -1,12 +1,17 @@
 use std::sync::{Arc, RwLock};
 
+use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
-use pyo3::types::PyType;
+use pyo3::types::{PyBytes, PyType};
+
+use crate::errors::compression_error::CompressionError;
+use crate::errors::version_error::VersionError;
 use crate::retrievers::retriever::{RetState, Retriever};
 use crate::types::base_struct::BaseStruct;
 use crate::types::bfp_list::BfpList;
 use crate::types::bfp_type::BfpType;
 use crate::types::byte_stream::ByteStream;
+use crate::types::parseable::Parseable;
 use crate::types::parseable_type::ParseableType;
 use crate::types::version::Version;
 
@@ -15,26 +20,22 @@ use crate::types::version::Version;
 pub struct Struct {
     pub retrievers: Arc<RwLock<Vec<Retriever>>>,
     pub py_type: Arc<Py<PyType>>,
+
+    pub get_ver: Option<Arc<PyObject>>,
+    pub compress: Option<Arc<PyObject>>,
+    pub decompress: Option<Arc<PyObject>>,
 }
 
 #[pymethods]
 impl Struct {
     #[classmethod]
-    fn __class_getitem__(_cls: &Bound<PyType>, base_struct_cls: &Bound<PyType>) -> PyResult<BfpType> {
-        let struct_ = base_struct_cls
-            .getattr("struct")?
-            .extract::<Struct>()?;
-
-        Ok(BfpType::Struct(struct_))
-    }
-
-    pub fn append(&self, retriever: &Bound<Retriever>) -> PyResult<usize> {
-        let mut retriever = retriever.extract::<Retriever>()?;
-        let mut retrievers = self.retrievers.write().unwrap(); // assert this is a GIL bound action
-        let idx = retrievers.len();
-        retriever.idx = idx;
-        retrievers.push(retriever);
-        Ok(idx)
+    fn __class_getitem__(_cls: &Bound<PyType>, sub_cls: &Bound<PyType>) -> PyResult<BfpType> {
+        if !sub_cls.is_subclass_of::<BaseStruct>()? {
+            return Err(PyTypeError::new_err(
+                "Cannot create a BfpType from a class that does not subclass BaseStruct"
+            ))
+        }
+        Ok(BfpType::Struct(Struct::from_cls(sub_cls)?))
     }
 }
 
@@ -43,13 +44,42 @@ impl Struct {
         Struct {
             retrievers: Arc::new(RwLock::new(Vec::with_capacity(1))),
             py_type: Arc::new(py_type),
+
+            get_ver: None,
+            compress: None,
+            decompress: None,
         }
     }
 
-    pub fn from_stream(&self, stream: &mut ByteStream, ver: &Version) -> std::io::Result<BaseStruct> {
-        let retrievers = self.retrievers.read().unwrap(); // assert retrievers should never be modified after instantiation todo: change to Arc<Vec<>> and use a builder pattern
+    pub fn append(&self, retriever: &Bound<Retriever>) -> PyResult<usize> {
+        let mut retriever = retriever.extract::<Retriever>()?;
+        let mut retrievers = self.retrievers.write().expect("GIL bound write");
+        let idx = retrievers.len();
+        retriever.idx = idx;
+        retrievers.push(retriever);
+        Ok(idx)
+    }
+
+    pub fn from_cls(cls: &Bound<PyType>) -> PyResult<Self> {
+        let mut struct_ = cls
+            .getattr("struct").expect("always a BaseStruct subclass")
+            .extract::<Struct>().expect("infallible");
+
+        struct_.get_ver = get_if_impl(cls, "_get_version");
+        struct_.compress = get_if_impl(cls, "_compress");
+        struct_.decompress = get_if_impl(cls, "_decompress");
+
+        Ok(struct_)
+    }
+}
+
+impl Parseable for Struct {
+    type Type = BaseStruct;
+    
+    fn from_stream(&self, stream: &mut ByteStream, ver: &Version) -> std::io::Result<BaseStruct> {
+        let retrievers = self.retrievers.read().expect("immutable"); // todo: change to Arc<Vec<>> with builder pattern?
         let mut data = Vec::with_capacity(retrievers.len());
-        let mut repeats = vec![None; retrievers.len()];
+        let repeats = vec![None; retrievers.len()];
         for retriever in retrievers.iter() {
             if !retriever.supported(&ver) {
                 data.push(None);
@@ -70,7 +100,24 @@ impl Struct {
         Ok(BaseStruct::new(ver.clone(), data, repeats))
     }
 
-    pub fn to_bytes(&self, _value: &BaseStruct) -> Vec<u8> {
+    fn to_bytes(&self, _value: &BaseStruct) -> Vec<u8> {
         todo!()
+    }
+}
+
+
+fn get_if_impl(cls: &Bound<PyType>, attr: &str) -> Option<Arc<PyObject>> {
+    let py = cls.py();
+    let obj = cls.getattr(attr).expect("always a BaseStruct subclass");
+    if attr == "_get_version" {
+        match obj.call1((ByteStream::empty(),)) {
+            Err(err) if err.is_instance_of::<VersionError>(py) => None,
+            _ => Some(Arc::new(obj.unbind()))
+        }
+    } else {
+        match obj.call1((PyBytes::new_bound(py, &[]),)) {
+            Err(err) if err.is_instance_of::<CompressionError>(py) => None,
+            _ => Some(Arc::new(obj.unbind()))
+        }
     }
 }
