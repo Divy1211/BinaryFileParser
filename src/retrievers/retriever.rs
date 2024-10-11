@@ -27,15 +27,16 @@ pub struct Retriever {
 
     min_ver: Version,
     max_ver: Version,
-
+    
     default: Arc<PyObject>,
     default_factory: Arc<PyObject>,
-
+    
     repeat: isize,
-    remaining_compressed: bool,
-
-    on_read: Arc<Vec<PyObject>>,
-    on_write: Arc<Vec<PyObject>>,
+    
+    pub remaining_compressed: bool,
+    
+    pub on_read: Arc<Vec<PyObject>>,
+    pub on_write: Arc<Vec<PyObject>>,
     
     mappers: Arc<Vec<PyObject>>,
     validators: Arc<Vec<PyObject>>,

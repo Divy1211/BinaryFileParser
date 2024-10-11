@@ -2,20 +2,21 @@ use std::fs::File;
 use std::io;
 use std::io::prelude::*;
 use std::io::{Error, ErrorKind};
-
+use std::sync::Arc;
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyType};
 
 #[pyclass(module = "bfp_rs")]
+#[derive(Debug, Clone)]
 pub struct ByteStream {
-    bytes: Vec<u8>,
+    bytes: Arc<Vec<u8>>,
     progress: usize,
 }
 
 impl ByteStream {
     pub fn empty() -> Self {
         ByteStream {
-            bytes: vec![],
+            bytes: Arc::new(vec![]),
             progress: 0,
         }
     }
@@ -27,14 +28,14 @@ impl ByteStream {
         file.read_to_end(&mut bytes)?;
 
         Ok(ByteStream {
-            bytes,
+            bytes: Arc::new(bytes),
             progress: 0,
         })
     }
 
     pub fn from_bytes(bytes: &[u8]) -> Self {
         ByteStream {
-            bytes: bytes.to_vec(),
+            bytes: Arc::new(bytes.to_vec()),
             progress: 0,
         }
     }

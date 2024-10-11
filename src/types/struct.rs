@@ -71,6 +71,43 @@ impl Struct {
 
         Ok(struct_)
     }
+    
+    pub fn get_ver<'a>(&self, stream: &mut ByteStream, ver: &'a Version) -> PyResult<Version> {
+        let Some(fn_) = &self.get_ver else {
+            return Ok(ver.clone())
+        };
+        
+        Python::with_gil(|py| {
+            let ver = fn_.call_bound(py, (stream.clone(), ver.clone()), None)?;
+            ver.extract::<Version>(py)
+        })
+    }
+
+    pub fn decompress<'a>(&self, bytes: &[u8]) -> PyResult<ByteStream> {
+        let Some(fn_) = &self.decompress else {
+            return Err(CompressionError::new_err(
+                "Unable to read object from file. A Structure with a compressed section needs to implement '_decompress' classmethod."
+            ))
+        };
+
+        Python::with_gil(|py| {
+            let bytes = fn_.call_bound(py, (PyBytes::new_bound(py, bytes),), None)?;
+            Ok(ByteStream::from_bytes(bytes.extract::<&[u8]>(py)?))
+        })
+    }
+
+    pub fn compress<'a>(&self, bytes: &[u8]) -> PyResult<Vec<u8>> {
+        let Some(fn_) = &self.decompress else {
+            return Err(CompressionError::new_err(
+                "Unable to write object to file. A Structure with a compressed section needs to implement '_compress' classmethod."
+            ))
+        };
+
+        Python::with_gil(|py| {
+            let bytes = fn_.call_bound(py, (PyBytes::new_bound(py, bytes),), None)?;
+            Ok(Vec::from(bytes.extract::<&[u8]>(py)?))
+        })
+    }
 }
 
 impl Parseable for Struct {
@@ -80,9 +117,15 @@ impl Parseable for Struct {
         let retrievers = self.retrievers.read().expect("immutable"); // todo: change to Arc<Vec<>> with builder pattern?
         let mut data = Vec::with_capacity(retrievers.len());
         let repeats = vec![None; retrievers.len()];
+        
+        let ver = self.get_ver(stream, ver)?;
+        
         for retriever in retrievers.iter() {
             if !retriever.supported(&ver) {
                 data.push(None);
+            }
+            if retriever.remaining_compressed {
+                *stream = self.decompress(stream.remaining())?
             }
             
             data.push(Some(match retriever.state(&repeats) {
