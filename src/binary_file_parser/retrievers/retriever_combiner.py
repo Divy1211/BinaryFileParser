@@ -1,13 +1,15 @@
 from __future__ import annotations
 
 from contextlib import suppress
-from typing import Type, TypeVar, Generic
+from typing import Generic, Type, TYPE_CHECKING, TypeVar
 
-from binary_file_parser.utils import Version
 from binary_file_parser.errors import VersionError
+from binary_file_parser.types.version import Version
 
-from binary_file_parser.retrievers.base_struct import BaseStruct
-from binary_file_parser.retrievers.Retriever import Retriever
+if TYPE_CHECKING:
+    from binary_file_parser.retrievers.retriever import Retriever
+    from binary_file_parser.retrievers.retriever_ref import RetrieverRef
+    from binary_file_parser.types.base_struct import BaseStruct
 
 
 T = TypeVar("T")
@@ -18,11 +20,11 @@ class RetrieverCombiner(Generic[T]):
     Creates a single attribute to access values from multiple retrievers which are mutually exclusive among different
     struct versions
     """
-    def __init__(self, retrievers: list[Retriever] = None) -> None:
+    def __init__(self, *retrievers: Retriever | RetrieverRef | RetrieverCombiner) -> None:
         """
-        :param retrievers: A list of retrievers to combine
+        :param retrievers: The retrievers to combine
         """
-        self.retrievers = retrievers or []
+        self.retrievers = retrievers
 
     def __set_name__(self, owner: Type[BaseStruct], name: str) -> None:
         self.name = name
@@ -47,6 +49,12 @@ class RetrieverCombiner(Generic[T]):
             f"{self.name!r} is not supported in your struct version {instance.struct_ver}"
         )
 
+    # todo: fix this
+    @property
+    def p_name(self):
+        return self.name
+
+    # todo: this doesn't work for refs
     def get_p_name(self, struct_ver: Version) -> str:
         """
         Find out the name of the retriever which holds the value referenced by this retriever combiner for the provided
@@ -58,4 +66,14 @@ class RetrieverCombiner(Generic[T]):
                 return retriever.p_name
         raise VersionError(
             f"{self.name!r} is not supported in your struct version {struct_ver}"
+        )
+
+    # todo: this doesn't work for refs
+    def set_repeat(self, instance: BaseStruct, repeat: int) -> None:
+        for retriever in self.retrievers:
+            if retriever.supported(instance.struct_ver):
+                retriever.set_repeat(instance, repeat)
+                return
+        raise VersionError(
+            f"{self.name!r} is not supported in your struct version {instance.struct_ver}"
         )

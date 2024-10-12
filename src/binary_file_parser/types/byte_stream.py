@@ -19,6 +19,7 @@ class ByteStream:
         Create a ByteStream from file
 
         :param filepath: The path of the file to create the stream from
+
         :return: ByteStream object
         """
         with open(filepath, 'rb') as f:
@@ -31,6 +32,7 @@ class ByteStream:
         Create a ByteStream from bytes
 
         :param bytes_:
+
         :return: ByteStream object
         """
         return cls(bytes_)
@@ -40,13 +42,15 @@ class ByteStream:
         Get the specified number of bytes from the stream and advance the reading position forward
 
         :param n: The number of bytes to return from the stream
+
         :return: The requested bytes
+
         :raises EOFError: if the number of bytes requested is greater than the remaining number of bytes in the stream
         """
         if n <= 0:
             return b''
         result = self.content[self.progress:self.progress + n]
-        if not result:
+        if len(result) < n:
             remaining = len(self.remaining())
             raise EOFError(f"End of file reached. (Requested: {n} bytes, only {remaining} left.)")
         self.progress += n
@@ -57,13 +61,15 @@ class ByteStream:
         Get the specified number of bytes from the stream without advancing the reading position forward
 
         :param n: The number of bytes to return from the stream
+
         :return: The requested bytes
+
         :raises EOFError: if the number of bytes requested is greater than the remaining number of bytes in the stream
         """
         if n <= 0:
             return b''
         result = self.content[self.progress:self.progress + n]
-        if not result:
+        if len(result) < n:
             remaining = len(self.remaining())
             raise EOFError(f"End of file reached. (Requested: {n} bytes, only {remaining} left.)")
         return result

@@ -1,6 +1,8 @@
 twine
 pytest
 pylint
+flake8
+mypy
 mkdocs
 mkdocstrings
 

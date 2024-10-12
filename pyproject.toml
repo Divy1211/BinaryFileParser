@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "binary-file-parser"
-version = "0.1.2"
+version = "0.2.2"
 description = "Read/Write binary files after describing their specifications in code (similar to an ORM table schema)"
 readme = "README.md"
 authors = [{ name = "Divy1211", email = "divy1211.dc@gmail.com" }]
@@ -17,13 +17,13 @@ classifiers = [
 ]
 keywords = ["binary", "file", "parser"]
 dependencies = [
-    "alive-progress>=2.4.1",
+    "alive-progress",
 ]
 requires-python = ">=3.10"
 
 [project.optional-dependencies]
-dev = ["pytest", "pylint"]
-docs = ["mkdocs"]
+dev = ["pytest", "pylint", "mypy", "flake8"]
+docs = ["mkdocs", "mkdocstrings"]
 depl = ["build", "twine"]
 
 [project.urls]

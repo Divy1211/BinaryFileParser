@@ -1,8 +1,8 @@
 import struct
 
-from binary_file_parser.types.ByteStream import ByteStream
-from binary_file_parser.types.Parseable import Parseable
-from binary_file_parser.utils import Version
+from binary_file_parser.types.parseable import Parseable
+from binary_file_parser.types.byte_stream import ByteStream
+from binary_file_parser.types.version import Version
 
 
 class Int(Parseable):
@@ -12,13 +12,13 @@ class Int(Parseable):
         super().__init__(size)
         self.struct_symbol = struct_symbol
 
-    def from_stream(self, stream: ByteStream, *, struct_ver: Version = Version((0,))) -> int:
-        return self.from_bytes(stream.get(self.size), struct_ver = struct_ver)
+    def _from_stream(self, stream: ByteStream, *, struct_ver: Version = Version((0,))) -> int:
+        return self._from_bytes(stream.get(self._size), struct_ver = struct_ver)
 
-    def from_bytes(self, bytes_: bytes, *, struct_ver: Version = Version((0,))) -> int:
+    def _from_bytes(self, bytes_: bytes, *, struct_ver: Version = Version((0,))) -> int:
         return struct.unpack(self.struct_symbol, bytes_)[0]
 
-    def to_bytes(self, value: int) -> bytes:
+    def _to_bytes(self, value: int) -> bytes:
         return struct.pack(self.struct_symbol, value)
 
 int8 = Int(1, "<b")

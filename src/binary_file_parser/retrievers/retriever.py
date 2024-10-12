@@ -2,16 +2,11 @@ from __future__ import annotations
 
 import sys
 from io import BytesIO
-from typing import Any, Type, Callable, TypeVar
+from typing import Any, Callable, Type, TypeVar
 
-from binary_file_parser.errors import VersionError, DefaultValueError
-from binary_file_parser.types import ByteStream
-from binary_file_parser.types import Parseable
-
-from binary_file_parser.retrievers.MapValidate import MapValidate
-from binary_file_parser.retrievers.base_struct import BaseStruct
-from binary_file_parser.types.RefList import RefList
-from binary_file_parser.utils import Version
+from binary_file_parser.errors import DefaultAttributeError, VersionError
+from binary_file_parser.types import BaseStruct, ByteStream, DebugByteStream, Parseable, Version
+from binary_file_parser.retrievers.map_validate import MapValidate
 
 T = TypeVar("T")
 RetrieverSub = TypeVar("RetrieverSub", bound = "Retriever")
@@ -23,7 +18,7 @@ class Retriever(MapValidate):
     Represents a binary object in a struct and the restrictions/dependencies associated with it
     """
     __slots__ = (
-        "atype", "dtype", "min_ver", "max_ver", "default", "default_factory",
+        "dtype", "min_ver", "max_ver", "default", "default_factory",
         "_repeat", "remaining_compressed", "on_read", "on_write"
     )
 
@@ -33,10 +28,9 @@ class Retriever(MapValidate):
         min_ver: Version = Version((-1,)),
         max_ver: Version = Version((sys.maxsize,)),
         *,
-        default = None,
-        default_factory: Callable[[Version, BaseStruct], Any] = None,
+        default: object = None,
+        default_factory: Callable[[Version], Any] = None,
         repeat: int = 1,
-        atype: Type[RefList] = RefList,
         remaining_compressed: bool = False,
         on_read: list[Callable[[RetrieverSub, BaseStructSub], None]] | None = None,  # todo: add implementations for common on_x operations
         on_write: list[Callable[[RetrieverSub, BaseStructSub], None]] | None = None,
@@ -44,7 +38,7 @@ class Retriever(MapValidate):
         validators: list[Callable[[RetrieverSub, BaseStructSub, T], tuple[bool, str]]] | None = None,
         on_get: list[Callable[[RetrieverSub, BaseStructSub], None]] | None = None,
         on_set: list[Callable[[RetrieverSub, BaseStructSub], None]] | None = None,
-    ):
+    ) -> object:
         """
         :param dtype: The type of the value to read
         :param min_ver:
@@ -64,8 +58,6 @@ class Retriever(MapValidate):
                 0: skips reading value entirely, set property to []
                 1: single value is read and assigned to the property
                 >1: a list of values is read and assigned to the property
-        :param atype:
-            The array like type to use when constructing lists for retrievers with dynamic repeats
         :param remaining_compressed:
             If set to true, the decompress/compress methods are used on the remaining bytes before reading/writing the
             remaining retriever properties
@@ -83,7 +75,6 @@ class Retriever(MapValidate):
         """
         super().__init__(mappers, validators, on_get, on_set)
         self.dtype = dtype
-        self.atype = atype
         self.min_ver = min_ver
         self.max_ver = max_ver
 
@@ -92,7 +83,7 @@ class Retriever(MapValidate):
             or default is not None
             and isinstance(default, BaseStruct)
         ):
-            raise DefaultValueError(
+            raise DefaultAttributeError(
                 "Using mutable types for default values is not allowed. Use a default_factory instead!"
             )
 
@@ -102,24 +93,6 @@ class Retriever(MapValidate):
         self.remaining_compressed = remaining_compressed
         self.on_read = on_read or []
         self.on_write = on_write or []
-
-        # if self._repeat == 1:
-        #     self.validators.append(lambda retriever, instance, x: dtype.is_valid(x))
-        # else:
-        #     self.validators.append(lambda retriever, instance, iterable: all(map(dtype.is_valid, iterable)))
-
-    @property
-    def is_self_versioned(self) -> bool:
-        """
-        True if the dtype of this retriever is a struct that implements its own versioning.
-        """
-        try:
-            self.dtype.__class__.get_version(stream = ByteStream.from_bytes(b"\x00"*8))
-            return True
-        except EOFError:
-            return True
-        except (VersionError, AttributeError):
-            return False
 
     def supported(self, ver: Version) -> bool:
         """
@@ -140,14 +113,6 @@ class Retriever(MapValidate):
                 f"{self.p_name!r} is not supported in your scenario version {instance.struct_ver}"
             )
 
-        # def set_parent(obj):
-        #     if isinstance(obj, BaseStruct):
-        #         obj.parent = instance
-        #     elif isinstance(obj, list):
-        #         for sub_obj in obj:
-        #             set_parent(sub_obj)
-        #
-        # set_parent(value)
         super().__set__(instance, value)
 
     def __get__(self, instance: BaseStruct, owner: Type[BaseStruct]) -> Retriever | T:
@@ -161,8 +126,6 @@ class Retriever(MapValidate):
         try:
             return super().__get__(instance, owner)
         except AttributeError:
-            if self.default is None and self.default_factory is not None:
-                raise ValueError(f"No default value specified for retriever {self.p_name!r}")
             return self.from_default(instance)
 
     @property
@@ -202,31 +165,15 @@ class Retriever(MapValidate):
         if self.default is not None:
             if repeat == 1:
                 return self.default
-            return self.atype(
-                [self.default]*repeat,
-                instance.struct_ver, instance
-            )
+            return [self.default]*repeat
 
         if self.default_factory is not None:
             if repeat == 1:
-                val = self.default_factory(instance.struct_ver, instance)
-                if isinstance(val, list):
-                    return self.atype(val, instance.struct_ver, instance)
+                val = self.default_factory(instance.struct_ver)
                 return val
-            return self.atype(
-                (self.default_factory(instance.struct_ver, instance) for _ in range(repeat)),
-                instance.struct_ver, instance
-            )
+            return [self.default_factory(instance.struct_ver) for _ in range(repeat)]
 
-        if self.dtype.is_struct:
-            if repeat == 1:
-                return self.dtype(struct_ver = instance.struct_ver, parent = instance).map()
-            return self.atype(
-                (self.dtype(struct_ver = instance.struct_ver, parent = instance).map() for _ in range(repeat)),
-                instance.struct_ver, instance
-            )
-
-        raise DefaultValueError(
+        raise DefaultAttributeError(
             f"Unable to auto-initialise '{self.p_name}' as a default value is not provided"
         )
 
@@ -239,30 +186,32 @@ class Retriever(MapValidate):
         """
         if not self.supported(instance.struct_ver):
             return
+        DebugByteStream.reader_ret = self.p_name
+
+        def call_on_reads():
+            for func in self.on_read:
+                func(self, instance)
 
         repeat = self.repeat(instance)
         if repeat == -1:
             setattr(instance, self.p_name, None)
+            call_on_reads()
             return
 
         def getobj():
-            if self.dtype.is_struct:
-                self.dtype: BaseStruct  # type: ignore
-                return self.dtype.from_stream(stream, struct_ver = instance.struct_ver, parent = instance)
-            return self.dtype.from_stream(stream, struct_ver = instance.struct_ver)
+            return self.dtype._from_stream(stream, struct_ver = instance.struct_ver)
 
         is_not_dynamic_repeat = not hasattr(instance, self.r_name)
         if repeat == 1 and is_not_dynamic_repeat:
             setattr(instance, self.p_name, getobj())
+            call_on_reads()
             return
 
         ls: list = [None] * repeat
         for i in range(repeat):
             ls[i] = getobj()
-        setattr(instance, self.p_name, self.atype(ls, instance.struct_ver, instance))
-
-        for func in self.on_read:
-            func(self, instance)
+        setattr(instance, self.p_name, ls)
+        call_on_reads()
 
     def to_bytes(self, instance: BaseStruct) -> bytes:
         """
@@ -283,7 +232,7 @@ class Retriever(MapValidate):
 
         is_not_dynamic_repeat = not hasattr(instance, self.r_name)
         if repeat == 1 and is_not_dynamic_repeat:
-            return self.dtype.to_bytes(getattr(instance, self.p_name))
+            return self.dtype._to_bytes(getattr(instance, self.p_name))
 
         ls: list = getattr(instance, self.p_name)
         if len(ls) != repeat:
@@ -291,6 +240,9 @@ class Retriever(MapValidate):
 
         bytes_ = BytesIO()
         for value in getattr(instance, self.p_name):
-            bytes_.write(self.dtype.to_bytes(value))
+            bytes_.write(self.dtype._to_bytes(value))
 
         return bytes_.getvalue()
+
+    def __str__(self) -> str:
+        return self.p_name
