@@ -6,10 +6,14 @@ use crate::errors::default_attribute_error::DefaultAttributeError;
 use crate::errors::parsing_error::ParsingError;
 use crate::errors::version_error::VersionError;
 
+use combinators::set_repeat::set_repeat_builder::set_repeat;
+use combinators::if_::if_builder::{if_, if_not};
+
 pub mod retrievers;
 pub mod errors;
 pub mod types;
 pub mod macros;
+pub mod combinators;
 
 fn le(py: Python, types: &Bound<PyModule>) -> PyResult<()> {
     let le = PyModule::new_bound(types.py(), "bfp_rs.types.le")?;
@@ -52,6 +56,18 @@ fn types(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
     Ok(())
 }
 
+fn combinators(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
+    let combinators = &PyModule::new_bound(bfp.py(), "bfp_rs.combinators")?;
+    py_run!(py, combinators, "import sys; sys.modules['bfp_rs.combinators'] = combinators");
+    bfp.add_submodule(combinators)?;
+
+    combinators.add_function(wrap_pyfunction!(set_repeat, combinators)?)?;
+    combinators.add_function(wrap_pyfunction!(if_, combinators)?)?;
+    combinators.add_function(wrap_pyfunction!(if_not, combinators)?)?;
+    
+    Ok(())
+}
+
 fn errors(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
     let errors = PyModule::new_bound(bfp.py(), "bfp_rs.errors")?;
     py_run!(py, errors, "import sys; sys.modules['bfp_rs.errors'] = errors");
@@ -74,6 +90,7 @@ fn binary_file_parser(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
 
     errors(py, bfp)?;
     types(py, bfp)?;
+    combinators(py, bfp)?;
 
     Ok(())
 }

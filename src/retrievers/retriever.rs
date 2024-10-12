@@ -3,7 +3,8 @@ use std::sync::Arc;
 use pyo3::prelude::*;
 use pyo3::types::PyType;
 use pyo3::{pyclass, PyObject};
-
+use crate::combinators::combinator::Combinator;
+use crate::combinators::combinator_type::CombinatorType;
 use crate::errors::version_error::VersionError;
 use crate::types::base_struct::BaseStruct;
 use crate::types::bfp_list::BfpList;
@@ -35,13 +36,16 @@ pub struct Retriever {
     
     pub remaining_compressed: bool,
     
-    pub on_read: Arc<Vec<PyObject>>,
-    pub on_write: Arc<Vec<PyObject>>,
+    pub on_read: Arc<Vec<CombinatorType>>,
+    pub on_write: Arc<Vec<CombinatorType>>,
+
+    tmp_on_read: Option<Arc<PyObject>>,
+    tmp_on_write: Option<Arc<PyObject>>,
     
     mappers: Arc<Vec<PyObject>>,
     validators: Arc<Vec<PyObject>>,
     
-    name: String,
+    pub name: String,
     pub idx: usize,
 }
 
@@ -69,11 +73,23 @@ impl Retriever {
         repeat: isize,
         remaining_compressed: bool,
 
-        on_read: Option<Vec<PyObject>>,
-        on_write: Option<Vec<PyObject>>,
+        on_read: Option<PyObject>,
+        on_write: Option<PyObject>,
+
         mappers: Option<Vec<PyObject>>,
         validators: Option<Vec<PyObject>>,
+
     ) -> PyResult<Self> {
+        let tmp_on_read = match on_read {
+            None => { None }
+            Some(obj) => { Some(Arc::new(obj)) }
+        };
+
+        let tmp_on_write = match on_write {
+            None => { None }
+            Some(obj) => { Some(Arc::new(obj)) }
+        };
+        
         Ok(Retriever {
             data_type,
             min_ver,
@@ -82,8 +98,10 @@ impl Retriever {
             default_factory: Arc::new(default_factory.unwrap_or(py.None())),
             repeat,
             remaining_compressed,
-            on_read: Arc::new(on_read.unwrap_or_else(Vec::new)),
-            on_write: Arc::new(on_write.unwrap_or_else(Vec::new)),
+            on_read: Arc::new(Vec::new()),
+            on_write: Arc::new(Vec::new()),
+            tmp_on_read,
+            tmp_on_write,
             idx: 0,
             name: String::new(),
             mappers: Arc::new(mappers.unwrap_or_else(Vec::new)),
@@ -98,18 +116,18 @@ impl Retriever {
 
     fn __get__<'py>(
         slf: Bound<'py, Retriever>,
-        instance: Bound<'py, BaseStruct>,
+        instance: Bound<'py, PyAny>,
         _owner: Bound<'py, PyType>,
     ) -> PyResult<Bound<'py, PyAny>> {
         if instance.is_none() {
             return Ok(slf.into_any())
         }
         let slf = slf.borrow();
-        let instance = instance.borrow();
+        let instance = instance.downcast::<BaseStruct>()?.borrow();
         if !slf.supported(&instance.ver) {
             let ver = &instance.ver;
             return Err(VersionError::new_err(format!(
-                "{} is not supported in struct version {ver}", slf.name
+                "'{}' is not supported in struct version {ver}", slf.name
             )))
         }
         let data = instance.data.read().expect("GIL bound read");
@@ -130,7 +148,7 @@ impl Retriever {
         if !slf.supported(&instance.ver) {
             let ver = &instance.ver;
             return Err(VersionError::new_err(format!(
-                "{} is not supported in struct version {ver}", slf.name
+                "'{}' is not supported in struct version {ver}", slf.name
             )))
         }
         let repeats = instance.repeats.read().expect("GIL bound read");
@@ -160,6 +178,54 @@ impl Retriever {
 }
 
 impl Retriever {
+    pub fn construct_fns(&mut self, py: Python) -> PyResult<()> {
+        match &self.tmp_on_read {
+            Some(obj) => {
+                self.on_read = Arc::new(obj.call0(py)?.extract::<Vec<CombinatorType>>(py)?);
+            }
+            _ => {}
+        };
+        self.tmp_on_read = None;
+
+        match &self.tmp_on_write {
+            Some(obj) => {
+                self.on_write = Arc::new(obj.call0(py)?.extract::<Vec<CombinatorType>>(py)?);
+            }
+            _ => {}
+        };
+        self.tmp_on_write = None;
+        
+        Ok(())
+    }
+    
+    #[cfg_attr(feature = "inline_always", inline(always))]
+    pub fn call_on_reads(
+        &self,
+        retrievers: &Vec<Retriever>,
+        data: &mut Vec<Option<ParseableType>>,
+        repeats: &mut Vec<Option<isize>>,
+        ver: &Version
+    ) -> PyResult<()> {
+        for combinator in self.on_read.iter() {
+            combinator.run(retrievers, data, repeats, ver)?;
+        }
+        Ok(())
+    }
+
+    #[cfg_attr(feature = "inline_always", inline(always))]
+    pub fn call_on_writes(
+        &self,
+        retrievers: &Vec<Retriever>,
+        data: &mut Vec<Option<ParseableType>>,
+        repeats: &mut Vec<Option<isize>>,
+        ver: &Version
+    ) -> PyResult<()> {
+        for combinator in self.on_write.iter() {
+            combinator.run(retrievers, data, repeats, ver)?;
+        }
+        Ok(())
+    }
+
     #[cfg_attr(feature = "inline_always", inline(always))]
     pub fn supported(&self, ver: &Version) -> bool {
         self.min_ver <= *ver && *ver <= self.max_ver

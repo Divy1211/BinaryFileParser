@@ -69,6 +69,10 @@ impl Struct {
         struct_.compress = get_if_impl(cls, "_compress");
         struct_.decompress = get_if_impl(cls, "_decompress");
 
+        for retriever in struct_.retrievers.write().expect("GIL bound write").iter_mut() {
+            retriever.construct_fns(cls.py())?
+        }
+        
         Ok(struct_)
     }
     
@@ -116,16 +120,16 @@ impl Parseable for Struct {
     fn from_stream(&self, stream: &mut ByteStream, ver: &Version) -> std::io::Result<BaseStruct> {
         let retrievers = self.retrievers.read().expect("immutable"); // todo: change to Arc<Vec<>> with builder pattern?
         let mut data = Vec::with_capacity(retrievers.len());
-        let repeats = vec![None; retrievers.len()];
+        let mut repeats = vec![None; retrievers.len()];
         
         let ver = self.get_ver(stream, ver)?;
         
         for retriever in retrievers.iter() {
-            if !retriever.supported(&ver) {
-                data.push(None);
-            }
             if retriever.remaining_compressed {
                 *stream = self.decompress(stream.remaining())?
+            }
+            if !retriever.supported(&ver) {
+                data.push(None);
             }
             
             data.push(Some(match retriever.state(&repeats) {
@@ -138,7 +142,9 @@ impl Parseable for Struct {
                     }
                     BfpList::new(ls, retriever.data_type.clone()).into()
                 }
-            }))
+            }));
+            
+            retriever.call_on_reads(&retrievers, &mut data, &mut repeats, &ver)?;
         }
         Ok(BaseStruct::new(ver.clone(), data, repeats))
     }

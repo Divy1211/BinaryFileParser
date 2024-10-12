@@ -1,8 +1,9 @@
+use std::cmp::Ordering;
 use std::collections::HashSet;
 use std::sync::Arc;
 use std::sync::RwLock;
 
-use pyo3::exceptions::{PyIndexError, PyValueError};
+use pyo3::exceptions::{PyIndexError, PyTypeError, PyValueError};
 use pyo3::prelude::{PyAnyMethods, PyTypeMethods};
 use pyo3::types::{PyInt, PySlice, PySliceIndices, PySliceMethods};
 use pyo3::{pyclass, pymethods, Bound, IntoPy, PyAny, PyRef, PyRefMut, PyResult};
@@ -23,6 +24,15 @@ impl BfpList {
             ls: Arc::new(RwLock::new(ls)),
             data_type
         }
+    }
+}
+
+impl PartialOrd for BfpList {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        let ls1 = self.ls.read().expect("GIL bound read");
+        let ls2 = other.ls.read().expect("GIL bound read");
+        
+        ls1.partial_cmp(&ls2)
     }
 }
 
@@ -137,17 +147,16 @@ impl BfpList {
         Ok(())
     }
     
-    fn sort(_slf: PyRefMut<BfpList>) -> PyResult<()> {
-        // let mut ls = slf.ls.write().expect("GIL bound write");
-        // if !slf.data_type.is_ord() {
-        //     return Err(PyTypeError::new_err(format!(
-        //         "Can't sort list because comparing instances of '{}' is not supported",
-        //         slf.data_type.py_name()
-        //     )));
-        // }
-        // ls.sort();
-        // Ok(())
-        todo!();
+    fn sort(slf: PyRefMut<BfpList>) -> PyResult<()> {
+        let mut ls = slf.ls.write().expect("GIL bound write");
+        if !slf.data_type.is_ord() {
+            return Err(PyTypeError::new_err(format!(
+                "Can't sort list because comparing instances of '{}' is not supported",
+                slf.data_type.py_name()
+            )));
+        }
+        ls.sort_by(|a, b| a.partial_cmp(b).expect("BfpType::is_ord is bugged"));
+        Ok(())
     }
 
     fn copy(slf: PyRefMut<BfpList>) -> Self {
