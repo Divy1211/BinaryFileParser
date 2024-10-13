@@ -88,7 +88,7 @@ impl BaseStruct {
         let struct_ = match cls.getattr("struct") {
             Ok(struct_) => struct_.downcast_into::<Struct>()?,
             Err(_) => {
-                let struct_ = Bound::new(cls.py(), Struct::new(cls.extract()?))?;
+                let struct_ = Bound::new(cls.py(), Struct::new(cls.extract()?, cls.fully_qualified_name()?.to_string()))?;
                 cls.setattr("struct", &struct_)?;
                 struct_
             },

@@ -15,16 +15,26 @@ use crate::types::parseable::Parseable;
 use crate::types::parseable_type::ParseableType;
 use crate::types::version::Version;
 
-#[pyclass(module = "bfp_rs")]
+#[pyclass(module = "bfp_rs", eq)]
 #[derive(Debug, Clone)]
 pub struct Struct {
     pub retrievers: Arc<RwLock<Vec<Retriever>>>,
     pub py_type: Arc<Py<PyType>>,
-
+    pub fully_qualified_name: String,
+    
     pub get_ver: Option<Arc<PyObject>>,
     pub compress: Option<Arc<PyObject>>,
     pub decompress: Option<Arc<PyObject>>,
 }
+
+impl PartialEq for Struct {
+    fn eq(&self, other: &Self) -> bool {
+        self.fully_qualified_name == other.fully_qualified_name
+    }
+}
+
+impl Eq for Struct {}
+
 
 #[pymethods]
 impl Struct {
@@ -40,11 +50,12 @@ impl Struct {
 }
 
 impl Struct {
-    pub fn new(py_type: Py<PyType>) -> Self {
+    pub fn new(py_type: Py<PyType>, fully_qualified_name: String) -> Self {
         Struct {
             retrievers: Arc::new(RwLock::new(Vec::with_capacity(1))),
             py_type: Arc::new(py_type),
-
+            fully_qualified_name,
+            
             get_ver: None,
             compress: None,
             decompress: None,

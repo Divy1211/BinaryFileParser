@@ -13,7 +13,7 @@ use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::{PyAnyMethods, PyTypeMethods};
 
 #[pyclass]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum BfpType {
     UInt8(UInt8),
     UInt16(UInt16),
@@ -85,6 +85,24 @@ impl BfpType {
         }.into()
     }
 
+    pub fn to_parseable_from_usize(&self, value: usize) -> Option<ParseableType> {
+        match self {
+            BfpType::UInt8(_)   => { Some(ParseableType::UInt8(value as u8)) },
+            BfpType::UInt16(_)  => { Some(ParseableType::UInt16(value as u16)) },
+            BfpType::UInt32(_)  => { Some(ParseableType::UInt32(value as u32)) },
+            BfpType::UInt64(_)  => { Some(ParseableType::UInt64(value as u64)) },
+            BfpType::UInt128(_) => { Some(ParseableType::UInt128(value as u128)) },
+            
+            BfpType::Int8(_)    => { Some(ParseableType::Int8(value as i8)) },
+            BfpType::Int16(_)   => { Some(ParseableType::Int16(value as i16)) },
+            BfpType::Int32(_)   => { Some(ParseableType::Int32(value as i32)) },
+            BfpType::Int64(_)   => { Some(ParseableType::Int64(value as i64)) },
+            BfpType::Int128(_)  => { Some(ParseableType::Int128(value as i128)) },
+            
+            _                   => { None }
+        }
+    }
+    
     pub fn to_parseable(&self, value: &Bound<'_, PyAny>) -> PyResult<ParseableType> {
         Ok(match self {
             BfpType::UInt8(_)   => value.extract::<u8>()?.into(),

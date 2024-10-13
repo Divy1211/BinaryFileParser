@@ -3,11 +3,11 @@ use pyo3::exceptions::{PyTypeError, PyValueError};
 use pyo3::prelude::*;
 
 use crate::combinators::combinator_type::CombinatorType;
-use crate::combinators::if_::if_check::IfCheck;
-use crate::combinators::if_::if_cmp_from::IfCmpFrom;
-use crate::combinators::if_::if_cmp_len_from::IfCmpLenFrom;
-use crate::combinators::if_::if_cmp_len_to::IfCmpLenTo;
-use crate::combinators::if_::if_cmp_to::IfCmpTo;
+use crate::combinators::r#if::if_check::IfCheck;
+use crate::combinators::r#if::if_cmp_from::IfCmpFrom;
+use crate::combinators::r#if::if_cmp_len_from::IfCmpLenFrom;
+use crate::combinators::r#if::if_cmp_len_to::IfCmpLenTo;
+use crate::combinators::r#if::if_cmp_to::IfCmpTo;
 use crate::retrievers::retriever::Retriever;
 use crate::types::bfp_type::BfpType;
 use crate::types::le::int::Int8;

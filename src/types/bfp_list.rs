@@ -15,7 +15,7 @@ use crate::types::parseable_type::ParseableType;
 #[derive(Debug, Clone)]
 pub struct BfpList {
     ls: Arc<RwLock<Vec<ParseableType>>>,
-    data_type: BfpType,
+    pub data_type: BfpType,
 }
 
 impl BfpList {

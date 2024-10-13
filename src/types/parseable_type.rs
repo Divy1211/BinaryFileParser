@@ -1,4 +1,5 @@
 use std::cmp::Ordering;
+use std::env::consts::FAMILY;
 use std::sync::Arc;
 
 use pyo3::types::PyType;
@@ -7,6 +8,7 @@ use pyo3::{Bound, IntoPy, Py, PyAny, Python};
 use crate::{impl_from_for_parseable_type, impl_try_into_for_parseable_type};
 use crate::types::base_struct::BaseStruct;
 use crate::types::bfp_list::BfpList;
+use crate::types::bfp_type::BfpType;
 
 #[derive(Debug, Clone)]
 pub enum ParseableType {
@@ -40,6 +42,13 @@ pub enum ParseableType {
 }
 
 impl ParseableType {
+    pub fn is_ls_of(&self, bfp_type: &BfpType) -> bool {
+        match self {
+            ParseableType::Array(val) => val.data_type == *bfp_type,
+            _ => false,
+        }
+    }
+    
     pub fn to_bound(self, py: Python) -> Bound<'_, PyAny> {
         match self {
             ParseableType::None                 => py.None().into_bound(py),

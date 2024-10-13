@@ -7,7 +7,8 @@ use crate::errors::parsing_error::ParsingError;
 use crate::errors::version_error::VersionError;
 
 use combinators::set_repeat::set_repeat_builder::set_repeat;
-use combinators::if_::if_builder::{if_, if_not, if_len};
+use combinators::r#if::if_builder::{if_, if_not, if_len};
+use combinators::set::set_builder::set;
 
 pub mod retrievers;
 pub mod errors;
@@ -65,6 +66,7 @@ fn combinators(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
     combinators.add_function(wrap_pyfunction!(if_, combinators)?)?;
     combinators.add_function(wrap_pyfunction!(if_not, combinators)?)?;
     combinators.add_function(wrap_pyfunction!(if_len, combinators)?)?;
+    combinators.add_function(wrap_pyfunction!(set, combinators)?)?;
     
     Ok(())
 }
