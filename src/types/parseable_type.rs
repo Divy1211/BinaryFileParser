@@ -4,7 +4,7 @@ use std::sync::Arc;
 use pyo3::types::PyType;
 use pyo3::{Bound, IntoPy, Py, PyAny, Python};
 
-use crate::impl_from_for_parseable_type;
+use crate::{impl_from_for_parseable_type, impl_try_into_for_parseable_type};
 use crate::types::base_struct::BaseStruct;
 use crate::types::bfp_list::BfpList;
 
@@ -156,27 +156,8 @@ impl PartialEq for ParseableType {
 
 impl Eq for ParseableType {}
 
-impl TryFrom<&ParseableType> for isize {
-    type Error = ();
-
-    fn try_from(value: &ParseableType) -> Result<Self, Self::Error> {
-        match value {
-            ParseableType::UInt8(val)   => Ok(*val as isize),
-            ParseableType::UInt16(val)  => Ok(*val as isize),
-            ParseableType::UInt32(val)  => Ok(*val as isize),
-            ParseableType::UInt64(val)  => Ok(*val as isize),
-            ParseableType::UInt128(val) => Ok(*val as isize),
-
-            ParseableType::Int8(val)    => Ok(*val as isize),
-            ParseableType::Int16(val)   => Ok(*val as isize),
-            ParseableType::Int32(val)   => Ok(*val as isize),
-            ParseableType::Int64(val)   => Ok(*val as isize),
-            ParseableType::Int128(val)  => Ok(*val as isize),
-
-            _ => Err(()),
-        }
-    }
-}
+impl_try_into_for_parseable_type!(isize);
+impl_try_into_for_parseable_type!(usize);
 
 impl_from_for_parseable_type!(u8, UInt8);
 impl_from_for_parseable_type!(u16, UInt16);

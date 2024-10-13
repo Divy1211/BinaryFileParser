@@ -47,6 +47,17 @@ impl BfpType {
         }
     }
 
+    pub fn is_bool(&self) -> bool {
+        match self {
+            BfpType::Bool8(_)   => true,
+            BfpType::Bool16(_)  => true,
+            BfpType::Bool32(_)  => true,
+            BfpType::Bool64(_)  => true,
+            BfpType::Bool128(_) => true,
+            _ => false,
+        }
+    }
+
     pub fn py_name(&self) -> String {
         match self {
             BfpType::UInt8(_)   => "int",

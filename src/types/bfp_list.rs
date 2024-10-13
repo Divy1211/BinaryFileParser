@@ -25,6 +25,10 @@ impl BfpList {
             data_type
         }
     }
+    
+    pub fn len(&self) -> usize {
+        self.ls.read().expect("GIL Bound read").len()
+    }
 }
 
 impl PartialOrd for BfpList {

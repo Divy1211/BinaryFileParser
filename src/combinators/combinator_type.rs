@@ -1,7 +1,10 @@
 use pyo3::{pyclass, PyResult};
 
 use crate::combinators::combinator::Combinator;
+use crate::combinators::if_::if_check::IfCheck;
 use crate::combinators::if_::if_cmp_from::IfCmpFrom;
+use crate::combinators::if_::if_cmp_len_from::IfCmpLenFrom;
+use crate::combinators::if_::if_cmp_len_to::IfCmpLenTo;
 use crate::combinators::if_::if_cmp_to::IfCmpTo;
 use crate::combinators::set_repeat::set_repeat_from::SetRepeatFrom;
 use crate::combinators::set_repeat::set_repeat_to::SetRepeatTo;
@@ -15,8 +18,12 @@ use crate::types::version::Version;
 pub enum CombinatorType {
     SetRepeatFrom(SetRepeatFrom),
     SetRepeatTo(SetRepeatTo),
+    
     IfCmpFrom(IfCmpFrom),
     IfCmpTo(IfCmpTo),
+    IfCheck(IfCheck),
+    IfCmpLenFrom(IfCmpLenFrom),
+    IfCmpLenTo(IfCmpLenTo),
 }
 
 impl Combinator for CombinatorType {
@@ -24,13 +31,21 @@ impl Combinator for CombinatorType {
         match self {
             CombinatorType::SetRepeatFrom(com) => com.run(retrievers, data, repeats, ver),
             CombinatorType::SetRepeatTo(com)   => com.run(retrievers, data, repeats, ver),
+            
             CombinatorType::IfCmpFrom(com)     => com.run(retrievers, data, repeats, ver),
             CombinatorType::IfCmpTo(com)       => com.run(retrievers, data, repeats, ver),
+            CombinatorType::IfCmpLenFrom(com)  => com.run(retrievers, data, repeats, ver),
+            CombinatorType::IfCmpLenTo(com)    => com.run(retrievers, data, repeats, ver),
+            CombinatorType::IfCheck(com)       => com.run(retrievers, data, repeats, ver),
         }
     }
 }
 
 impl_from_for_combinator_type!(SetRepeatFrom, SetRepeatFrom);
 impl_from_for_combinator_type!(SetRepeatTo, SetRepeatTo);
+
 impl_from_for_combinator_type!(IfCmpFrom, IfCmpFrom);
 impl_from_for_combinator_type!(IfCmpTo, IfCmpTo);
+impl_from_for_combinator_type!(IfCmpLenFrom, IfCmpLenFrom);
+impl_from_for_combinator_type!(IfCmpLenTo, IfCmpLenTo);
+impl_from_for_combinator_type!(IfCheck, IfCheck);
