@@ -12,17 +12,17 @@ use crate::types::version::Version;
 #[pyclass]
 #[derive(Debug, Clone)]
 pub struct IfCmpTo {
-    val1: usize,
-    val2: ParseableType,
+    target: usize,
+    source: ParseableType,
     ord: Vec<Ordering>,
     com: Box<CombinatorType>,
 }
 
 impl IfCmpTo {
-    pub fn new(val1: usize, val2: ParseableType, ord: Vec<Ordering>, com: CombinatorType) -> Self {
+    pub fn new(target: usize, source: ParseableType, ord: Vec<Ordering>, com: CombinatorType) -> Self {
         IfCmpTo {
-            val1,
-            val2,
+            target,
+            source,
             ord,
             com: Box::new(com),
         }
@@ -37,11 +37,11 @@ impl Combinator for IfCmpTo {
         repeats: &mut Vec<Option<isize>>,
         ver: &Version
     ) -> PyResult<()> {
-        check_initialized(self.val1, retrievers, data)?;
+        check_initialized(self.target, retrievers, data)?;
 
-        let val1 = get(self.val1, retrievers, data, ver)?;
+        let target = get(self.target, retrievers, data, ver)?;
 
-        let ord = val1.partial_cmp(&self.val2).expect("infallible");
+        let ord = target.partial_cmp(&self.source).expect("infallible");
         
         if self.ord.contains(&ord) {
             self.com.run(retrievers, data, repeats, ver)?;

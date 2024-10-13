@@ -13,17 +13,17 @@ use crate::types::version::Version;
 #[pyclass]
 #[derive(Debug, Clone)]
 pub struct IfCmpLenFrom {
-    val1: usize,
-    val2: usize,
+    target: usize,
+    source: usize,
     ord: Vec<Ordering>,
     com: Box<CombinatorType>,
 }
 
 impl IfCmpLenFrom {
-    pub fn new(val1: usize, val2: usize, ord: Vec<Ordering>, com: CombinatorType) -> Self {
+    pub fn new(target: usize, source: usize, ord: Vec<Ordering>, com: CombinatorType) -> Self {
         IfCmpLenFrom {
-            val1,
-            val2,
+            target,
+            source,
             ord,
             com: Box::new(com),
         }
@@ -38,21 +38,21 @@ impl Combinator for IfCmpLenFrom {
         repeats: &mut Vec<Option<isize>>,
         ver: &Version
     ) -> PyResult<()> {
-        check_initialized(self.val1, retrievers, data)?;
-        check_initialized(self.val2, retrievers, data)?;
+        check_initialized(self.target, retrievers, data)?;
+        check_initialized(self.source, retrievers, data)?;
 
-        let Ok(val1) = BfpList::try_from(get(self.val1, retrievers, data, ver)?) else {
+        let Ok(target) = BfpList::try_from(get(self.target, retrievers, data, ver)?) else {
             return Err(PyTypeError::new_err(format!(
-                "IfCmpLenFrom: '{}' cannot be interpreted as a list", retrievers[self.val1].name
+                "IfCmpLenFrom: '{}' cannot be interpreted as a list", retrievers[self.target].name
             )))
         };
-        let Ok(val2) = get(self.val2, retrievers, data, ver)?.try_into() else {
+        let Ok(source) = get(self.source, retrievers, data, ver)?.try_into() else {
             return Err(PyTypeError::new_err(format!(
-                "IfCmpLenFrom: '{}' cannot be interpreted as an integer", retrievers[self.val2].name
+                "IfCmpLenFrom: '{}' cannot be interpreted as an integer", retrievers[self.source].name
             )))
         };
         
-        let ord = val1.len().cmp(&val2);
+        let ord = target.len().cmp(&source);
         
         if self.ord.contains(&ord) {
             self.com.run(retrievers, data, repeats, ver)?;

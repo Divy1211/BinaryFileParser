@@ -8,13 +8,13 @@ use crate::types::version::Version;
 #[pyclass]
 #[derive(Debug, Clone)]
 pub struct SetRepeatTo {
-    of: usize,
-    to: isize,
+    target: usize,
+    source: isize,
 }
 
 impl SetRepeatTo {
-    pub fn new(of: usize, to: isize) -> Self {
-        SetRepeatTo { of, to, }
+    pub fn new(target: usize, source: isize) -> Self {
+        SetRepeatTo { target, source, }
     }
 }
 
@@ -26,7 +26,7 @@ impl Combinator for SetRepeatTo {
         repeats: &mut Vec<Option<isize>>,
         _ver: &Version
     ) -> PyResult<()> {
-        repeats[self.of] = Some(self.to);
+        repeats[self.target] = Some(self.source);
         Ok(())
     }
 }

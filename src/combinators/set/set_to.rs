@@ -9,13 +9,13 @@ use crate::types::version::Version;
 #[pyclass]
 #[derive(Debug, Clone)]
 pub struct SetTo {
-    of: usize,
-    to: ParseableType,
+    target: usize,
+    source: ParseableType,
 }
 
 impl SetTo {
-    pub fn new(of: usize, to: ParseableType) -> Self {
-        SetTo { of, to, }
+    pub fn new(target: usize, source: ParseableType) -> Self {
+        SetTo { target, source, }
     }
 }
 
@@ -27,15 +27,15 @@ impl Combinator for SetTo {
         repeats: &mut Vec<Option<isize>>,
         _ver: &Version
     ) -> PyResult<()> {
-        let of = &retrievers[self.of];
+        let target = &retrievers[self.target];
         
-        data[self.of] = Some(match of.state(&repeats) {
-            RetState::List if !self.to.is_ls_of(&of.data_type) => {
+        data[self.target] = Some(match target.state(&repeats) {
+            RetState::List if !self.source.is_ls_of(&target.data_type) => {
                 return Err(PyTypeError::new_err(format!(
-                    "SetTo: Unable to set '{}' from value of incorrect type", of.name
+                    "SetTo: Unable to set '{}' from value of incorrect type", target.name
                 )))
             }
-            _ => { self.to.clone() }
+            _ => { self.source.clone() }
         });
         Ok(())
     }

@@ -13,17 +13,17 @@ use crate::types::version::Version;
 #[pyclass]
 #[derive(Debug, Clone)]
 pub struct IfCmpLenTo {
-    val1: usize,
-    val2: usize,
+    target: usize,
+    source: usize,
     ord: Vec<Ordering>,
     com: Box<CombinatorType>,
 }
 
 impl IfCmpLenTo {
-    pub fn new(val1: usize, val2: usize, ord: Vec<Ordering>, com: CombinatorType) -> Self {
+    pub fn new(target: usize, source: usize, ord: Vec<Ordering>, com: CombinatorType) -> Self {
         IfCmpLenTo {
-            val1,
-            val2,
+            target,
+            source,
             ord,
             com: Box::new(com),
         }
@@ -38,15 +38,15 @@ impl Combinator for IfCmpLenTo {
         repeats: &mut Vec<Option<isize>>,
         ver: &Version
     ) -> PyResult<()> {
-        check_initialized(self.val1, retrievers, data)?;
+        check_initialized(self.target, retrievers, data)?;
 
-        let Ok(val1) = BfpList::try_from(get(self.val1, retrievers, data, ver)?) else {
+        let Ok(target) = BfpList::try_from(get(self.target, retrievers, data, ver)?) else {
             return Err(PyTypeError::new_err(format!(
-                "IfCmpLenTo: '{}' cannot be interpreted as a list", retrievers[self.val1].name
+                "IfCmpLenTo: '{}' cannot be interpreted as a list", retrievers[self.target].name
             )))
         };
 
-        let ord = val1.len().cmp(&self.val2);
+        let ord = target.len().cmp(&self.source);
         
         if self.ord.contains(&ord) {
             self.com.run(retrievers, data, repeats, ver)?;

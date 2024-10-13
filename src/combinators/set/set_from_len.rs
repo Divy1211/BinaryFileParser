@@ -11,13 +11,13 @@ use crate::types::version::Version;
 #[pyclass]
 #[derive(Debug, Clone)]
 pub struct SetFromLen {
-    of: usize,
-    from: usize,
+    target: usize,
+    source: usize,
 }
 
 impl SetFromLen {
-    pub fn new(of: usize, from: usize) -> Self {
-        SetFromLen { of, from, }
+    pub fn new(target: usize, source: usize) -> Self {
+        SetFromLen { target, source }
     }
 }
 
@@ -29,28 +29,28 @@ impl Combinator for SetFromLen {
         repeats: &mut Vec<Option<isize>>,
         ver: &Version
     ) -> PyResult<()> {
-        check_initialized(self.of, retrievers, data)?;
-        check_initialized(self.from, retrievers, data)?;
+        check_initialized(self.target, retrievers, data)?;
+        check_initialized(self.source, retrievers, data)?;
 
-        let to = match BfpList::try_from(get(self.from, retrievers, data, ver)?) {
+        let source = match BfpList::try_from(get(self.source, retrievers, data, ver)?) {
             Ok(ls) => { ls.len() }
             Err(_) => {
                 return Err(PyTypeError::new_err(format!(
-                    "SetFromLen: '{}' cannot be interpreted as a list", retrievers[self.from].name
+                    "SetFromLen: '{}' cannot be interpreted as a list", retrievers[self.source].name
                 )))
             }
         };
 
-        let of = &retrievers[self.of];
-        let to = of.data_type.to_parseable_from_usize(to);
+        let target = &retrievers[self.target];
+        let source = target.data_type.to_parseable_from_usize(source);
         
-        data[self.of] = match (of.state(&repeats), to) {
+        data[self.target] = match (target.state(&repeats), source) {
             (RetState::List, _) | (_, None) => {
                 return Err(PyTypeError::new_err(format!(
-                    "SetTo: '{}' cannot be set to an integer", of.name
+                    "SetTo: '{}' cannot be set to an integer", target.name
                 )))
             }
-            (_, to) => { to }
+            (_, source) => { source }
         };
         Ok(())
     }

@@ -10,13 +10,13 @@ use crate::types::version::Version;
 #[pyclass]
 #[derive(Debug, Clone)]
 pub struct SetRepeatFrom {
-    of: usize,
-    from: usize,
+    target: usize,
+    source: usize,
 }
 
 impl SetRepeatFrom {
-    pub fn new(of: usize, from: usize) -> Self {
-        SetRepeatFrom { of, from, }
+    pub fn new(target: usize, source: usize) -> Self {
+        SetRepeatFrom { target, source }
     }
 }
 
@@ -28,16 +28,17 @@ impl Combinator for SetRepeatFrom {
         repeats: &mut Vec<Option<isize>>,
         ver: &Version
     ) -> PyResult<()> {
-        check_initialized(self.from, retrievers, data)?;
-        let repeat = get(self.from, retrievers, data, ver)?;
+        check_initialized(self.source, retrievers, data)?;
         
-        let Ok(repeat) = repeat.try_into() else {
+        let source = get(self.source, retrievers, data, ver)?;
+        
+        let Ok(source) = source.try_into() else {
             return Err(PyTypeError::new_err(format!(
-                "SetRepeat: '{}' cannot be interpreted as an integer", retrievers[self.from].name
+                "SetRepeat: '{}' cannot be interpreted as an integer", retrievers[self.source].name
             )))
         };
         
-        repeats[self.of] = Some(repeat);
+        repeats[self.target] = Some(source);
         Ok(())
     }
 }

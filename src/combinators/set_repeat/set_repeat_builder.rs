@@ -6,30 +6,29 @@ use crate::retrievers::retriever::Retriever;
 
 #[pyclass]
 pub struct SetRepeatBuilder {
-    of: usize
+    target: usize
 }
 
 #[pymethods]
 impl SetRepeatBuilder {
-    pub fn from_(&self, from: Bound<Retriever>) -> CombinatorType {
+    pub fn from_(&self, target: Bound<Retriever>) -> CombinatorType {
         SetRepeatFrom::new(
-            self.of,
-            from.borrow().idx,
+            self.target,
+            target.borrow().idx,
         ).into()
     }
     
-    pub fn to(&self, val: Bound<PyAny>) -> PyResult<CombinatorType> {
+    pub fn to(&self, target: Bound<PyAny>) -> PyResult<CombinatorType> {
         Ok(
             SetRepeatTo::new(
-                self.of,
-                val.extract()?,
+                self.target,
+                target.extract()?,
             ).into()
         )
     }
 }
 
 #[pyfunction]
-pub fn set_repeat(of: Bound<Retriever>) -> SetRepeatBuilder {
-    let of = of.borrow().idx;
-    SetRepeatBuilder { of }
+pub fn set_repeat(target: PyRef<Retriever>) -> SetRepeatBuilder {
+    SetRepeatBuilder { target: target.idx }
 }

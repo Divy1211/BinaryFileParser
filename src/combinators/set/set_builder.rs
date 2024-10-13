@@ -8,22 +8,22 @@ use crate::types::bfp_type::BfpType;
 
 #[pyclass]
 pub struct SetBuilder {
-    of: usize,
-    data_type: BfpType
+    target: usize,
+    target_data_type: BfpType
 }
 
 #[pymethods]
 impl SetBuilder {
     pub fn from_(&self, from: Bound<Retriever>) -> CombinatorType {
         SetFrom::new(
-            self.of,
+            self.target,
             from.borrow().idx,
         ).into()
     }
 
     pub fn from_len(&self, from: Bound<Retriever>) -> CombinatorType {
         SetFromLen::new(
-            self.of,
+            self.target,
             from.borrow().idx,
         ).into()
     }
@@ -31,17 +31,17 @@ impl SetBuilder {
     pub fn to(&self, val: &Bound<PyAny>) -> PyResult<CombinatorType> {
         Ok(
             SetTo::new(
-                self.of,
-                self.data_type.to_parseable(val)?,
+                self.target,
+                self.target_data_type.to_parseable(val)?, // todo: figure this out
             ).into()
         )
     }
 }
 
 #[pyfunction]
-pub fn set(of: PyRef<Retriever>) -> SetBuilder {
+pub fn set(target: PyRef<Retriever>) -> SetBuilder {
     SetBuilder {
-        of: of.idx,
-        data_type: of.data_type.clone(),
+        target: target.idx,
+        target_data_type: target.data_type.clone(),
     }
 }

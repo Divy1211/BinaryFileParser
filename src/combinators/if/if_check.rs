@@ -11,14 +11,14 @@ use crate::types::version::Version;
 #[pyclass]
 #[derive(Debug, Clone)]
 pub struct IfCheck {
-    val: usize,
+    source: usize,
     com: Box<CombinatorType>,
 }
 
 impl IfCheck {
-    pub fn new(val: usize, com: CombinatorType) -> Self {
+    pub fn new(source: usize, com: CombinatorType) -> Self {
         IfCheck {
-            val,
+            source,
             com: Box::new(com),
         }
     }
@@ -32,15 +32,15 @@ impl Combinator for IfCheck {
         repeats: &mut Vec<Option<isize>>,
         ver: &Version
     ) -> PyResult<()> {
-        check_initialized(self.val, retrievers, data)?;
+        check_initialized(self.source, retrievers, data)?;
 
-        let Ok(val) = get(self.val, retrievers, data, ver)?.try_into() else {
+        let Ok(source_val) = get(self.source, retrievers, data, ver)?.try_into() else {
             return Err(PyTypeError::new_err(format!(
-                "IfCheck: '{}' cannot be interpreted as a boolean", retrievers[self.val].name
+                "IfCheck: '{}' cannot be interpreted as a boolean", retrievers[self.source].name
             )))
         };
         
-        if val {
+        if source_val {
             self.com.run(retrievers, data, repeats, ver)?;
         }
         Ok(())

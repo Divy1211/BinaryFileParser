@@ -10,13 +10,13 @@ use crate::types::version::Version;
 #[pyclass]
 #[derive(Debug, Clone)]
 pub struct SetFrom {
-    of: usize,
-    from: usize,
+    target: usize,
+    source: usize,
 }
 
 impl SetFrom {
-    pub fn new(of: usize, from: usize) -> Self {
-        SetFrom { of, from, }
+    pub fn new(target: usize, source: usize) -> Self {
+        SetFrom { target, source }
     }
 }
 
@@ -28,20 +28,20 @@ impl Combinator for SetFrom {
         repeats: &mut Vec<Option<isize>>,
         ver: &Version
     ) -> PyResult<()> {
-        check_initialized(self.of, retrievers, data)?;
-        check_initialized(self.from, retrievers, data)?;
-        
-        let to = get(self.from, retrievers, data, ver)?;
-        
-        let of = &retrievers[self.of];
+        check_initialized(self.target, retrievers, data)?;
+        check_initialized(self.source, retrievers, data)?;
 
-        data[self.of] = Some(match of.state(&repeats) {
-            RetState::List if !to.is_ls_of(&of.data_type) => {
+        let source = get(self.source, retrievers, data, ver)?;
+
+        let target = &retrievers[self.target];
+
+        data[self.target] = Some(match target.state(&repeats) {
+            RetState::List if !source.is_ls_of(&target.data_type) => {
                 return Err(PyTypeError::new_err(format!(
-                    "SetTo: Unable to set '{}' from {}", of.name, retrievers[self.from].name
+                    "SetTo: Unable to set '{}' from {}", target.name, retrievers[self.source].name
                 )))
             }
-            _ => { to.clone() }
+            _ => { source.clone() }
         });
         Ok(())
     }
