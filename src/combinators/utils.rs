@@ -1,4 +1,4 @@
-use pyo3::exceptions::PyValueError;
+use pyo3::exceptions::{PyIndexError, PyValueError};
 use pyo3::PyResult;
 
 use crate::errors::version_error::VersionError;
@@ -35,4 +35,69 @@ pub fn get<'a>(
     };
     
     Ok(repeat)
+}
+
+pub fn get2(
+    idxes: &[usize],
+    retrievers: &Vec<Retriever>,
+    data: &Vec<Option<ParseableType>>,
+    ver: &Version,
+) -> PyResult<ParseableType> {
+    let idx = idxes[0];
+    if idx > retrievers.len() {
+        return Err(PyIndexError::new_err(
+            "Combinator: Illegal retriever index"
+        ))
+    }
+    let ret = &retrievers[idx];
+    if idx >= data.len() {
+        return Err(PyValueError::new_err(format!(
+            "Combinator: '{}' has not been initialised yet", ret.name
+        )))
+    }
+    let val = &data[idx];
+    match val {
+        None => {
+            Err(VersionError::new_err(format!(
+                "Combinator: '{}' is not supported in struct version {ver}", ret.name
+            )))
+        },
+        Some(val) => {
+            if idxes.len() == 1 {
+                return Ok(val.clone());
+            }
+            from_parseable_type(val, idxes, ver, &ret.name)
+        }
+    }
+}
+
+fn from_parseable_type(
+    val: &ParseableType,
+    idxes: &[usize],
+    ver: &Version,
+    name: &String,
+) -> PyResult<ParseableType> {
+    match val {
+        ParseableType::Struct { val, struct_ } => {
+            let sub_data = val.data.read().expect("GIL bound read");
+            let sub_rets = struct_.retrievers.read().expect("GIL bound read");
+
+            get2(
+                &idxes[1..],
+                &sub_rets,
+                &sub_data,
+                &val.ver
+            )
+        },
+        ParseableType::Array(ls) => {
+            let idx = idxes[1];
+            let val = ls.ls.read().expect("GIL bound read");
+            from_parseable_type(&val[idx], idxes, ver, name)
+        },
+        _ => {
+            Err(VersionError::new_err(format!(
+                "Combinator: Attempting sub-property/index access on non struct/list '{}'", name
+            )))
+        }
+    }
 }

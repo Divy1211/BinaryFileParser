@@ -9,6 +9,7 @@ use crate::{impl_from_for_parseable_type, impl_try_into_for_parseable_type};
 use crate::types::base_struct::BaseStruct;
 use crate::types::bfp_list::BfpList;
 use crate::types::bfp_type::BfpType;
+use crate::types::r#struct::Struct;
 
 #[derive(Debug, Clone)]
 pub enum ParseableType {
@@ -38,7 +39,7 @@ pub enum ParseableType {
     
     Option(Option<Box<ParseableType>>),
     
-    Struct(BaseStruct, Arc<Py<PyType>>),
+    Struct { val: BaseStruct, struct_: Struct },
 }
 
 impl ParseableType {
@@ -51,33 +52,33 @@ impl ParseableType {
     
     pub fn to_bound(self, py: Python) -> Bound<'_, PyAny> {
         match self {
-            ParseableType::None                 => py.None().into_bound(py),
-            ParseableType::UInt8(val)           => val.into_py(py).into_bound(py),
-            ParseableType::UInt16(val)          => val.into_py(py).into_bound(py),
-            ParseableType::UInt32(val)          => val.into_py(py).into_bound(py),
-            ParseableType::UInt64(val)          => val.into_py(py).into_bound(py),
-            ParseableType::UInt128(val)         => val.into_py(py).into_bound(py),
+            ParseableType::None                         => py.None().into_bound(py),
+            ParseableType::UInt8(val)                   => val.into_py(py).into_bound(py),
+            ParseableType::UInt16(val)                  => val.into_py(py).into_bound(py),
+            ParseableType::UInt32(val)                  => val.into_py(py).into_bound(py),
+            ParseableType::UInt64(val)                  => val.into_py(py).into_bound(py),
+            ParseableType::UInt128(val)                 => val.into_py(py).into_bound(py),
 
-            ParseableType::Int8(val)            => val.into_py(py).into_bound(py),
-            ParseableType::Int16(val)           => val.into_py(py).into_bound(py),
-            ParseableType::Int32(val)           => val.into_py(py).into_bound(py),
-            ParseableType::Int64(val)           => val.into_py(py).into_bound(py),
-            ParseableType::Int128(val)          => val.into_py(py).into_bound(py),
+            ParseableType::Int8(val)                    => val.into_py(py).into_bound(py),
+            ParseableType::Int16(val)                   => val.into_py(py).into_bound(py),
+            ParseableType::Int32(val)                   => val.into_py(py).into_bound(py),
+            ParseableType::Int64(val)                   => val.into_py(py).into_bound(py),
+            ParseableType::Int128(val)                  => val.into_py(py).into_bound(py),
 
-            ParseableType::Float32(val)         => val.into_py(py).into_bound(py),
-            ParseableType::Float64(val)         => val.into_py(py).into_bound(py),
+            ParseableType::Float32(val)                 => val.into_py(py).into_bound(py),
+            ParseableType::Float64(val)                 => val.into_py(py).into_bound(py),
 
-            ParseableType::Bool(val)            => val.into_py(py).into_bound(py),
+            ParseableType::Bool(val)                    => val.into_py(py).into_bound(py),
 
-            ParseableType::Str(val)             => val.into_py(py).into_bound(py),
+            ParseableType::Str(val)                     => val.into_py(py).into_bound(py),
 
-            ParseableType::Array(val)           => val.into_py(py).into_bound(py),
+            ParseableType::Array(val)                   => val.into_py(py).into_bound(py),
 
-            ParseableType::Bytes(val)           => val.into_py(py).into_bound(py),
+            ParseableType::Bytes(val)                   => val.into_py(py).into_bound(py),
 
-            ParseableType::Option(_val)         => todo!(),
+            ParseableType::Option(_val)                 => todo!(),
 
-            ParseableType::Struct(val, py_type) => BaseStruct::with_cls(val, py_type.bind(py)),
+            ParseableType::Struct { val, struct_ }      => BaseStruct::with_cls(val, struct_.py_type.bind(py)),
         }
     }
     
@@ -124,14 +125,14 @@ impl PartialOrd for ParseableType {
         };
 
         match (self, other) { // todo fix
-            (ParseableType::None,                 ParseableType::None)                 => Some(Ordering::Equal),
-            (ParseableType::Bool(val1),           ParseableType::Bool(val2))           => val1.partial_cmp(&val2),
-            (ParseableType::Str(val1),            ParseableType::Str(val2))            => val1.partial_cmp(&val2),
-            (ParseableType::Array(val1),          ParseableType::Array(val2))          => val1.partial_cmp(&val2),
-            (ParseableType::Bytes(val1),          ParseableType::Bytes(val2))          => val1.partial_cmp(&val2),
-            (ParseableType::Option(val1),         ParseableType::Option(val2))         => val1.partial_cmp(&val2),
-            (ParseableType::Struct(_val1, _type1), ParseableType::Struct(_val2, _type2)) => None,
-            _                                                                          => None
+            (ParseableType::None,          ParseableType::None)          => Some(Ordering::Equal),
+            (ParseableType::Bool(val1),    ParseableType::Bool(val2))    => val1.partial_cmp(&val2),
+            (ParseableType::Str(val1),     ParseableType::Str(val2))     => val1.partial_cmp(&val2),
+            (ParseableType::Array(val1),   ParseableType::Array(val2))   => val1.partial_cmp(&val2),
+            (ParseableType::Bytes(val1),   ParseableType::Bytes(val2))   => val1.partial_cmp(&val2),
+            (ParseableType::Option(val1),  ParseableType::Option(val2))  => val1.partial_cmp(&val2),
+            (ParseableType::Struct { .. }, ParseableType::Struct { .. }) => None,
+            _                                                            => None
         }
     }
 }
@@ -151,14 +152,14 @@ impl PartialEq for ParseableType {
         };
         
         match (self, other) { // todo fix
-            (ParseableType::None,                 ParseableType::None)                 => true,
-            (ParseableType::Bool(val1),           ParseableType::Bool(val2))           => val1 == val2,
-            (ParseableType::Str(val1),            ParseableType::Str(val2))            => val1 == val2,
-            (ParseableType::Array(val1),          ParseableType::Array(val2))          => val1 == val2,
-            (ParseableType::Bytes(val1),          ParseableType::Bytes(val2))          => val1 == val2,
-            (ParseableType::Option(val1),         ParseableType::Option(val2))         => val1 == val2,
-            (ParseableType::Struct(val1, _type1), ParseableType::Struct(val2, _type2)) => val1 == val2,
-            _                                                                          => false
+            (ParseableType::None,                     ParseableType::None)                     => true,
+            (ParseableType::Bool(val1),               ParseableType::Bool(val2))               => val1 == val2,
+            (ParseableType::Str(val1),                ParseableType::Str(val2))                => val1 == val2,
+            (ParseableType::Array(val1),              ParseableType::Array(val2))              => val1 == val2,
+            (ParseableType::Bytes(val1),              ParseableType::Bytes(val2))              => val1 == val2,
+            (ParseableType::Option(val1),             ParseableType::Option(val2))             => val1 == val2,
+            (ParseableType::Struct { val: val1, .. }, ParseableType::Struct { val: val2, .. }) => val1 == val2,
+            _                                                                                  => false
         }
     }
 }

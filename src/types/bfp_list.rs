@@ -14,7 +14,7 @@ use crate::types::parseable_type::ParseableType;
 #[pyclass(sequence, eq)]
 #[derive(Debug, Clone)]
 pub struct BfpList {
-    ls: Arc<RwLock<Vec<ParseableType>>>,
+    pub ls: Arc<RwLock<Vec<ParseableType>>>,
     pub data_type: BfpType,
 }
 
