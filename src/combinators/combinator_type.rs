@@ -35,6 +35,7 @@ pub enum CombinatorType {
 
 impl Combinator for CombinatorType {
     fn run(&self, retrievers: &Vec<Retriever>, data: &mut Vec<Option<ParseableType>>, repeats: &mut Vec<Option<isize>>, ver: &Version) -> PyResult<()> {
+        // todo: nested retrievers
         match self {
             CombinatorType::SetRepeatFrom(com) => com.run(retrievers, data, repeats, ver),
             CombinatorType::SetRepeatTo(com)   => com.run(retrievers, data, repeats, ver),
