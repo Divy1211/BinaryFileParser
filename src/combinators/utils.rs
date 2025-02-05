@@ -1,3 +1,4 @@
+use std::process::id;
 use pyo3::exceptions::{PyIndexError, PyValueError};
 use pyo3::PyResult;
 
@@ -37,23 +38,26 @@ pub fn get<'a>(
     Ok(repeat)
 }
 
-pub fn get2(
+pub fn get_rec(
     idxes: &[usize],
     retrievers: &Vec<Retriever>,
     data: &Vec<Option<ParseableType>>,
     ver: &Version,
 ) -> PyResult<ParseableType> {
+    if idxes.len() == 0 {
+        panic!("BFP Combinator Recursive get Internal Error.")
+    }
     let idx = idxes[0];
     if idx > retrievers.len() {
         return Err(PyIndexError::new_err(
-            "Combinator: Illegal retriever index"
-        ))
+            "Combinator: Retriever index out of bounds"
+        ));
     }
     let ret = &retrievers[idx];
     if idx >= data.len() {
         return Err(PyValueError::new_err(format!(
             "Combinator: '{}' has not been initialised yet", ret.name
-        )))
+        )));
     }
     let val = &data[idx];
     match val {
@@ -61,17 +65,17 @@ pub fn get2(
             Err(VersionError::new_err(format!(
                 "Combinator: '{}' is not supported in struct version {ver}", ret.name
             )))
-        },
+        }
         Some(val) => {
             if idxes.len() == 1 {
                 return Ok(val.clone());
             }
-            from_parseable_type(val, idxes, ver, &ret.name)
+            get_from_parseable_type(val, &idxes[1..], ver, &ret.name)
         }
     }
 }
 
-fn from_parseable_type(
+fn get_from_parseable_type(
     val: &ParseableType,
     idxes: &[usize],
     ver: &Version,
@@ -82,17 +86,25 @@ fn from_parseable_type(
             let sub_data = val.data.read().expect("GIL bound read");
             let sub_rets = struct_.retrievers.read().expect("GIL bound read");
 
-            get2(
-                &idxes[1..],
+            get_rec(
+                idxes,
                 &sub_rets,
                 &sub_data,
                 &val.ver
             )
         },
         ParseableType::Array(ls) => {
-            let idx = idxes[1];
+            if idxes.len() == 1 {
+                return Ok(val.clone());
+            }
+            let idx = idxes[0];
             let val = ls.ls.read().expect("GIL bound read");
-            from_parseable_type(&val[idx], idxes, ver, name)
+            if idx > val.len() {
+                return Err(PyIndexError::new_err(format!(
+                    "Combinator: List index out of bounds '{}'", name
+                )));
+            }
+            get_from_parseable_type(&val[idx], &idxes[1..], ver, name)
         },
         _ => {
             Err(VersionError::new_err(format!(
