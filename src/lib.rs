@@ -6,8 +6,8 @@ use crate::errors::default_attribute_error::DefaultAttributeError;
 use crate::errors::parsing_error::ParsingError;
 use crate::errors::version_error::VersionError;
 
-use combinators::set_repeat::set_repeat_builder::set_repeat;
-use combinators::r#if::if_builder::{if_, if_not, if_len};
+// use combinators::set_repeat::set_repeat_builder::set_repeat;
+// use combinators::r#if::if_builder::{if_, if_not, if_len};
 use combinators::set::set_builder::set;
 
 pub mod retrievers;
@@ -62,10 +62,10 @@ fn combinators(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
     py_run!(py, combinators, "import sys; sys.modules['bfp_rs.combinators'] = combinators");
     bfp.add_submodule(combinators)?;
 
-    combinators.add_function(wrap_pyfunction!(set_repeat, combinators)?)?;
-    combinators.add_function(wrap_pyfunction!(if_, combinators)?)?;
-    combinators.add_function(wrap_pyfunction!(if_not, combinators)?)?;
-    combinators.add_function(wrap_pyfunction!(if_len, combinators)?)?;
+    // combinators.add_function(wrap_pyfunction!(set_repeat, combinators)?)?;
+    // combinators.add_function(wrap_pyfunction!(if_, combinators)?)?;
+    // combinators.add_function(wrap_pyfunction!(if_not, combinators)?)?;
+    // combinators.add_function(wrap_pyfunction!(if_len, combinators)?)?;
     combinators.add_function(wrap_pyfunction!(set, combinators)?)?;
     
     Ok(())
