@@ -39,16 +39,18 @@ pub fn get<'a>(
     Ok(repeat)
 }
 
-pub fn idxes_from_tup(target: &Bound<'_, PyTuple>) -> PyResult<(Vec<usize>, BfpType)> {
+pub fn idxes_from_tup(target: &Bound<'_, PyTuple>) -> PyResult<(Vec<usize>, BfpType, String)> {
     if target.len().expect("Infallible") == 0 {
         return Err(PyValueError::new_err("Set target not provided"))
     }
 
     let mut data_type = None;
+    let mut name = None;
     let target = target.into_iter().map(|val| {
         val.extract::<Retriever>()
             .map(|ret| {
                 data_type = Some(ret.data_type);
+                name = Some(ret.name);
                 Ok(ret.idx)
             }).unwrap_or_else(|_| val.extract::<usize>())
     }).collect::<PyResult<_>>()?;
@@ -57,7 +59,7 @@ pub fn idxes_from_tup(target: &Bound<'_, PyTuple>) -> PyResult<(Vec<usize>, BfpT
         return Err(PyValueError::new_err("Set target not provided"))
     };
     
-    Ok((target, data_type))
+    Ok((target, data_type, name.expect("Infallible")))
 }
 
 pub fn get_rec(
@@ -65,7 +67,7 @@ pub fn get_rec(
     retrievers: &Vec<Retriever>,
     data: &Vec<Option<ParseableType>>,
     ver: &Version,
-) -> PyResult<ParseableType> {
+) -> PyResult<(String, ParseableType)> {
     if idxes.len() == 0 {
         panic!("BFP Combinator Recursive get Internal Error.")
     }
@@ -90,7 +92,7 @@ pub fn get_rec(
         }
         Some(val) => {
             if idxes.len() == 1 {
-                return Ok(val.clone());
+                return Ok((ret.name.clone(), val.clone()));
             }
             get_from_parseable_type(val, &idxes[1..], ver, &ret.name)
         }
@@ -102,7 +104,7 @@ fn get_from_parseable_type(
     idxes: &[usize],
     ver: &Version,
     name: &String,
-) -> PyResult<ParseableType> {
+) -> PyResult<(String, ParseableType)> {
     match val {
         ParseableType::Struct { val, struct_ } => {
             let sub_data = val.data.read().expect("GIL bound read");
@@ -124,7 +126,7 @@ fn get_from_parseable_type(
                 )));
             }
             if idxes.len() == 1 {
-                return Ok(val[idx].clone());
+                return Ok((name.clone(), val[idx].clone()));
             }
             get_from_parseable_type(&val[idx], &idxes[1..], ver, name)
         },
@@ -199,7 +201,7 @@ fn set_from_parseable_type(
             let mut sub_repeats = val.repeats.write().expect("GIL bound write");
             let sub_rets = struct_.retrievers.read().expect("GIL bound read");
 
-            crate::combinators::utils::set_rec(
+            set_rec(
                 idxes,
                 &sub_rets,
                 &mut sub_data,

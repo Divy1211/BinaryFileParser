@@ -14,8 +14,11 @@ pub struct SetTo {
 }
 
 impl SetTo {
-    pub fn new(target: Vec<usize>, source: ParseableType) -> Self {
-        SetTo { target, source, }
+    pub fn new(target: &Vec<usize>, source: ParseableType) -> Self {
+        SetTo {
+            target: target.clone(),
+            source
+        }
     }
 }
 

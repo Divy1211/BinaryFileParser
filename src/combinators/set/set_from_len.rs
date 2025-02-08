@@ -1,23 +1,30 @@
-use pyo3::exceptions::{PyTypeError};
+use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
 
 use crate::combinators::combinator::Combinator;
-use crate::combinators::utils::{check_initialized, get};
-use crate::retrievers::retriever::{RetState, Retriever};
-use crate::types::bfp_list::BfpList;
+use crate::combinators::utils::{get_rec, set_rec};
+use crate::retrievers::retriever::Retriever;
+use crate::types::bfp_type::BfpType;
 use crate::types::parseable_type::ParseableType;
 use crate::types::version::Version;
 
 #[pyclass]
 #[derive(Debug, Clone)]
 pub struct SetFromLen {
-    target: usize,
-    source: usize,
+    target: Vec<usize>,
+    source: Vec<usize>,
+    target_data_type: BfpType,
+    target_name: String,
 }
 
 impl SetFromLen {
-    pub fn new(target: usize, source: usize) -> Self {
-        SetFromLen { target, source }
+    pub fn new(target: &Vec<usize>, source: &Vec<usize>, target_data_type: &BfpType, target_name: &str) -> Self {
+        SetFromLen {
+            target: target.clone(),
+            source: source.clone(),
+            target_data_type: target_data_type.clone(),
+            target_name: target_name.to_string(),
+        }
     }
 }
 
@@ -27,31 +34,25 @@ impl Combinator for SetFromLen {
         retrievers: &Vec<Retriever>,
         data: &mut Vec<Option<ParseableType>>,
         repeats: &mut Vec<Option<isize>>,
-        ver: &Version
+        ver: &Version,
     ) -> PyResult<()> {
-        check_initialized(self.target, retrievers, data)?;
-        check_initialized(self.source, retrievers, data)?;
+        let (name, source) = get_rec(&self.source, retrievers, data, ver)?;
 
-        let source = match BfpList::try_from(get(self.source, retrievers, data, ver)?) {
-            Ok(ls) => { ls.len() }
-            Err(_) => {
+        let source = match source.len() {
+            Some(len) => { len }
+            None => {
                 return Err(PyTypeError::new_err(format!(
-                    "SetFromLen: '{}' cannot be interpreted as a list", retrievers[self.source].name
+                    "SetFromLen: '{}' cannot be interpreted as a list", name
                 )))
             }
         };
 
-        let target = &retrievers[self.target];
-        let source = target.data_type.to_parseable_from_usize(source);
-        
-        data[self.target] = match (target.state(&repeats), source) {
-            (RetState::List, _) | (_, None) => {
-                return Err(PyTypeError::new_err(format!(
-                    "SetTo: '{}' cannot be set to an integer", target.name
-                )))
-            }
-            (_, source) => { source }
+        let Some(source) = self.target_data_type.to_parseable_from_usize(source) else {
+            return Err(PyTypeError::new_err(format!(
+                "SetFromLen: '{}' cannot be set to an int", self.target_name
+            )))
         };
-        Ok(())
+
+        set_rec(&self.target, retrievers, data, repeats, ver, source, false)
     }
 }

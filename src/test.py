@@ -13,7 +13,7 @@ class Test(BaseStruct):
     num1 = Retriever(BfpType.Int8(int8()))
     num2 = Retriever(BfpType.Int8(int8()))
     test_sub = Retriever(Struct[TestSub])
-    num3 = Retriever(BfpType.Int8(int8()), on_read = lambda: [set(Test.test_sub, TestSub.num2, 1).from_(Test.test_sub, TestSub.num1)])
+    num3 = Retriever(BfpType.Int8(int8()), on_read = lambda: [set(Test.test_sub, TestSub.num1).from_len(Test.test_sub, TestSub.num2)])
 
 test = Test.from_bytes(bytes(range(32)))
-print(test.test_sub.num1, test.test_sub.num2)
+print(test.test_sub.num1)

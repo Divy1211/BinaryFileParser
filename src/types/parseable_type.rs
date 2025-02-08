@@ -105,6 +105,13 @@ impl ParseableType {
             _ => None,
         }
     }
+    
+    pub fn len(&self) -> Option<usize> {
+        match self {
+            ParseableType::Array(ls) => Some(ls.len()),
+            _ => None,
+        }
+    }
 }
 
 impl PartialOrd for ParseableType {
