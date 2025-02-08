@@ -3,7 +3,7 @@ use pyo3::prelude::*;
 
 use crate::combinators::combinator::Combinator;
 use crate::combinators::combinator_type::CombinatorType;
-use crate::combinators::utils::{check_initialized, get};
+use crate::combinators::utils::{get_rec};
 use crate::retrievers::retriever::Retriever;
 use crate::types::parseable_type::ParseableType;
 use crate::types::version::Version;
@@ -11,14 +11,14 @@ use crate::types::version::Version;
 #[pyclass]
 #[derive(Debug, Clone)]
 pub struct IfCheck {
-    source: usize,
+    source: Vec<usize>,
     com: Box<CombinatorType>,
 }
 
 impl IfCheck {
-    pub fn new(source: usize, com: CombinatorType) -> Self {
+    pub fn new(source: &Vec<usize>, com: CombinatorType) -> Self {
         IfCheck {
-            source,
+            source: source.clone(),
             com: Box::new(com),
         }
     }
@@ -32,11 +32,11 @@ impl Combinator for IfCheck {
         repeats: &mut Vec<Option<isize>>,
         ver: &Version
     ) -> PyResult<()> {
-        check_initialized(self.source, retrievers, data)?;
-
-        let Ok(source_val) = get(self.source, retrievers, data, ver)?.try_into() else {
+        let (name, source) = get_rec(&self.source, retrievers, data, ver)?;
+        
+        let Ok(source_val) = (&source).try_into() else {
             return Err(PyTypeError::new_err(format!(
-                "IfCheck: '{}' cannot be interpreted as a boolean", retrievers[self.source].name
+                "IfCheck: '{}' cannot be interpreted as a boolean", name
             )))
         };
         

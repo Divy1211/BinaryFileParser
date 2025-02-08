@@ -4,7 +4,7 @@ use pyo3::prelude::*;
 
 use crate::combinators::combinator::Combinator;
 use crate::combinators::combinator_type::CombinatorType;
-use crate::combinators::utils::{check_initialized, get};
+use crate::combinators::utils::{get_rec};
 use crate::retrievers::retriever::Retriever;
 use crate::types::parseable_type::ParseableType;
 use crate::types::version::Version;
@@ -12,18 +12,18 @@ use crate::types::version::Version;
 #[pyclass]
 #[derive(Debug, Clone)]
 pub struct IfCmpTo {
-    target: usize,
+    target: Vec<usize>,
     source: ParseableType,
     ord: Vec<Ordering>,
     com: Box<CombinatorType>,
 }
 
 impl IfCmpTo {
-    pub fn new(target: usize, source: ParseableType, ord: Vec<Ordering>, com: CombinatorType) -> Self {
+    pub fn new(target: &Vec<usize>, source: &ParseableType, ord: &Vec<Ordering>, com: CombinatorType) -> Self {
         IfCmpTo {
-            target,
-            source,
-            ord,
+            target: target.clone(),
+            source: source.clone(),
+            ord: ord.clone(),
             com: Box::new(com),
         }
     }
@@ -37,9 +37,7 @@ impl Combinator for IfCmpTo {
         repeats: &mut Vec<Option<isize>>,
         ver: &Version
     ) -> PyResult<()> {
-        check_initialized(self.target, retrievers, data)?;
-
-        let target = get(self.target, retrievers, data, ver)?;
+        let (_target_name, target) = get_rec(&self.target, retrievers, data, ver)?;
 
         let ord = target.partial_cmp(&self.source).expect("infallible");
         

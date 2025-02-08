@@ -18,7 +18,7 @@ pub struct SetBuilder {
 #[pymethods]
 impl SetBuilder {
     #[pyo3(signature = (*from), text_signature = "(*from: Retriever | int)")]
-    pub fn from_(&self, from: &Bound<'_, PyTuple>) -> PyResult<CombinatorType> {
+    pub fn from_(&self, from: &Bound<PyTuple>) -> PyResult<CombinatorType> {
         let (source, _source_data_type, _source_name) = idxes_from_tup(from)?;
         
         Ok(SetFrom::new(
@@ -49,7 +49,7 @@ impl SetBuilder {
 
 #[pyfunction]
 #[pyo3(signature = (*target), text_signature = "(*target: Retriever | int)")]
-pub fn set(target: &Bound<'_, PyTuple>) -> PyResult<SetBuilder> {
+pub fn set(target: &Bound<PyTuple>) -> PyResult<SetBuilder> {
     let (target, target_data_type, target_name) = idxes_from_tup(target)?;
 
     Ok(SetBuilder {

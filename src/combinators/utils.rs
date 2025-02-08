@@ -1,7 +1,7 @@
 use pyo3::exceptions::{PyIndexError, PyTypeError, PyValueError};
 use pyo3::{Bound, PyResult};
+use pyo3::prelude::PyTupleMethods;
 use pyo3::types::{PyAnyMethods, PyTuple};
-
 use crate::errors::version_error::VersionError;
 use crate::retrievers::retriever::{RetState, Retriever};
 use crate::types::bfp_type::BfpType;
@@ -39,27 +39,27 @@ pub fn get<'a>(
     Ok(repeat)
 }
 
-pub fn idxes_from_tup(target: &Bound<'_, PyTuple>) -> PyResult<(Vec<usize>, BfpType, String)> {
-    if target.len().expect("Infallible") == 0 {
-        return Err(PyValueError::new_err("Set target not provided"))
+pub fn idxes_from_tup(target: &Bound<PyTuple>) -> PyResult<(Vec<usize>, BfpType, String)> {
+    if <Bound<PyTuple> as PyTupleMethods>::len(target) == 0 {
+        return Err(PyValueError::new_err("Source/Target must contain at least one retriever"))
     }
 
-    let mut data_type = None;
-    let mut name = None;
+    let Ok(fst) = target.get_item(0)?.extract::<Retriever>() else {
+        return Err(PyValueError::new_err("Source/Target must begin with a retriever"))
+    };
+
+    let mut data_type = fst.data_type;
+    let mut name = fst.name;
     let target = target.into_iter().map(|val| {
         val.extract::<Retriever>()
             .map(|ret| {
-                data_type = Some(ret.data_type);
-                name = Some(ret.name);
+                data_type = ret.data_type;
+                name = ret.name;
                 Ok(ret.idx)
             }).unwrap_or_else(|_| val.extract::<usize>())
     }).collect::<PyResult<_>>()?;
-
-    let Some(data_type) = data_type else {
-        return Err(PyValueError::new_err("Set target not provided"))
-    };
     
-    Ok((target, data_type, name.expect("Infallible")))
+    Ok((target, data_type, name))
 }
 
 pub fn get_rec(

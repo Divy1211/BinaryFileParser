@@ -1,13 +1,14 @@
 use std::cmp::{Ordering, PartialEq};
 use pyo3::exceptions::{PyTypeError, PyValueError};
 use pyo3::prelude::*;
-
+use pyo3::types::PyTuple;
 use crate::combinators::combinator_type::CombinatorType;
 use crate::combinators::r#if::if_check::IfCheck;
 use crate::combinators::r#if::if_cmp_from::IfCmpFrom;
 use crate::combinators::r#if::if_cmp_len_from::IfCmpLenFrom;
 use crate::combinators::r#if::if_cmp_len_to::IfCmpLenTo;
 use crate::combinators::r#if::if_cmp_to::IfCmpTo;
+use crate::combinators::utils::idxes_from_tup;
 use crate::retrievers::retriever::Retriever;
 use crate::types::bfp_type::BfpType;
 use crate::types::le::int::Int8;
@@ -22,10 +23,10 @@ enum State {
 
 #[pyclass]
 pub struct IfBuilder {
-    target: usize,
+    target: Vec<usize>,
     target_data_type: BfpType,
     
-    source: Option<usize>,
+    source: Option<Vec<usize>>,
     source_const: Option<ParseableType>,
 
     ord: Option<Vec<Ordering>>,
@@ -39,7 +40,7 @@ pub struct IfBuilder {
 impl Default for IfBuilder {
     fn default() -> Self {
         IfBuilder {
-            target: 0,
+            target: vec![],
             target_data_type: BfpType::Int8(Int8),
             source: None,
             source_const: None,
@@ -52,13 +53,13 @@ impl Default for IfBuilder {
 }
 
 impl IfBuilder {
-    pub fn cmp_ret<'py>(&mut self, ret: &Bound<'py, Retriever>, ord: Vec<Ordering>) {
-        let ret = ret.borrow();
+    pub fn cmp_path(&mut self, source: &Bound<PyTuple>, ord: Vec<Ordering>) -> PyResult<()> {
+        let (source, _source_data_type, _source_name) = idxes_from_tup(source)?;
         
-        self.source = Some(ret.idx);
+        self.source = Some(source);
         self.ord = Some(ord);
         self.state = State::HasSource;
-        
+        Ok(())
     }
     pub fn cmp_fix<'py>(&mut self, source: &Bound<PyAny>, ord: Vec<Ordering>) -> PyResult<()> {
         if self.len {
@@ -68,7 +69,7 @@ impl IfBuilder {
                     "Using a negative value in a length comparison is a bug"
                 ))
             }
-            self.source = Some(val2 as usize);
+            self.source = Some(vec![val2 as usize]);
         } else {
             self.source_const = Some(self.target_data_type.to_parseable(&source)?)
         };
@@ -78,19 +79,24 @@ impl IfBuilder {
         Ok(())
     }
     
-    pub fn cmp(&mut self, source: Bound<PyAny>, ord: Vec<Ordering>) -> PyResult<()> {
+    pub fn cmp(&mut self, source: &Bound<PyTuple>, ord: Vec<Ordering>) -> PyResult<()> {
         if self.state != State::HasTarget {
             return Err(PyTypeError::new_err(
                 "Cannot chain comparisons, use a .then() with a nested if_"
             ))
         }
-        
-        if let Ok(ret) = source.downcast::<Retriever>() {
-            self.cmp_ret(ret, ord);
+        let len = <Bound<PyTuple> as PyTupleMethods>::len(source);
+
+        if len == 1 {
+            let item = unsafe { source.get_item_unchecked(0) };
+            if let Ok(_ret) = item.downcast::<Retriever>() {
+                self.cmp_path(source, ord)
+            } else {
+                self.cmp_fix(&item, ord)
+            }
         } else {
-            self.cmp_fix(&source, ord)?;
+            self.cmp_path(source, ord)
         }
-        Ok(())
     }
 }
 
@@ -100,46 +106,47 @@ impl IfBuilder {
         Ok(match self.state {
             State::HasTarget => {
                 IfCheck::new(
-                    self.target,
+                    &self.target,
                     com
                 ).into()
             }
             State::HasSource if self.len => {
                 IfCmpLenFrom::new(
-                    self.target,
-                    self.source.expect("infallible"),
-                    self.ord.clone().expect("infallible"),
+                    &self.target,
+                    self.source.as_ref().expect("infallible"),
+                    self.ord.as_ref().expect("infallible"),
                     com,
                 ).into()
             }
             State::HasSource => {
                 IfCmpFrom::new(
-                    self.target,
-                    self.source.expect("infallible"),
-                    self.ord.clone().expect("infallible"),
+                    &self.target,
+                    self.source.as_ref().expect("infallible"),
+                    self.ord.as_ref().expect("infallible"),
                     com,
                 ).into()
             }
             State::HasSourceConst if self.len => {
                 IfCmpLenTo::new(
-                    self.target,
-                    self.source.expect("infallible"),
-                    self.ord.clone().expect("infallible"),
+                    &self.target,
+                    self.source.as_ref().expect("infallible")[0],
+                    self.ord.as_ref().expect("infallible"),
                     com,
                 ).into()
             }
             State::HasSourceConst => {
                 IfCmpTo::new(
-                    self.target,
-                    self.source_const.clone().expect("infallible"),
-                    self.ord.clone().expect("infallible"),
+                    &self.target,
+                    self.source_const.as_ref().expect("infallible"),
+                    self.ord.as_ref().expect("infallible"),
                     com,
                 ).into()
             }
         })
     }
-    
-    fn eq<'py>(slf: Bound<'py, Self>, source: Bound<PyAny>) -> PyResult<Bound<'py, Self>> {
+
+    #[pyo3(signature = (*source), text_signature = "(*source: Retriever | int)")]
+    fn eq<'py>(slf: Bound<'py, Self>, source: &Bound<PyTuple>) -> PyResult<Bound<'py, Self>> {
         let mut this = slf.borrow_mut();
         if this.not {
             this.cmp(source, vec![Ordering::Less, Ordering::Greater])?;
@@ -149,7 +156,8 @@ impl IfBuilder {
         Ok(slf)
     }
 
-    fn neq<'py>(slf: Bound<'py, Self>, source: Bound<PyAny>) -> PyResult<Bound<'py, Self>> {
+    #[pyo3(signature = (*source), text_signature = "(*source: Retriever | int)")]
+    fn neq<'py>(slf: Bound<'py, Self>, source: &Bound<PyTuple>) -> PyResult<Bound<'py, Self>> {
         let mut this = slf.borrow_mut();
         if this.not {
             this.cmp(source, vec![Ordering::Equal])?;
@@ -159,7 +167,8 @@ impl IfBuilder {
         Ok(slf)
     }
 
-    fn gt<'py>(slf: Bound<'py, Self>, source: Bound<PyAny>) -> PyResult<Bound<'py, Self>> {
+    #[pyo3(signature = (*source), text_signature = "(*source: Retriever | int)")]
+    fn gt<'py>(slf: Bound<'py, Self>, source: &Bound<PyTuple>) -> PyResult<Bound<'py, Self>> {
         let mut this = slf.borrow_mut();
         if this.not {
             this.cmp(source, vec![Ordering::Less, Ordering::Equal])?;
@@ -169,7 +178,8 @@ impl IfBuilder {
         Ok(slf)
     }
 
-    fn geq<'py>(slf: Bound<'py, Self>, source: Bound<PyAny>) -> PyResult<Bound<'py, Self>> {
+    #[pyo3(signature = (*source), text_signature = "(*source: Retriever | int)")]
+    fn geq<'py>(slf: Bound<'py, Self>, source: &Bound<PyTuple>) -> PyResult<Bound<'py, Self>> {
         let mut this = slf.borrow_mut();
         if this.not {
             this.cmp(source, vec![Ordering::Less])?;
@@ -179,7 +189,8 @@ impl IfBuilder {
         Ok(slf)
     }
 
-    fn lt<'py>(slf: Bound<'py, Self>, source: Bound<PyAny>) -> PyResult<Bound<'py, Self>> {
+    #[pyo3(signature = (*source), text_signature = "(*source: Retriever | int)")]
+    fn lt<'py>(slf: Bound<'py, Self>, source: &Bound<PyTuple>) -> PyResult<Bound<'py, Self>> {
         let mut this = slf.borrow_mut();
         if this.not {
             this.cmp(source, vec![Ordering::Greater, Ordering::Equal])?;
@@ -189,7 +200,8 @@ impl IfBuilder {
         Ok(slf)
     }
     
-    fn leq<'py>(slf: Bound<'py, Self>, source: Bound<PyAny>) -> PyResult<Bound<'py, Self>> {
+    #[pyo3(signature = (*source), text_signature = "(*source: Retriever | int)")]
+    fn leq<'py>(slf: Bound<'py, Self>, source: &Bound<PyTuple>) -> PyResult<Bound<'py, Self>> {
         let mut this = slf.borrow_mut();
         if this.not {
             this.cmp(source, vec![Ordering::Greater])?;
@@ -201,30 +213,39 @@ impl IfBuilder {
 }
 
 #[pyfunction]
-pub fn if_(source: PyRef<Retriever>) -> IfBuilder {
-    IfBuilder {
-        target: source.idx,
-        target_data_type: source.data_type.clone(),
+#[pyo3(signature = (*target), text_signature = "(*source: Retriever | int)")]
+pub fn if_(target: &Bound<PyTuple>) -> PyResult<IfBuilder> {
+    let (target, target_data_type, _target_name) = idxes_from_tup(target)?;
+    
+    Ok(IfBuilder {
+        target,
+        target_data_type,
         ..Default::default()
-    }
+    })
 }
 
 #[pyfunction]
-pub fn if_not(source: PyRef<Retriever>) -> IfBuilder {
-    IfBuilder {
-        target: source.idx,
-        target_data_type: source.data_type.clone(),
+#[pyo3(signature = (*target), text_signature = "(*source: Retriever | int)")]
+pub fn if_not(target: &Bound<PyTuple>) -> PyResult<IfBuilder> {
+    let (target, target_data_type, _target_name) = idxes_from_tup(target)?;
+    
+    Ok(IfBuilder {
+        target,
+        target_data_type,
         not: true,
         ..Default::default()
-    }
+    })
 }
 
 #[pyfunction]
-pub fn if_len(source: PyRef<Retriever>) -> IfBuilder {
-    IfBuilder {
-        target: source.idx,
-        target_data_type: source.data_type.clone(),
+#[pyo3(signature = (*target), text_signature = "(*source: Retriever | int)")]
+pub fn if_len(target: &Bound<PyTuple>) -> PyResult<IfBuilder> {
+    let (target, target_data_type, _target_name) = idxes_from_tup(target)?;
+    
+    Ok(IfBuilder {
+        target,
+        target_data_type,
         len: true,
         ..Default::default()
-    }
+    })
 }

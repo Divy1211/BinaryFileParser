@@ -4,27 +4,26 @@ use pyo3::prelude::*;
 
 use crate::combinators::combinator::Combinator;
 use crate::combinators::combinator_type::CombinatorType;
-use crate::combinators::utils::{check_initialized, get};
+use crate::combinators::utils::{get_rec};
 use crate::retrievers::retriever::Retriever;
-use crate::types::bfp_list::BfpList;
 use crate::types::parseable_type::ParseableType;
 use crate::types::version::Version;
 
 #[pyclass]
 #[derive(Debug, Clone)]
 pub struct IfCmpLenTo {
-    target: usize,
+    target: Vec<usize>,
     source: usize,
     ord: Vec<Ordering>,
     com: Box<CombinatorType>,
 }
 
 impl IfCmpLenTo {
-    pub fn new(target: usize, source: usize, ord: Vec<Ordering>, com: CombinatorType) -> Self {
+    pub fn new(target: &Vec<usize>, source: usize, ord: &Vec<Ordering>, com: CombinatorType) -> Self {
         IfCmpLenTo {
-            target,
+            target: target.clone(),
             source,
-            ord,
+            ord: ord.clone(),
             com: Box::new(com),
         }
     }
@@ -38,15 +37,16 @@ impl Combinator for IfCmpLenTo {
         repeats: &mut Vec<Option<isize>>,
         ver: &Version
     ) -> PyResult<()> {
-        check_initialized(self.target, retrievers, data)?;
+        let (target_name, target) = get_rec(&self.target, retrievers, data, ver)?;
 
-        let Ok(target) = BfpList::try_from(get(self.target, retrievers, data, ver)?) else {
+
+        let Some(target) = target.len() else {
             return Err(PyTypeError::new_err(format!(
-                "IfCmpLenTo: '{}' cannot be interpreted as a list", retrievers[self.target].name
+                "IfCmpLenTo: '{}' cannot be interpreted as a list", target_name
             )))
         };
 
-        let ord = target.len().cmp(&self.source);
+        let ord = target.cmp(&self.source);
         
         if self.ord.contains(&ord) {
             self.com.run(retrievers, data, repeats, ver)?;
