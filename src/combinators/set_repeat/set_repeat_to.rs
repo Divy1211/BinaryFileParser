@@ -14,7 +14,7 @@ pub struct SetRepeatTo {
 
 impl SetRepeatTo {
     pub fn new(target: usize, source: isize) -> Self {
-        SetRepeatTo { target, source, }
+        SetRepeatTo { target, source }
     }
 }
 

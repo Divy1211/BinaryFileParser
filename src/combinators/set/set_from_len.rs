@@ -18,10 +18,10 @@ pub struct SetFromLen {
 }
 
 impl SetFromLen {
-    pub fn new(target: &Vec<usize>, source: &Vec<usize>, target_data_type: &BfpType, target_name: &str) -> Self {
+    pub fn new(target: &Vec<usize>, source: Vec<usize>, target_data_type: &BfpType, target_name: &str) -> Self {
         SetFromLen {
             target: target.clone(),
-            source: source.clone(),
+            source,
             target_data_type: target_data_type.clone(),
             target_name: target_name.to_string(),
         }
@@ -38,7 +38,7 @@ impl Combinator for SetFromLen {
     ) -> PyResult<()> {
         let (name, source) = get_rec(&self.source, retrievers, data, ver)?;
 
-        let source = match source.len() {
+        let source = match source.try_len() {
             Some(len) => { len }
             None => {
                 return Err(PyTypeError::new_err(format!(
@@ -53,6 +53,6 @@ impl Combinator for SetFromLen {
             )))
         };
 
-        set_rec(&self.target, retrievers, data, repeats, ver, source, false)
+        set_rec(&self.target, retrievers, data, repeats, ver, source)
     }
 }

@@ -23,7 +23,7 @@ impl SetBuilder {
         
         Ok(SetFrom::new(
             &self.target.clone(),
-            &source,
+            source,
         ).into())
     }
 
@@ -33,7 +33,7 @@ impl SetBuilder {
         
         Ok(SetFromLen::new(
             &self.target,
-            &source,
+            source,
             &self.target_data_type,
             &self.target_name,
         ).into())

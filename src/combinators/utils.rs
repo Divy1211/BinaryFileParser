@@ -2,6 +2,7 @@ use pyo3::exceptions::{PyIndexError, PyTypeError, PyValueError};
 use pyo3::{Bound, PyResult};
 use pyo3::prelude::PyTupleMethods;
 use pyo3::types::{PyAnyMethods, PyTuple};
+
 use crate::errors::version_error::VersionError;
 use crate::retrievers::retriever::{RetState, Retriever};
 use crate::types::bfp_type::BfpType;
@@ -68,9 +69,6 @@ pub fn get_rec(
     data: &Vec<Option<ParseableType>>,
     ver: &Version,
 ) -> PyResult<(String, ParseableType)> {
-    if idxes.len() == 0 {
-        panic!("BFP Combinator Recursive get Internal Error.")
-    }
     let idx = idxes[0];
     if idx > retrievers.len() {
         return Err(PyIndexError::new_err(
@@ -145,11 +143,7 @@ pub fn set_rec(
     repeats: &mut Vec<Option<isize>>,
     ver: &Version,
     val2: ParseableType,
-    set_repeat: bool,
 ) -> PyResult<()> {
-    if idxes.len() == 0 {
-        panic!("BFP Combinator Recursive get Internal Error.")
-    }
     let idx = idxes[0];
     if idx > retrievers.len() {
         return Err(PyIndexError::new_err(
@@ -171,18 +165,9 @@ pub fn set_rec(
         }
         Some(val) => {
             if idxes.len() == 1 {
-                if set_repeat {
-                    let Ok(source) = (&val2).try_into() else {
-                        return Err(PyTypeError::new_err(
-                            "SetRec: value cannot be interpreted as an integer",
-                        ));
-                    };
-                    repeats[idx] = Some(source);
-                    return Ok(());
-                }
                 return set_data(retrievers, data, repeats, ver, idx, val2);
             }
-            set_from_parseable_type(val, &idxes[1..], ver, &ret.name, val2, set_repeat)
+            set_from_parseable_type(val, &idxes[1..], ver, &ret.name, val2)
         }
     }
 }
@@ -193,7 +178,6 @@ fn set_from_parseable_type(
     ver: &Version,
     name: &String,
     val2: ParseableType,
-    set_repeat: bool,
 ) -> PyResult<()> {
     match val {
         ParseableType::Struct { val, struct_ } => {
@@ -208,7 +192,6 @@ fn set_from_parseable_type(
                 &mut sub_repeats,
                 &val.ver,
                 val2,
-                set_repeat,
             )
         },
         ParseableType::Array(ls) => {
@@ -220,11 +203,6 @@ fn set_from_parseable_type(
                 )));
             }
             if idxes.len() == 1 {
-                if set_repeat {
-                    return Err(PyValueError::new_err(format!(
-                        "SetRec: Attempting to set repeat on a list '{}'", name,
-                    )))
-                }
                 if !val.is_ls_of(&ls.data_type) {
                     return Err(PyTypeError::new_err(format!(
                         "Set: Unable to set '{}' from value of incorrect type", name
@@ -233,7 +211,7 @@ fn set_from_parseable_type(
                 val3[idx] = val2.clone();
                 return Ok(())
             }
-            set_from_parseable_type(&val3[idx], &idxes[1..], ver, name, val2, set_repeat)
+            set_from_parseable_type(&val3[idx], &idxes[1..], ver, name, val2)
         },
         _ => {
             Err(VersionError::new_err(format!(

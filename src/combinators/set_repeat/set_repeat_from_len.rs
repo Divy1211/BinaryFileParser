@@ -1,4 +1,4 @@
-use pyo3::exceptions::PyTypeError;
+use pyo3::exceptions::{PyTypeError};
 use pyo3::prelude::*;
 
 use crate::combinators::combinator::Combinator;
@@ -9,21 +9,21 @@ use crate::types::version::Version;
 
 #[pyclass]
 #[derive(Debug, Clone)]
-pub struct SetRepeatFrom {
+pub struct SetRepeatFromLen {
     target: usize,
     source: Vec<usize>,
 }
 
-impl SetRepeatFrom {
+impl SetRepeatFromLen {
     pub fn new(target: usize, source: Vec<usize>) -> Self {
-        SetRepeatFrom {
+        SetRepeatFromLen {
             target,
             source,
         }
     }
 }
 
-impl Combinator for SetRepeatFrom {
+impl Combinator for SetRepeatFromLen {
     fn run(
         &self,
         retrievers: &Vec<Retriever>,
@@ -32,14 +32,14 @@ impl Combinator for SetRepeatFrom {
         ver: &Version
     ) -> PyResult<()> {
         let (source_name, source) = get_rec(&self.source, retrievers, data, ver)?;
-
-        let Ok(source) = (&source).try_into() else {
+        
+        let Some(source) = source.try_len() else {
             return Err(PyTypeError::new_err(format!(
-                "SetRepeat: '{}' cannot be interpreted as an integer", source_name
+                "IfCmpLenFrom: '{}' cannot be interpreted as a list", source_name
             )))
         };
         
-        repeats[self.target] = Some(source);
+        repeats[self.target] = Some(source as isize);
         Ok(())
     }
 }

@@ -30,6 +30,6 @@ impl Combinator for SetTo {
         repeats: &mut Vec<Option<isize>>,
         ver: &Version
     ) -> PyResult<()> {
-        set_rec(&self.target, retrievers, data, repeats, ver, self.source.clone(), false)
+        set_rec(&self.target, retrievers, data, repeats, ver, self.source.clone())
     }
 }

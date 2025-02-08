@@ -106,7 +106,7 @@ impl ParseableType {
         }
     }
     
-    pub fn len(&self) -> Option<usize> {
+    pub fn try_len(&self) -> Option<usize> {
         match self {
             ParseableType::Array(ls) => Some(ls.len()),
             _ => None,

@@ -40,7 +40,7 @@ impl Combinator for IfCmpLenFrom {
         let (target_name, target) = get_rec(&self.target, retrievers, data, ver)?;
         let (source_name, source) = get_rec(&self.source, retrievers, data, ver)?;
 
-        let Some(target) = target.len() else {
+        let Some(target) = target.try_len() else {
             return Err(PyTypeError::new_err(format!(
                 "IfCmpLenFrom: '{}' cannot be interpreted as a list", target_name
             )))

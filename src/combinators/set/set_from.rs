@@ -14,10 +14,10 @@ pub struct SetFrom {
 }
 
 impl SetFrom {
-    pub fn new(target: &Vec<usize>, source: &Vec<usize>) -> Self {
+    pub fn new(target: &Vec<usize>, source: Vec<usize>) -> Self {
         SetFrom {
             target: target.clone(),
-            source: source.clone(),
+            source,
         }
     }
 }
@@ -31,6 +31,6 @@ impl Combinator for SetFrom {
         ver: &Version
     ) -> PyResult<()> {
         let (_name, source) = get_rec(&self.source, retrievers, data, ver)?;
-        set_rec(&self.target, retrievers, data, repeats, ver, source, false)
+        set_rec(&self.target, retrievers, data, repeats, ver, source)
     }
 }
