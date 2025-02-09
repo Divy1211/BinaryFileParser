@@ -15,12 +15,12 @@ macro_rules! def_num_type_le {
             }
 
             #[cfg_attr(feature = "inline_always", inline(always))]
-            fn to_bytes(&self, value: &Self::Type) -> Vec<u8> {
-                value.to_le_bytes().to_vec()
+            fn to_bytes(&self, value: &Self::Type) -> io::Result<Vec<u8>> {
+                Ok(value.to_le_bytes().to_vec())
             }
         }
 
-        wrap_py!($name, (), Self {});
+        wrap_py!($name);
     };
 }
 
@@ -41,11 +41,11 @@ macro_rules! def_bool_type_le {
             }
         
             #[cfg_attr(feature = "inline_always", inline(always))]
-            fn to_bytes(&self, value: &Self::Type) -> Vec<u8> {
-                <$native_type>::to_le_bytes(if *value { 1 } else { 0 }).to_vec()
+            fn to_bytes(&self, value: &Self::Type) -> io::Result<Vec<u8>> {
+                Ok(<$native_type>::to_le_bytes(if *value { 1 } else { 0 }).to_vec())
             }
         }
         
-        wrap_py!($name, (), Self {});
+        wrap_py!($name);
     };
 }

@@ -160,7 +160,7 @@ impl Parseable for Struct {
         Ok(BaseStruct::new(ver.clone(), data, repeats))
     }
 
-    fn to_bytes(&self, _value: &BaseStruct) -> Vec<u8> {
+    fn to_bytes(&self, _value: &BaseStruct) -> std::io::Result<Vec<u8>> {
         todo!()
     }
 }

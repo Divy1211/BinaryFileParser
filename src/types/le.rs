@@ -2,3 +2,7 @@ pub mod int;
 pub mod float;
 pub mod bool;
 pub mod bytes;
+pub mod str;
+pub mod size;
+pub mod encoding;
+mod utils;

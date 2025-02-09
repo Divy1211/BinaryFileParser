@@ -1,6 +1,7 @@
 use pyo3::exceptions::{PyTypeError, PyValueError};
-use pyo3::prelude::{PyAnyMethods, PyTypeMethods};
-use pyo3::{pyclass, Bound, PyAny, PyResult};
+use pyo3::prelude::*;
+use pyo3::{pyclass, pymethods, Bound, PyAny, PyResult};
+use pyo3::types::PyBytes;
 
 use crate::types::base_struct::BaseStruct;
 use crate::types::byte_stream::ByteStream;
@@ -8,6 +9,7 @@ use crate::types::le::bool::{Bool128, Bool16, Bool32, Bool64, Bool8};
 use crate::types::le::bytes::Bytes;
 use crate::types::le::float::{Float32, Float64};
 use crate::types::le::int::{Int128, Int16, Int32, Int64, Int8, UInt128, UInt16, UInt32, UInt64, UInt8};
+use crate::types::le::str::Str;
 use crate::types::parseable::Parseable;
 use crate::types::parseable_type::ParseableType;
 use crate::types::r#struct::Struct;
@@ -38,7 +40,9 @@ pub enum BfpType {
     Bool128(Bool128),
 
     Bytes(Bytes),
-    
+
+    Str(Str),
+
     Struct(Struct),
 }
 
@@ -84,7 +88,9 @@ impl BfpType {
             BfpType::Bool64(_)  => "bool",
             BfpType::Bool128(_) => "bool",
             
-            BfpType::Bytes(_) => "bytes",
+            BfpType::Bytes(_)   => "bytes",
+
+            BfpType::Str(_)     => "str",
 
             BfpType::Struct(_)  => "BaseStruct"
         }.into()
@@ -141,6 +147,8 @@ impl BfpType {
                 }
                 bytes.into()
             },
+
+            BfpType::Str(_) => { value.extract::<String>()?.into() }
             
             BfpType::Struct(struct_) => {
                 let py_type = struct_.py_type.bind(value.py());
@@ -165,34 +173,92 @@ impl Parseable for BfpType {
 
     fn from_stream(&self, stream: &mut ByteStream, ver: &Version) -> std::io::Result<Self::Type> {
         Ok(match self {
-            BfpType::UInt8(val)   => val.from_stream(stream, ver)?.into(),
-            BfpType::UInt16(val)  => val.from_stream(stream, ver)?.into(),
-            BfpType::UInt32(val)  => val.from_stream(stream, ver)?.into(),
-            BfpType::UInt64(val)  => val.from_stream(stream, ver)?.into(),
-            BfpType::UInt128(val) => val.from_stream(stream, ver)?.into(),
+            BfpType::UInt8(val)       => val.from_stream(stream, ver)?.into(),
+            BfpType::UInt16(val)      => val.from_stream(stream, ver)?.into(),
+            BfpType::UInt32(val)      => val.from_stream(stream, ver)?.into(),
+            BfpType::UInt64(val)      => val.from_stream(stream, ver)?.into(),
+            BfpType::UInt128(val)     => val.from_stream(stream, ver)?.into(),
             
-            BfpType::Int8(val)    => val.from_stream(stream, ver)?.into(),
-            BfpType::Int16(val)   => val.from_stream(stream, ver)?.into(),
-            BfpType::Int32(val)   => val.from_stream(stream, ver)?.into(),
-            BfpType::Int64(val)   => val.from_stream(stream, ver)?.into(),
-            BfpType::Int128(val)  => val.from_stream(stream, ver)?.into(),
+            BfpType::Int8(val)        => val.from_stream(stream, ver)?.into(),
+            BfpType::Int16(val)       => val.from_stream(stream, ver)?.into(),
+            BfpType::Int32(val)       => val.from_stream(stream, ver)?.into(),
+            BfpType::Int64(val)       => val.from_stream(stream, ver)?.into(),
+            BfpType::Int128(val)      => val.from_stream(stream, ver)?.into(),
             
-            BfpType::Float32(val) => val.from_stream(stream, ver)?.into(),
-            BfpType::Float64(val) => val.from_stream(stream, ver)?.into(),
+            BfpType::Float32(val)     => val.from_stream(stream, ver)?.into(),
+            BfpType::Float64(val)     => val.from_stream(stream, ver)?.into(),
             
-            BfpType::Bool8(val)   => val.from_stream(stream, ver)?.into(),
-            BfpType::Bool16(val)  => val.from_stream(stream, ver)?.into(),
-            BfpType::Bool32(val)  => val.from_stream(stream, ver)?.into(),
-            BfpType::Bool64(val)  => val.from_stream(stream, ver)?.into(),
-            BfpType::Bool128(val) => val.from_stream(stream, ver)?.into(),
+            BfpType::Bool8(val)       => val.from_stream(stream, ver)?.into(),
+            BfpType::Bool16(val)      => val.from_stream(stream, ver)?.into(),
+            BfpType::Bool32(val)      => val.from_stream(stream, ver)?.into(),
+            BfpType::Bool64(val)      => val.from_stream(stream, ver)?.into(),
+            BfpType::Bool128(val)     => val.from_stream(stream, ver)?.into(),
 
-            BfpType::Bytes(val)   => val.from_stream(stream, ver)?.into(),
-            
+            BfpType::Bytes(val)       => val.from_stream(stream, ver)?.into(),
+
+            BfpType::Str(val)         => val.from_stream(stream, ver)?.into(),
+
             BfpType::Struct(struct_)  => ParseableType::Struct { val: struct_.from_stream(stream, ver)?, struct_: struct_.clone() },
         })
     }
 
-    fn to_bytes(&self, _value: &Self::Type) -> Vec<u8> {
-        todo!()
+    fn to_bytes(&self, value: &Self::Type) -> std::io::Result<Vec<u8>> {
+        match (self, value) {
+            (BfpType::UInt8(type_),   ParseableType::UInt8(val))         => type_.to_bytes(val),
+            (BfpType::UInt16(type_),  ParseableType::UInt16(val))        => type_.to_bytes(val),
+            (BfpType::UInt32(type_),  ParseableType::UInt32(val))        => type_.to_bytes(val),
+            (BfpType::UInt64(type_),  ParseableType::UInt64(val))        => type_.to_bytes(val),
+            (BfpType::UInt128(type_), ParseableType::UInt128(val))       => type_.to_bytes(val),
+
+            (BfpType::Int8(type_),    ParseableType::Int8(val))          => type_.to_bytes(val),
+            (BfpType::Int16(type_),   ParseableType::Int16(val))         => type_.to_bytes(val),
+            (BfpType::Int32(type_),   ParseableType::Int32(val))         => type_.to_bytes(val),
+            (BfpType::Int64(type_),   ParseableType::Int64(val))         => type_.to_bytes(val),
+            (BfpType::Int128(type_),  ParseableType::Int128(val))        => type_.to_bytes(val),
+
+            (BfpType::Float32(type_), ParseableType::Float32(val))       => type_.to_bytes(val),
+            (BfpType::Float64(type_), ParseableType::Float64(val))       => type_.to_bytes(val),
+
+            (BfpType::Bool8(type_),   ParseableType::Bool(val))          => type_.to_bytes(val),
+            (BfpType::Bool16(type_),  ParseableType::Bool(val))          => type_.to_bytes(val),
+            (BfpType::Bool32(type_),  ParseableType::Bool(val))          => type_.to_bytes(val),
+            (BfpType::Bool64(type_),  ParseableType::Bool(val))          => type_.to_bytes(val),
+            (BfpType::Bool128(type_), ParseableType::Bool(val))          => type_.to_bytes(val),
+
+            (BfpType::Bytes(type_),   ParseableType::Bytes(val))         => type_.to_bytes(val),
+
+            (BfpType::Str(type_),     ParseableType::Str(val))           => type_.to_bytes(val),
+
+            (BfpType::Struct(type_),  ParseableType::Struct { val, .. }) => type_.to_bytes(val),
+
+            _ => unreachable!("BFP Internal Error. *Goodbye cruel world*")
+        }
+    }
+}
+
+#[pymethods]
+impl BfpType {
+    #[pyo3(name = "to_bytes")]
+    fn to_bytes_py<'py>(slf: PyRef<'py, Self>, value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyBytes>> {
+        let bytes = slf.to_bytes(&slf.to_parseable(value)?)?;
+        Ok(PyBytes::new_bound(slf.py(), &bytes))
+    }
+
+    #[pyo3(name = "from_stream", signature = (stream, ver = Version::new(vec![0,])))]
+    fn from_stream_py<'py>(slf: PyRef<'py, Self>, stream: &mut ByteStream, ver: Version) -> PyResult<Bound<'py, PyAny>> {
+        Ok(slf.from_stream(stream, &ver)?.to_bound(slf.py()))
+    }
+
+    #[pyo3(name = "from_file")]
+    fn from_file_py<'py>(slf: PyRef<'py, Self>, filepath: &str) -> PyResult<Bound<'py, PyAny>> {
+        Ok(slf.from_file(filepath)?.to_bound(slf.py()))
+    }
+    #[pyo3(name = "from_bytes", signature = (bytes, ver = Version::new(vec![0,])))]
+    fn from_bytes_py<'py>(slf: PyRef<'py, Self>, bytes: &[u8], ver: Version) -> PyResult<Bound<'py, PyAny>> {
+        Ok(slf.from_bytes(bytes, &ver)?.to_bound(slf.py()))
+    }
+    #[pyo3(name = "to_file")]
+    fn to_file_py(slf: PyRef<Self>, filepath: &str, value: &Bound<PyAny>) -> PyResult<()> {
+        Ok(slf.to_file(filepath, &slf.to_parseable(value)?)?)
     }
 }

@@ -10,7 +10,7 @@ pub trait Parseable {
     
     fn from_stream(&self, stream: &mut ByteStream, ver: &Version) -> io::Result<Self::Type>;
 
-    fn to_bytes(&self, value: &Self::Type) -> Vec<u8>;
+    fn to_bytes(&self, value: &Self::Type) -> io::Result<Vec<u8>>;
 
     fn from_bytes(&self, bytes: &[u8], ver: &Version) -> io::Result<Self::Type> {
         let mut stream = ByteStream::from_bytes(bytes);
@@ -23,7 +23,7 @@ pub trait Parseable {
     }
     
     fn to_file(&self, filepath: &str, value: &Self::Type) -> io::Result<()> {
-        let bytes = self.to_bytes(value);
+        let bytes = self.to_bytes(value)?;
         let mut file = File::create(filepath)?;
         Ok(file.write_all(&bytes)?)
     }

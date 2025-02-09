@@ -18,3 +18,4 @@ crate-type = ["cdylib"]
 
 [dependencies]
 pyo3 = "0.22.0"
+encoding_rs = "0.8.35"

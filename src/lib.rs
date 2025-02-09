@@ -17,6 +17,9 @@ use crate::types::le::bool::{Bool128, Bool16, Bool32, Bool64, Bool8};
 use crate::types::le::bytes::Bytes;
 use crate::types::le::float::{Float32, Float64};
 use crate::types::le::int::{UInt128, UInt16, UInt32, UInt64, UInt8, Int128, Int16, Int32, Int64, Int8};
+use crate::types::le::encoding::Encoding;
+use crate::types::le::size::Size;
+use crate::types::le::str::Str;
 use crate::types::r#struct::Struct;
 
 pub mod retrievers;
@@ -51,7 +54,25 @@ fn le(py: Python, types: &Bound<PyModule>) -> PyResult<()> {
     le.add("bool64", BfpType::Bool64(Bool64))?;
     le.add("bool128", BfpType::Bool128(Bool128))?;
 
+    le.add("str8", BfpType::Str(Str {
+        len: Size::UInt8(UInt8), enc1: Encoding::UTF8, enc2: Some(Encoding::LATIN1)
+    }))?;
+    le.add("str16", BfpType::Str(Str {
+        len: Size::UInt16(UInt16), enc1: Encoding::UTF8, enc2: Some(Encoding::LATIN1)
+    }))?;
+    le.add("str32", BfpType::Str(Str {
+        len: Size::UInt32(UInt32), enc1: Encoding::UTF8, enc2: Some(Encoding::LATIN1)
+    }))?;
+    le.add("str64", BfpType::Str(Str {
+        len: Size::UInt64(UInt64), enc1: Encoding::UTF8, enc2: Some(Encoding::LATIN1)
+    }))?;
+    le.add("str128", BfpType::Str(Str {
+        len: Size::UInt128(UInt128), enc1: Encoding::UTF8, enc2: Some(Encoding::LATIN1)
+    }))?;
+    
     le.add_class::<Bytes>()?;
+    le.add_class::<Encoding>()?;
+
     le.add("void", BfpType::Bytes(Bytes { len: 0 }))?;
     
     Ok(())

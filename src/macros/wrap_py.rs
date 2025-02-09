@@ -1,16 +1,11 @@
 #[macro_export]
 macro_rules! wrap_py {
-    ($bfp_type:ty, ($($arg_name:ident : $arg_type:ty),*), $init:expr) => {
+    ($bfp_type:ty) => {
         #[pymethods]
         impl $bfp_type {
-            #[new]
-            fn new_py($($arg_name: $arg_type),*) -> Self {
-                $init
-            }
-        
             #[pyo3(name = "to_bytes")]
             fn to_bytes_py(slf: PyRef<Self>, value: <Self as Parseable>::Type) -> PyResult<Bound<PyBytes>> {
-                let bytes = slf.to_bytes(&value);
+                let bytes = slf.to_bytes(&value)?;
                 Ok(PyBytes::new_bound(slf.py(), &bytes))
             }
         
