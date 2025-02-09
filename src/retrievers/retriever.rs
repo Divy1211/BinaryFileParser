@@ -182,18 +182,18 @@ impl Retriever {
         match &self.tmp_on_read {
             Some(obj) => {
                 self.on_read = Arc::new(obj.call0(py)?.extract::<Vec<CombinatorType>>(py)?);
+                self.tmp_on_read = None;
             }
             _ => {}
         };
-        self.tmp_on_read = None;
 
         match &self.tmp_on_write {
             Some(obj) => {
                 self.on_write = Arc::new(obj.call0(py)?.extract::<Vec<CombinatorType>>(py)?);
+                self.tmp_on_write = None;
             }
             _ => {}
         };
-        self.tmp_on_write = None;
         
         Ok(())
     }
