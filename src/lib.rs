@@ -9,6 +9,15 @@ use crate::errors::version_error::VersionError;
 use combinators::set_repeat::set_repeat_builder::set_repeat;
 use combinators::r#if::if_builder::{if_, if_not, if_len};
 use combinators::set::set_builder::set;
+use crate::retrievers::retriever::Retriever;
+use crate::types::base_struct::BaseStruct;
+use crate::types::bfp_type::BfpType;
+use crate::types::byte_stream::ByteStream;
+use crate::types::le::bool::{Bool128, Bool16, Bool32, Bool64, Bool8};
+use crate::types::le::bytes::Bytes;
+use crate::types::le::float::{Float32, Float64};
+use crate::types::le::int::{UInt128, UInt16, UInt32, UInt64, UInt8, Int128, Int16, Int32, Int64, Int8};
+use crate::types::r#struct::Struct;
 
 pub mod retrievers;
 pub mod errors;
@@ -21,26 +30,29 @@ fn le(py: Python, types: &Bound<PyModule>) -> PyResult<()> {
     py_run!(py, le, "import sys; sys.modules['bfp_rs.types.le'] = le");
     types.add_submodule(&le)?;
 
-    le.add_class::<types::le::int::UInt8>()?;
-    le.add_class::<types::le::int::UInt16>()?;
-    le.add_class::<types::le::int::UInt32>()?;
-    le.add_class::<types::le::int::UInt64>()?;
-    le.add_class::<types::le::int::UInt128>()?;
-    
-    le.add_class::<types::le::int::Int8>()?;
-    le.add_class::<types::le::int::Int16>()?;
-    le.add_class::<types::le::int::Int32>()?;
-    le.add_class::<types::le::int::Int64>()?;
-    le.add_class::<types::le::int::Int128>()?;
-    
-    le.add_class::<types::le::float::Float32>()?;
-    le.add_class::<types::le::float::Float64>()?;
+    le.add("u8", BfpType::UInt8(UInt8))?;
+    le.add("u16", BfpType::UInt16(UInt16))?;
+    le.add("u32", BfpType::UInt32(UInt32))?;
+    le.add("u64", BfpType::UInt64(UInt64))?;
+    le.add("u128", BfpType::UInt128(UInt128))?;
 
-    le.add_class::<types::le::bool::Bool8>()?;
-    le.add_class::<types::le::bool::Bool16>()?;
-    le.add_class::<types::le::bool::Bool32>()?;
-    le.add_class::<types::le::bool::Bool64>()?;
-    le.add_class::<types::le::bool::Bool128>()?;
+    le.add("i8", BfpType::Int8(Int8))?;
+    le.add("i16", BfpType::Int16(Int16))?;
+    le.add("i32", BfpType::Int32(Int32))?;
+    le.add("i64", BfpType::Int64(Int64))?;
+    le.add("i128", BfpType::Int128(Int128))?;
+
+    le.add("f32", BfpType::Float32(Float32))?;
+    le.add("f64", BfpType::Float64(Float64))?;
+
+    le.add("bool8", BfpType::Bool8(Bool8))?;
+    le.add("bool16", BfpType::Bool16(Bool16))?;
+    le.add("bool32", BfpType::Bool32(Bool32))?;
+    le.add("bool64", BfpType::Bool64(Bool64))?;
+    le.add("bool128", BfpType::Bool128(Bool128))?;
+
+    le.add_class::<Bytes>()?;
+    le.add("void", BfpType::Bytes(Bytes { len: 0 }))?;
     
     Ok(())
 }
@@ -50,7 +62,6 @@ fn types(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
     py_run!(py, types, "import sys; sys.modules['bfp_rs.types'] = types");
     bfp.add_submodule(&types)?;
     types.add_class::<types::version::Version>()?;
-    types.add_class::<types::bfp_type::BfpType>()?;
 
     le(py, &types)?;
 
@@ -86,10 +97,10 @@ fn errors(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
 #[pymodule]
 #[pyo3(name = "bfp_rs")]
 fn binary_file_parser(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
-    bfp.add_class::<types::byte_stream::ByteStream>()?;
-    bfp.add_class::<types::base_struct::BaseStruct>()?;
-    bfp.add_class::<types::r#struct::Struct>()?;
-    bfp.add_class::<retrievers::retriever::Retriever>()?;
+    bfp.add_class::<ByteStream>()?;
+    bfp.add_class::<BaseStruct>()?;
+    bfp.add_class::<Struct>()?;
+    bfp.add_class::<Retriever>()?;
 
     errors(py, bfp)?;
     types(py, bfp)?;

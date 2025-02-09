@@ -20,7 +20,7 @@ macro_rules! def_num_type_le {
             }
         }
 
-        wrap_py!($name);
+        wrap_py!($name, (), Self {});
     };
 }
 
@@ -46,6 +46,6 @@ macro_rules! def_bool_type_le {
             }
         }
         
-        wrap_py!($name);
+        wrap_py!($name, (), Self {});
     };
 }

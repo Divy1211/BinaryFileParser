@@ -1,11 +1,11 @@
 #[macro_export]
 macro_rules! wrap_py {
-    ($bfp_type:ty) => {
+    ($bfp_type:ty, ($($arg_name:ident : $arg_type:ty),*), $init:expr) => {
         #[pymethods]
         impl $bfp_type {
             #[new]
-            fn new_py() -> Self {
-                Self {}
+            fn new_py($($arg_name: $arg_type),*) -> Self {
+                $init
             }
         
             #[pyo3(name = "to_bytes")]

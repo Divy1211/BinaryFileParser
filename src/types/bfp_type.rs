@@ -1,16 +1,17 @@
+use pyo3::exceptions::{PyTypeError, PyValueError};
+use pyo3::prelude::{PyAnyMethods, PyTypeMethods};
+use pyo3::{pyclass, Bound, PyAny, PyResult};
+
 use crate::types::base_struct::BaseStruct;
 use crate::types::byte_stream::ByteStream;
 use crate::types::le::bool::{Bool128, Bool16, Bool32, Bool64, Bool8};
+use crate::types::le::bytes::Bytes;
 use crate::types::le::float::{Float32, Float64};
 use crate::types::le::int::{Int128, Int16, Int32, Int64, Int8, UInt128, UInt16, UInt32, UInt64, UInt8};
 use crate::types::parseable::Parseable;
 use crate::types::parseable_type::ParseableType;
 use crate::types::r#struct::Struct;
 use crate::types::version::Version;
-
-use pyo3::{pyclass, Bound, PyAny, PyResult};
-use pyo3::exceptions::PyTypeError;
-use pyo3::prelude::{PyAnyMethods, PyTypeMethods};
 
 #[pyclass]
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -36,6 +37,8 @@ pub enum BfpType {
     Bool64(Bool64),
     Bool128(Bool128),
 
+    Bytes(Bytes),
+    
     Struct(Struct),
 }
 
@@ -80,6 +83,8 @@ impl BfpType {
             BfpType::Bool32(_)  => "bool",
             BfpType::Bool64(_)  => "bool",
             BfpType::Bool128(_) => "bool",
+            
+            BfpType::Bytes(_) => "bytes",
 
             BfpType::Struct(_)  => "BaseStruct"
         }.into()
@@ -103,6 +108,7 @@ impl BfpType {
         }
     }
     
+    /// converts python values to ParseableTypes
     pub fn to_parseable(&self, value: &Bound<'_, PyAny>) -> PyResult<ParseableType> {
         Ok(match self {
             BfpType::UInt8(_)   => value.extract::<u8>()?.into(),
@@ -126,6 +132,16 @@ impl BfpType {
             BfpType::Bool64(_)  => value.extract::<bool>()?.into(),
             BfpType::Bool128(_) => value.extract::<bool>()?.into(),
 
+            BfpType::Bytes(Bytes { len })    => {
+                let bytes = value.extract::<Vec<u8>>()?;
+                if bytes.len() != *len {
+                    return Err(PyValueError::new_err(format!(
+                        "Attempting to set Bytes[{}] to a bytestring of length {}", len, bytes.len(),
+                    )));
+                }
+                bytes.into()
+            },
+            
             BfpType::Struct(struct_) => {
                 let py_type = struct_.py_type.bind(value.py());
                 if !value.is_exact_instance(py_type) {
@@ -170,6 +186,8 @@ impl Parseable for BfpType {
             BfpType::Bool64(val)  => val.from_stream(stream, ver)?.into(),
             BfpType::Bool128(val) => val.from_stream(stream, ver)?.into(),
 
+            BfpType::Bytes(val)   => val.from_stream(stream, ver)?.into(),
+            
             BfpType::Struct(struct_)  => ParseableType::Struct { val: struct_.from_stream(stream, ver)?, struct_: struct_.clone() },
         })
     }

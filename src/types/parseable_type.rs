@@ -1,7 +1,7 @@
 use std::cmp::Ordering;
 
 use pyo3::{Bound, IntoPy, PyAny, Python};
-
+use pyo3::types::PyBytes;
 use crate::{impl_from_for_parseable_type, impl_try_into_for_parseable_type};
 use crate::types::base_struct::BaseStruct;
 use crate::types::bfp_list::BfpList;
@@ -47,6 +47,7 @@ impl ParseableType {
         }
     }
     
+    /// used to convert ParseableTypes back to python values
     pub fn to_bound(self, py: Python) -> Bound<'_, PyAny> {
         match self {
             ParseableType::None                         => py.None().into_bound(py),
@@ -71,7 +72,7 @@ impl ParseableType {
 
             ParseableType::Array(val)                   => val.into_py(py).into_bound(py),
 
-            ParseableType::Bytes(val)                   => val.into_py(py).into_bound(py),
+            ParseableType::Bytes(val)                   => PyBytes::new_bound(py, &val).into_any(),
 
             ParseableType::Option(_val)                 => todo!(),
 
