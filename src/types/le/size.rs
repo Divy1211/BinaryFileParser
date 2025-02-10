@@ -1,3 +1,4 @@
+use std::io::{Error, ErrorKind};
 use crate::types::byte_stream::ByteStream;
 use crate::types::le::int::{UInt128, UInt16, UInt32, UInt64, UInt8};
 use crate::types::parseable::Parseable;
@@ -10,6 +11,7 @@ pub enum Size {
     UInt32(UInt32),
     UInt64(UInt64),
     UInt128(UInt128),
+    Fixed(usize),
 }
 
 impl Parseable for Size {
@@ -23,6 +25,7 @@ impl Parseable for Size {
             Size::UInt32(type_)  => type_.from_stream(stream, _version)? as usize,
             Size::UInt64(type_)  => type_.from_stream(stream, _version)? as usize,
             Size::UInt128(type_) => type_.from_stream(stream, _version)? as usize,
+            Size::Fixed(size)    => *size,
         })
     }
 
@@ -34,6 +37,13 @@ impl Parseable for Size {
             Size::UInt32(type_)  => type_.to_bytes(&(*value as u32)),
             Size::UInt64(type_)  => type_.to_bytes(&(*value as u64)),
             Size::UInt128(type_) => type_.to_bytes(&(*value as u128)),
+            Size::Fixed(size)    => {
+                if size != value {
+                    Err(Error::new(ErrorKind::InvalidData, format!("Str[{size}] given string of length {value}. Help: This length is calculated AFTER encoding the string as bytes")))
+                } else {
+                    Ok(Vec::with_capacity(*size))
+                }
+            },
         }
     }
 }

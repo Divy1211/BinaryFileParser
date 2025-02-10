@@ -1,3 +1,4 @@
+use std::iter::repeat;
 use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyTuple, PyType};
@@ -9,38 +10,68 @@ use crate::types::le::utils::{str_from_bytes, str_to_bytes};
 use crate::types::parseable::Parseable;
 use crate::types::version::Version;
 
-#[pyclass(module = "bfp_rs.types.le", name = "Str")]
+#[pyclass(module = "bfp_rs.types.le", name = "NtStr")]
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Str {
-    pub len_type: Size,
+pub struct NtStr {
+    pub len_type: Option<Size>,
     enc1: Encoding,
     enc2: Option<Encoding>,
 }
 
-impl Str {
+impl NtStr {
+    pub fn c_str() -> Self {
+        Self {
+            len_type: None,
+            enc1: Encoding::UTF8,
+            enc2: Some(Encoding::LATIN1),
+        }
+    }
     pub fn len_size(len_type: Size) -> Self {
         Self {
-            len_type,
+            len_type: Some(len_type),
             enc1: Encoding::UTF8,
             enc2: Some(Encoding::LATIN1),
         }
     }
 }
 
-impl Parseable for Str {
+impl Parseable for NtStr {
     type Type = String;
 
     #[cfg_attr(feature = "inline_always", inline(always))]
     fn from_stream(&self, stream: &mut ByteStream, _version: &Version) -> std::io::Result<Self::Type> {
-        let len = self.len_type.from_stream(stream, _version)?;
+        let Some(len_size) = &self.len_type else {
+            let mut bytes = Vec::new();
+            for byte in stream {
+                let byte = byte?;
+                if byte == 0 {
+                    break;
+                }
+                bytes.push(byte);
+            }
+            return str_from_bytes(&bytes, &self.enc1, &self.enc2)
+        };
+        let len = len_size.from_stream(stream, _version)?;
         let bytes = stream.get(len)?;
-        str_from_bytes(bytes, &self.enc1, &self.enc2)
+        
+        let len = match bytes.iter().position(|&c| c == 0) {
+            Some(len) => len,
+            None      => bytes.len(),
+        };
+        str_from_bytes(&bytes[0..len], &self.enc1, &self.enc2)
     }
 
     #[cfg_attr(feature = "inline_always", inline(always))]
     fn to_bytes(&self, value: &Self::Type) -> std::io::Result<Vec<u8>> {
         let mut bytes = str_to_bytes(value, &self.enc1, &self.enc2)?;
-        let mut len_bytes = self.len_type.to_bytes(&bytes.len())?;
+        bytes.push(0);
+        let Some(len_size) = &self.len_type else {
+            return Ok(bytes);
+        };
+        if let Size::Fixed(len) = len_size { if bytes.len() < *len {
+            bytes.extend(repeat(0).take(*len - bytes.len()));
+        }}
+        let mut len_bytes = len_size.to_bytes(&bytes.len())?;
         len_bytes.append(&mut bytes);
         Ok(len_bytes)
     }
@@ -48,7 +79,7 @@ impl Parseable for Str {
 
 
 #[pymethods]
-impl Str {
+impl NtStr {
     #[pyo3(name = "to_bytes")]
     fn to_bytes_py(slf: PyRef<Self>, value: <Self as Parseable>::Type) -> PyResult<Bound<PyBytes>> {
         let bytes = slf.to_bytes(&value)?;
@@ -75,7 +106,7 @@ impl Str {
 
     pub fn __getitem__(&self, encodings: &Bound<PyAny>) -> PyResult<BfpType> {
         if let Ok(enc1) = encodings.extract::<Encoding>() {
-            return Ok(BfpType::Str(Str { len_type: self.len_type.clone(), enc1, enc2: None }));
+            return Ok(BfpType::NTStr(NtStr { len_type: self.len_type.clone(), enc1, enc2: None }));
         }
         let Ok(tup) = encodings.downcast::<PyTuple>() else {
             return Err(PyTypeError::new_err("Only encodings may be specified as arguments to string types"))
@@ -86,11 +117,11 @@ impl Str {
         let (enc1, enc2) = unsafe { (tup.get_item_unchecked(0), tup.get_item_unchecked(1)) };
         let (enc1, enc2) = (enc1.extract()?, enc2.extract()?);
         
-        Ok(BfpType::Str(Str { len_type: self.len_type.clone(), enc1, enc2: Some(enc2) }))
+        Ok(BfpType::NTStr(NtStr { len_type: self.len_type.clone(), enc1, enc2: Some(enc2) }))
     }
 
     #[classmethod]
     pub fn __class_getitem__(_cls: &Bound<PyType>, len: usize) -> PyResult<BfpType> {
-        Ok(BfpType::Str(Str::len_size(Size::Fixed(len))))
+        Ok(BfpType::NTStr(NtStr::len_size(Size::Fixed(len))))
     }
 }

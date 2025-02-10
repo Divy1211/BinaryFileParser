@@ -9,6 +9,7 @@ use crate::types::le::bool::{Bool128, Bool16, Bool32, Bool64, Bool8};
 use crate::types::le::bytes::Bytes;
 use crate::types::le::float::{Float32, Float64};
 use crate::types::le::int::{Int128, Int16, Int32, Int64, Int8, UInt128, UInt16, UInt32, UInt64, UInt8};
+use crate::types::le::nt_str::NtStr;
 use crate::types::le::str::Str;
 use crate::types::parseable::Parseable;
 use crate::types::parseable_type::ParseableType;
@@ -42,6 +43,7 @@ pub enum BfpType {
     Bytes(Bytes),
 
     Str(Str),
+    NTStr(NtStr),
 
     Struct(Struct),
 }
@@ -91,6 +93,7 @@ impl BfpType {
             BfpType::Bytes(_)   => "bytes",
 
             BfpType::Str(_)     => "str",
+            BfpType::NTStr(_)   => "str",
 
             BfpType::Struct(_)  => "BaseStruct"
         }.into()
@@ -148,7 +151,8 @@ impl BfpType {
                 bytes.into()
             },
 
-            BfpType::Str(_) => { value.extract::<String>()?.into() }
+            BfpType::Str(_)   => { value.extract::<String>()?.into() }
+            BfpType::NTStr(_) => { value.extract::<String>()?.into() }
             
             BfpType::Struct(struct_) => {
                 let py_type = struct_.py_type.bind(value.py());
@@ -197,6 +201,7 @@ impl Parseable for BfpType {
             BfpType::Bytes(val)       => val.from_stream(stream, ver)?.into(),
 
             BfpType::Str(val)         => val.from_stream(stream, ver)?.into(),
+            BfpType::NTStr(val)       => val.from_stream(stream, ver)?.into(),
 
             BfpType::Struct(struct_)  => ParseableType::Struct { val: struct_.from_stream(stream, ver)?, struct_: struct_.clone() },
         })
@@ -228,6 +233,7 @@ impl Parseable for BfpType {
             (BfpType::Bytes(type_),   ParseableType::Bytes(val))         => type_.to_bytes(val),
 
             (BfpType::Str(type_),     ParseableType::Str(val))           => type_.to_bytes(val),
+            (BfpType::NTStr(type_),   ParseableType::Str(val))           => type_.to_bytes(val),
 
             (BfpType::Struct(type_),  ParseableType::Struct { val, .. }) => type_.to_bytes(val),
 

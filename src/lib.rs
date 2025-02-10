@@ -18,6 +18,7 @@ use crate::types::le::bytes::Bytes;
 use crate::types::le::float::{Float32, Float64};
 use crate::types::le::int::{UInt128, UInt16, UInt32, UInt64, UInt8, Int128, Int16, Int32, Int64, Int8};
 use crate::types::le::encoding::Encoding;
+use crate::types::le::nt_str::NtStr;
 use crate::types::le::size::Size;
 use crate::types::le::str::Str;
 use crate::types::r#struct::Struct;
@@ -54,23 +55,22 @@ fn le(py: Python, types: &Bound<PyModule>) -> PyResult<()> {
     le.add("bool64", BfpType::Bool64(Bool64))?;
     le.add("bool128", BfpType::Bool128(Bool128))?;
 
-    le.add("str8", BfpType::Str(Str {
-        len: Size::UInt8(UInt8), enc1: Encoding::UTF8, enc2: Some(Encoding::LATIN1)
-    }))?;
-    le.add("str16", BfpType::Str(Str {
-        len: Size::UInt16(UInt16), enc1: Encoding::UTF8, enc2: Some(Encoding::LATIN1)
-    }))?;
-    le.add("str32", BfpType::Str(Str {
-        len: Size::UInt32(UInt32), enc1: Encoding::UTF8, enc2: Some(Encoding::LATIN1)
-    }))?;
-    le.add("str64", BfpType::Str(Str {
-        len: Size::UInt64(UInt64), enc1: Encoding::UTF8, enc2: Some(Encoding::LATIN1)
-    }))?;
-    le.add("str128", BfpType::Str(Str {
-        len: Size::UInt128(UInt128), enc1: Encoding::UTF8, enc2: Some(Encoding::LATIN1)
-    }))?;
+    le.add("str8", BfpType::Str(Str::len_size(Size::UInt8(UInt8))))?;
+    le.add("str16", BfpType::Str(Str::len_size(Size::UInt16(UInt16))))?;
+    le.add("str32", BfpType::Str(Str::len_size(Size::UInt32(UInt32))))?;
+    le.add("str64", BfpType::Str(Str::len_size(Size::UInt64(UInt64))))?;
+    le.add("str128", BfpType::Str(Str::len_size(Size::UInt128(UInt128))))?;
+
+    le.add("c_str", BfpType::NTStr(NtStr::c_str()))?;
+    le.add("nt_str8", BfpType::NTStr(NtStr::len_size(Size::UInt8(UInt8))))?;
+    le.add("nt_str16", BfpType::NTStr(NtStr::len_size(Size::UInt16(UInt16))))?;
+    le.add("nt_str32", BfpType::NTStr(NtStr::len_size(Size::UInt32(UInt32))))?;
+    le.add("nt_str64", BfpType::NTStr(NtStr::len_size(Size::UInt64(UInt64))))?;
+    le.add("nt_str128", BfpType::NTStr(NtStr::len_size(Size::UInt128(UInt128))))?;
     
     le.add_class::<Bytes>()?;
+    le.add_class::<Str>()?;
+    le.add_class::<NtStr>()?;
     le.add_class::<Encoding>()?;
 
     le.add("void", BfpType::Bytes(Bytes { len: 0 }))?;

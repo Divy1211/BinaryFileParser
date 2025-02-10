@@ -117,3 +117,11 @@ impl ByteStream {
         Ok(PyBytes::new_bound(py, slf.remaining()))
     }
 }
+
+impl Iterator for ByteStream {
+    type Item = io::Result<u8>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        Some(self.get(1).map(|c| c[0]))
+    }
+}

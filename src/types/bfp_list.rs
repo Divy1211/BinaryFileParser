@@ -65,13 +65,13 @@ impl BfpList {
 
     fn extend(slf: PyRefMut<BfpList>, val: Bound<'_, PyAny>) -> PyResult<()> {
         let mut ls = slf.ls.write().expect("GIL bound write");
-        let vals = val.iter()?
+        let mut vals = val.iter()?
             .map(|v| {
                 slf.data_type.to_parseable(&v.expect("obtained from python"))
             })
             .collect::<PyResult<Vec<_>>>()?;
         
-        ls.extend(vals);
+        ls.append(&mut vals);
         Ok(())
     }
 
