@@ -21,6 +21,7 @@ use crate::types::le::encoding::Encoding;
 use crate::types::le::nt_str::NtStr;
 use crate::types::le::size::Size;
 use crate::types::le::str::Str;
+use crate::types::le::str_array::StrArray;
 use crate::types::r#struct::Struct;
 
 pub mod retrievers;
@@ -67,6 +68,12 @@ fn le(py: Python, types: &Bound<PyModule>) -> PyResult<()> {
     le.add("nt_str32", BfpType::NTStr(NtStr::len_size(Size::UInt32(UInt32))))?;
     le.add("nt_str64", BfpType::NTStr(NtStr::len_size(Size::UInt64(UInt64))))?;
     le.add("nt_str128", BfpType::NTStr(NtStr::len_size(Size::UInt128(UInt128))))?;
+    
+    le.add("str_array8", BfpType::StrArray(StrArray::len_size(Size::UInt8(UInt8))))?;
+    le.add("str_array16", BfpType::StrArray(StrArray::len_size(Size::UInt16(UInt16))))?;
+    le.add("str_array32", BfpType::StrArray(StrArray::len_size(Size::UInt32(UInt32))))?;
+    le.add("str_array64", BfpType::StrArray(StrArray::len_size(Size::UInt64(UInt64))))?;
+    le.add("str_array128", BfpType::StrArray(StrArray::len_size(Size::UInt128(UInt128))))?;
     
     le.add_class::<Bytes>()?;
     le.add_class::<Str>()?;

@@ -5,6 +5,7 @@ use crate::types::bfp_type::BfpType;
 use crate::types::byte_stream::ByteStream;
 use crate::types::le::encoding::Encoding;
 use crate::types::le::size::Size;
+use crate::types::le::str_array::StrArray;
 use crate::types::le::utils::{str_from_bytes, str_to_bytes};
 use crate::types::parseable::Parseable;
 use crate::types::version::Version;
@@ -23,6 +24,14 @@ impl Str {
             len_type,
             enc1: Encoding::UTF8,
             enc2: Some(Encoding::LATIN1),
+        }
+    }
+    
+    pub fn from_arr(arr: &StrArray) -> Self {
+        Self {
+            len_type: arr.str_len_type.clone(),
+            enc1: arr.enc1.clone(),
+            enc2: arr.enc2.clone(),
         }
     }
 }
