@@ -62,13 +62,13 @@ impl Parseable for StrArray {
     type Type = BfpList;
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn from_stream(&self, stream: &mut ByteStream, _version: &Version) -> std::io::Result<Self::Type> {
-        let len = self.len_type.from_stream(stream, _version)?;
+    fn from_stream(&self, stream: &mut ByteStream, _ver: &Version) -> std::io::Result<Self::Type> {
+        let len = self.len_type.from_stream(stream, _ver)?;
         
         let mut lens = Vec::with_capacity(len);
         let mut ls = Vec::with_capacity(len);
         for _ in 0..len {
-            lens.push(self.str_len_type.from_stream(stream, _version)?);
+            lens.push(self.str_len_type.from_stream(stream, _ver)?);
         }
         
         for len in lens {

@@ -40,8 +40,8 @@ impl Parseable for Str {
     type Type = String;
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn from_stream(&self, stream: &mut ByteStream, _version: &Version) -> std::io::Result<Self::Type> {
-        let len = self.len_type.from_stream(stream, _version)?;
+    fn from_stream(&self, stream: &mut ByteStream, _ver: &Version) -> std::io::Result<Self::Type> {
+        let len = self.len_type.from_stream(stream, _ver)?;
         let bytes = stream.get(len)?;
         str_from_bytes(bytes, &self.enc1, &self.enc2)
     }

@@ -39,7 +39,7 @@ impl Parseable for NtStr {
     type Type = String;
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn from_stream(&self, stream: &mut ByteStream, _version: &Version) -> std::io::Result<Self::Type> {
+    fn from_stream(&self, stream: &mut ByteStream, _ver: &Version) -> std::io::Result<Self::Type> {
         let Some(len_size) = &self.len_type else {
             let mut bytes = Vec::new();
             for byte in stream {
@@ -51,7 +51,7 @@ impl Parseable for NtStr {
             }
             return str_from_bytes(&bytes, &self.enc1, &self.enc2)
         };
-        let len = len_size.from_stream(stream, _version)?;
+        let len = len_size.from_stream(stream, _ver)?;
         let bytes = stream.get(len)?;
         
         let len = match bytes.iter().position(|&c| c == 0) {

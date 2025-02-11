@@ -16,7 +16,7 @@ impl Parseable for Bytes {
     type Type = Vec<u8>;
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn from_stream(&self, stream: &mut ByteStream, _version: &Version) -> std::io::Result<Self::Type> {
+    fn from_stream(&self, stream: &mut ByteStream, _ver: &Version) -> std::io::Result<Self::Type> {
         Ok(stream.get(self.len)?.into())
     }
 
