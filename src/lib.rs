@@ -19,6 +19,7 @@ use crate::types::le::float::{Float32, Float64};
 use crate::types::le::int::{UInt128, UInt16, UInt32, UInt64, UInt8, Int128, Int16, Int32, Int64, Int8};
 use crate::types::le::encoding::Encoding;
 use crate::types::le::nt_str::NtStr;
+use crate::types::le::option::OptionBuilder;
 use crate::types::le::size::Size;
 use crate::types::le::str::Str;
 use crate::types::le::str_array::StrArray;
@@ -73,6 +74,12 @@ fn le(py: Python, types: &Bound<PyModule>) -> PyResult<()> {
     le.add("str_array32", BfpType::StrArray(StrArray::len_size(Size::UInt32(UInt32))))?;
     le.add("str_array64", BfpType::StrArray(StrArray::len_size(Size::UInt64(UInt64))))?;
     le.add("str_array128", BfpType::StrArray(StrArray::len_size(Size::UInt128(UInt128))))?;
+
+    le.add("Option8", OptionBuilder { len_type: Size::UInt8(UInt8) })?;
+    le.add("Option16", OptionBuilder { len_type: Size::UInt16(UInt16) })?;
+    le.add("Option32", OptionBuilder { len_type: Size::UInt32(UInt32) })?;
+    le.add("Option64", OptionBuilder { len_type: Size::UInt64(UInt64) })?;
+    le.add("Option128", OptionBuilder { len_type: Size::UInt128(UInt128) })?;
     
     le.add_class::<Bytes>()?;
     le.add_class::<Str>()?;

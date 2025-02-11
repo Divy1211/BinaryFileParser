@@ -10,6 +10,7 @@ use crate::types::le::bytes::Bytes;
 use crate::types::le::float::{Float32, Float64};
 use crate::types::le::int::{Int128, Int16, Int32, Int64, Int8, UInt128, UInt16, UInt32, UInt64, UInt8};
 use crate::types::le::nt_str::NtStr;
+use crate::types::le::option::OptionType;
 use crate::types::le::size::Size;
 use crate::types::le::str::Str;
 use crate::types::le::str_array::StrArray;
@@ -46,8 +47,11 @@ pub enum BfpType {
 
     Str(Str),
     NTStr(NtStr),
+    
     StrArray(StrArray),
-
+    
+    Option(OptionType),
+    
     Struct(Struct),
 }
 
@@ -85,38 +89,40 @@ impl BfpType {
         }
     }
 
-    pub fn py_name(&self) -> String {
+    pub fn py_name(&self) -> &str {
         match self {
-            BfpType::UInt8(_)    => "int",
-            BfpType::UInt16(_)   => "int",
-            BfpType::UInt32(_)   => "int",
-            BfpType::UInt64(_)   => "int",
-            BfpType::UInt128(_)  => "int",
+            BfpType::UInt8(_)      => "int",
+            BfpType::UInt16(_)     => "int",
+            BfpType::UInt32(_)     => "int",
+            BfpType::UInt64(_)     => "int",
+            BfpType::UInt128(_)    => "int",
 
-            BfpType::Int8(_)     => "int",
-            BfpType::Int16(_)    => "int",
-            BfpType::Int32(_)    => "int",
-            BfpType::Int64(_)    => "int",
-            BfpType::Int128(_)   => "int",
+            BfpType::Int8(_)       => "int",
+            BfpType::Int16(_)      => "int",
+            BfpType::Int32(_)      => "int",
+            BfpType::Int64(_)      => "int",
+            BfpType::Int128(_)     => "int",
 
-            BfpType::Float32(_)  => "float",
-            BfpType::Float64(_)  => "float",
+            BfpType::Float32(_)    => "float",
+            BfpType::Float64(_)    => "float",
 
-            BfpType::Bool8(_)    => "bool",
-            BfpType::Bool16(_)   => "bool",
-            BfpType::Bool32(_)   => "bool",
-            BfpType::Bool64(_)   => "bool",
-            BfpType::Bool128(_)  => "bool",
+            BfpType::Bool8(_)      => "bool",
+            BfpType::Bool16(_)     => "bool",
+            BfpType::Bool32(_)     => "bool",
+            BfpType::Bool64(_)     => "bool",
+            BfpType::Bool128(_)    => "bool",
             
-            BfpType::Bytes(_)    => "bytes",
+            BfpType::Bytes(_)      => "bytes",
 
-            BfpType::Str(_)      => "str",
-            BfpType::NTStr(_)    => "str",
+            BfpType::Str(_)        => "str",
+            BfpType::NTStr(_)      => "str",
             
-            BfpType::StrArray(_) => "list",
+            BfpType::StrArray(_)   => "list",
 
-            BfpType::Struct(_)   => "BaseStruct"
-        }.into()
+            BfpType::Option(type_) => type_.data_type.py_name(),
+
+            BfpType::Struct(_)     => "BaseStruct"
+        }
     }
 
     pub fn to_parseable_from_usize(&self, value: usize) -> Option<ParseableType> {
@@ -171,8 +177,9 @@ impl BfpType {
                 bytes.into()
             },
 
-            BfpType::Str(_)   => { value.extract::<String>()?.into() }
-            BfpType::NTStr(_) => { value.extract::<String>()?.into() }
+            BfpType::Str(_)         => value.extract::<String>()?.into(),
+            BfpType::NTStr(_)       => value.extract::<String>()?.into(),
+            BfpType::Option(type_)  => type_.get_option(value)?.into(),
             
             BfpType::StrArray(type_) => {
                 let ls = type_.get_bfp_ls(value)?;
@@ -238,6 +245,8 @@ impl Parseable for BfpType {
             
             BfpType::StrArray(val)    => val.from_stream(stream, ver)?.into(),
 
+            BfpType::Option(val)      => val.from_stream(stream, ver)?.into(),
+            
             BfpType::Struct(struct_)  => ParseableType::Struct { val: struct_.from_stream(stream, ver)?, struct_: struct_.clone() },
         })
     }
@@ -269,8 +278,10 @@ impl Parseable for BfpType {
 
             (BfpType::Str(type_),      ParseableType::Str(val))           => type_.to_bytes(val),
             (BfpType::NTStr(type_),    ParseableType::Str(val))           => type_.to_bytes(val),
-            
+
             (BfpType::StrArray(type_), ParseableType::Array(val))         => type_.to_bytes(val),
+            
+            (BfpType::Option(type_),   ParseableType::Option(val))        => type_.to_bytes(val),
 
             (BfpType::Struct(type_),   ParseableType::Struct { val, .. }) => type_.to_bytes(val),
 

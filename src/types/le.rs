@@ -8,3 +8,4 @@ pub mod encoding;
 mod utils;
 pub mod nt_str;
 pub mod str_array;
+pub mod option;

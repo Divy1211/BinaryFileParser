@@ -47,7 +47,7 @@ impl ParseableType {
         }
     }
     
-    /// used to convert ParseableTypes back to python values
+    /// converts ParseableTypes back to python values
     pub fn to_bound(self, py: Python) -> Bound<'_, PyAny> {
         match self {
             ParseableType::None                         => py.None().into_bound(py),
@@ -74,7 +74,12 @@ impl ParseableType {
 
             ParseableType::Bytes(val)                   => PyBytes::new_bound(py, &val).into_any(),
 
-            ParseableType::Option(_val)                 => todo!(),
+            ParseableType::Option(val)                  => { 
+                match val {
+                    None      => py.None().into_bound(py),
+                    Some(val) => val.to_bound(py),
+                }
+            },
 
             ParseableType::Struct { val, struct_ }      => BaseStruct::with_cls(val, struct_.py_type.bind(py)),
         }

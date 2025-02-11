@@ -33,20 +33,6 @@ impl PartialEq for Struct {
 
 impl Eq for Struct {}
 
-
-#[pymethods]
-impl Struct {
-    #[classmethod]
-    fn __class_getitem__(_cls: &Bound<PyType>, sub_cls: &Bound<PyType>) -> PyResult<BfpType> {
-        if !sub_cls.is_subclass_of::<BaseStruct>()? {
-            return Err(PyTypeError::new_err(
-                "Cannot create a BfpType from a class that does not subclass BaseStruct"
-            ))
-        }
-        Ok(BfpType::Struct(Struct::from_cls(sub_cls)?))
-    }
-}
-
 impl Struct {
     pub fn new(py_type: Py<PyType>, fully_qualified_name: String) -> Self {
         Struct {
