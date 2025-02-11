@@ -3,6 +3,7 @@ use std::sync::Arc;
 use pyo3::prelude::*;
 use pyo3::types::PyType;
 use pyo3::{pyclass, PyObject};
+
 use crate::combinators::combinator::Combinator;
 use crate::combinators::combinator_type::CombinatorType;
 use crate::errors::version_error::VersionError;
@@ -62,7 +63,7 @@ impl Retriever {
     ))]
     fn new(
         py: Python,
-        data_type: BfpType,
+        data_type: &Bound<PyAny>,
 
         min_ver: Version,
         max_ver: Version,
@@ -91,7 +92,7 @@ impl Retriever {
         };
         
         Ok(Retriever {
-            data_type,
+            data_type: BfpType::from_py_any(data_type)?,
             min_ver,
             max_ver,
             default: Arc::new(default.unwrap_or(py.None())),

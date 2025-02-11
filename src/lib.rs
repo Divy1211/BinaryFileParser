@@ -22,7 +22,6 @@ use crate::types::le::nt_str::NtStr;
 use crate::types::le::size::Size;
 use crate::types::le::str::Str;
 use crate::types::le::str_array::StrArray;
-use crate::types::r#struct::Struct;
 
 pub mod retrievers;
 pub mod errors;
@@ -127,7 +126,6 @@ fn errors(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
 fn binary_file_parser(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
     bfp.add_class::<ByteStream>()?;
     bfp.add_class::<BaseStruct>()?;
-    bfp.add_class::<Struct>()?;
     bfp.add_class::<Retriever>()?;
 
     errors(py, bfp)?;

@@ -1,6 +1,5 @@
 use std::sync::{Arc, RwLock};
 
-use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyType};
 
@@ -9,7 +8,6 @@ use crate::errors::version_error::VersionError;
 use crate::retrievers::retriever::{RetState, Retriever};
 use crate::types::base_struct::BaseStruct;
 use crate::types::bfp_list::BfpList;
-use crate::types::bfp_type::BfpType;
 use crate::types::byte_stream::ByteStream;
 use crate::types::parseable::Parseable;
 use crate::types::parseable_type::ParseableType;

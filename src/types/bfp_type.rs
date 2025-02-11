@@ -1,7 +1,7 @@
 use pyo3::exceptions::{PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::{pyclass, pymethods, Bound, PyAny, PyResult};
-use pyo3::types::PyBytes;
+use pyo3::types::{PyBytes, PyType};
 
 use crate::types::base_struct::BaseStruct;
 use crate::types::byte_stream::ByteStream;
@@ -52,6 +52,21 @@ pub enum BfpType {
 }
 
 impl BfpType {
+    pub fn from_py_any(value: &Bound<PyAny>) -> PyResult<BfpType> {
+        Ok(match value.extract::<BfpType>() {
+            Ok(type_) => type_,
+            Err(_) => {
+                let cls = value.downcast::<PyType>()?;
+                if !cls.is_subclass_of::<BaseStruct>()? {
+                    return Err(PyTypeError::new_err(
+                        "Cannot create a BfpType from a class that does not subclass BaseStruct"
+                    ))
+                }
+                BfpType::Struct(Struct::from_cls(cls)?)
+            },
+        })
+    }
+    
     pub fn is_ord(&self) -> bool {
         match self {
             BfpType::Struct(_) => false,
