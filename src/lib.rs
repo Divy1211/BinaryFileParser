@@ -13,6 +13,7 @@ use crate::retrievers::retriever::Retriever;
 use crate::types::base_struct::BaseStruct;
 use crate::types::bfp_type::BfpType;
 use crate::types::byte_stream::ByteStream;
+use crate::types::le::array::{Array, ArrayBuilder};
 use crate::types::le::bool::{Bool128, Bool16, Bool32, Bool64, Bool8};
 use crate::types::le::bytes::Bytes;
 use crate::types::le::float::{Float32, Float64};
@@ -80,10 +81,17 @@ fn le(py: Python, types: &Bound<PyModule>) -> PyResult<()> {
     le.add("Option32", OptionBuilder { len_type: Size::UInt32(UInt32) })?;
     le.add("Option64", OptionBuilder { len_type: Size::UInt64(UInt64) })?;
     le.add("Option128", OptionBuilder { len_type: Size::UInt128(UInt128) })?;
+
+    le.add("Array8", ArrayBuilder { len_type: Size::UInt8(UInt8) })?;
+    le.add("Array16", ArrayBuilder { len_type: Size::UInt16(UInt16) })?;
+    le.add("Array32", ArrayBuilder { len_type: Size::UInt32(UInt32) })?;
+    le.add("Array64", ArrayBuilder { len_type: Size::UInt64(UInt64) })?;
+    le.add("Array128", ArrayBuilder { len_type: Size::UInt128(UInt128) })?;
     
     le.add_class::<Bytes>()?;
     le.add_class::<Str>()?;
     le.add_class::<NtStr>()?;
+    le.add_class::<Array>()?;
     le.add_class::<Encoding>()?;
 
     le.add("void", BfpType::Bytes(Bytes { len: 0 }))?;

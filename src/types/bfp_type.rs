@@ -14,6 +14,7 @@ use crate::types::le::option::OptionType;
 use crate::types::le::size::Size;
 use crate::types::le::str::Str;
 use crate::types::le::str_array::StrArray;
+use crate::types::le::array::Array;
 use crate::types::parseable::Parseable;
 use crate::types::parseable_type::ParseableType;
 use crate::types::r#struct::Struct;
@@ -51,7 +52,9 @@ pub enum BfpType {
     StrArray(StrArray),
     
     Option(OptionType),
-    
+
+    Array(Array),
+
     Struct(Struct),
 }
 
@@ -89,39 +92,41 @@ impl BfpType {
         }
     }
 
-    pub fn py_name(&self) -> &str {
+    pub fn py_name(&self) -> String {
         match self {
-            BfpType::UInt8(_)      => "int",
-            BfpType::UInt16(_)     => "int",
-            BfpType::UInt32(_)     => "int",
-            BfpType::UInt64(_)     => "int",
-            BfpType::UInt128(_)    => "int",
+            BfpType::UInt8(_)      => "int".into(),
+            BfpType::UInt16(_)     => "int".into(),
+            BfpType::UInt32(_)     => "int".into(),
+            BfpType::UInt64(_)     => "int".into(),
+            BfpType::UInt128(_)    => "int".into(),
 
-            BfpType::Int8(_)       => "int",
-            BfpType::Int16(_)      => "int",
-            BfpType::Int32(_)      => "int",
-            BfpType::Int64(_)      => "int",
-            BfpType::Int128(_)     => "int",
+            BfpType::Int8(_)       => "int".into(),
+            BfpType::Int16(_)      => "int".into(),
+            BfpType::Int32(_)      => "int".into(),
+            BfpType::Int64(_)      => "int".into(),
+            BfpType::Int128(_)     => "int".into(),
 
-            BfpType::Float32(_)    => "float",
-            BfpType::Float64(_)    => "float",
+            BfpType::Float32(_)    => "float".into(),
+            BfpType::Float64(_)    => "float".into(),
 
-            BfpType::Bool8(_)      => "bool",
-            BfpType::Bool16(_)     => "bool",
-            BfpType::Bool32(_)     => "bool",
-            BfpType::Bool64(_)     => "bool",
-            BfpType::Bool128(_)    => "bool",
+            BfpType::Bool8(_)      => "bool".into(),
+            BfpType::Bool16(_)     => "bool".into(),
+            BfpType::Bool32(_)     => "bool".into(),
+            BfpType::Bool64(_)     => "bool".into(),
+            BfpType::Bool128(_)    => "bool".into(),
             
-            BfpType::Bytes(_)      => "bytes",
+            BfpType::Bytes(_)      => "bytes".into(),
 
-            BfpType::Str(_)        => "str",
-            BfpType::NTStr(_)      => "str",
+            BfpType::Str(_)        => "str".into(),
+            BfpType::NTStr(_)      => "str".into(),
             
-            BfpType::StrArray(_)   => "list",
+            BfpType::StrArray(_)   => "list[str]".into(),
 
-            BfpType::Option(type_) => type_.data_type.py_name(),
+            BfpType::Option(type_) => format!("{} | None", type_.data_type.py_name()),
 
-            BfpType::Struct(_)     => "BaseStruct"
+            BfpType::Array(type_)  => format!("list[{}]", type_.data_type.py_name()),
+            
+            BfpType::Struct(_)     => "BaseStruct".into()
         }
     }
 
@@ -193,6 +198,19 @@ impl BfpType {
                 }
                 ls.into()
             }
+
+            BfpType::Array(type_) => {
+                let ls = type_.get_bfp_ls(value)?;
+                let Size::Fixed(len) = type_.len_type else {
+                    return Ok(ls.into());
+                };
+                if ls.len() != len {
+                    return Err(PyValueError::new_err(format!(
+                        "Attempting to set ArrayX[{}] to a list of length {}", len, ls.len(),
+                    )));
+                }
+                ls.into()
+            }
             
             BfpType::Struct(struct_) => {
                 let py_type = struct_.py_type.bind(value.py());
@@ -246,6 +264,8 @@ impl Parseable for BfpType {
             BfpType::StrArray(val)    => val.from_stream(stream, ver)?.into(),
 
             BfpType::Option(val)      => val.from_stream(stream, ver)?.into(),
+
+            BfpType::Array(val)       => val.from_stream(stream, ver)?.into(),
             
             BfpType::Struct(struct_)  => ParseableType::Struct { val: struct_.from_stream(stream, ver)?, struct_: struct_.clone() },
         })
@@ -280,8 +300,10 @@ impl Parseable for BfpType {
             (BfpType::NTStr(type_),    ParseableType::Str(val))           => type_.to_bytes(val),
 
             (BfpType::StrArray(type_), ParseableType::Array(val))         => type_.to_bytes(val),
-            
+
             (BfpType::Option(type_),   ParseableType::Option(val))        => type_.to_bytes(val),
+            
+            (BfpType::Array(type_),    ParseableType::Array(val))         => type_.to_bytes(val),
 
             (BfpType::Struct(type_),   ParseableType::Struct { val, .. }) => type_.to_bytes(val),
 

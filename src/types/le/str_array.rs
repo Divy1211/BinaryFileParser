@@ -45,7 +45,9 @@ impl StrArray {
         Ok(match ls.extract::<BfpList>() {
             Ok(ls) => {
                 let BfpType::Str(_) = ls.data_type else {
-                    return Err(PyTypeError::new_err("Cannot assign a non string list to a value of type StrArrayX"))
+                    return Err(PyTypeError::new_err(format!(
+                        "List type mismatch, assigning list[{}] to list[str]", ls.data_type.py_name()
+                    )))
                 };
                 ls
             },
