@@ -14,6 +14,12 @@ pub struct OptionBuilder {
     pub len_type: Size,
 }
 
+impl OptionBuilder {
+    pub fn new(len_type: Size) -> Self {
+        Self { len_type }
+    }
+}
+
 #[pymethods]
 impl OptionBuilder {
     pub fn __getitem__(slf: PyRef<Self>, bfp_type: &Bound<PyAny>) -> PyResult<BfpType> {

@@ -82,7 +82,7 @@ impl Struct {
         })
     }
 
-    pub fn decompress<'a>(&self, bytes: &[u8]) -> PyResult<ByteStream> {
+    pub fn decompress(&self, bytes: &[u8]) -> PyResult<ByteStream> {
         let Some(fn_) = &self.decompress else {
             return Err(CompressionError::new_err(
                 "Unable to read object from file. A Structure with a compressed section needs to implement '_decompress' classmethod."
@@ -95,7 +95,7 @@ impl Struct {
         })
     }
 
-    pub fn compress<'a>(&self, bytes: &[u8]) -> PyResult<Vec<u8>> {
+    pub fn compress(&self, bytes: &mut Vec<u8>, idx: usize) -> PyResult<()> {
         let Some(fn_) = &self.decompress else {
             return Err(CompressionError::new_err(
                 "Unable to write object to file. A Structure with a compressed section needs to implement '_compress' classmethod."
@@ -103,8 +103,10 @@ impl Struct {
         };
 
         Python::with_gil(|py| {
-            let bytes = fn_.call_bound(py, (PyBytes::new_bound(py, bytes),), None)?;
-            Ok(Vec::from(bytes.extract::<&[u8]>(py)?))
+            let py_bytes = fn_.call_bound(py, (PyBytes::new_bound(py, &bytes[idx..]),), None)?;
+            bytes.truncate(idx);
+            bytes.extend_from_slice(py_bytes.extract::<&[u8]>(py)?);
+            Ok(())
         })
     }
 }
@@ -144,8 +146,48 @@ impl Parseable for Struct {
         Ok(BaseStruct::new(ver.clone(), data, repeats))
     }
 
-    fn to_bytes(&self, _value: &BaseStruct) -> std::io::Result<Vec<u8>> {
-        todo!()
+    fn to_bytes(&self, value: &BaseStruct) -> std::io::Result<Vec<u8>> {
+        let mut data_lock = value.data.write().expect("GIL bound write");
+        let mut repeats_lock = value.repeats.write().expect("GIL bound write");
+        
+        let data = data_lock.as_mut();
+        let repeats = repeats_lock.as_mut();
+        let retrievers = self.retrievers.read().expect("immutable");
+        
+        let mut bytes = Vec::with_capacity(retrievers.len());
+        let mut compress_idx = None;
+        
+        for retriever in retrievers.iter() {
+            if !retriever.supported(&value.ver) {
+                continue;
+            }
+            if retriever.remaining_compressed {
+                compress_idx = Some(bytes.len());
+            }
+            retriever.call_on_writes(&retrievers, data, repeats, &value.ver)?;
+            
+            let value = data[retriever.idx].as_ref().expect("supported check done above");
+            
+            bytes.append(&mut match retriever.state(repeats) {
+                RetState::None => { vec![] }
+                RetState::Value => {
+                    retriever.to_bytes(value)?
+                }
+                RetState::List => {
+                    let ParseableType::Array(ls) = value else { unreachable!("Retriever state guarantee") };
+                    let ls = ls.ls.read().expect("GIL bound read");
+                    let mut bytes = Vec::with_capacity(ls.len());
+                    for item in ls.iter() {
+                        bytes.append(&mut retriever.to_bytes(item)?);
+                    }
+                    bytes
+                }
+            })
+        }
+        if let Some(idx) = compress_idx {
+            self.compress(&mut bytes, idx)?;
+        }
+        Ok(bytes)
     }
 }
 

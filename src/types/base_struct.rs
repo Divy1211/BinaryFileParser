@@ -1,11 +1,10 @@
 use std::fs::File;
-use std::io;
 use std::io::Write;
 use std::sync::{Arc, RwLock};
 
 use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
-use pyo3::types::PyType;
+use pyo3::types::{PyBytes, PyType};
 
 use crate::errors::compression_error::CompressionError;
 use crate::errors::version_error::VersionError;
@@ -64,6 +63,11 @@ impl BaseStruct {
         *(obj.downcast::<BaseStruct>().expect("infallible").borrow_mut()) = val;
         obj
     }
+
+    fn to_bytes<'py>(cls: &Bound<'py, PyType>, value: &BaseStruct) -> PyResult<Vec<u8>> {
+        let struct_ = Struct::from_cls(cls)?;
+        Ok(struct_.to_bytes(value)?)
+    }
 }
 
 #[pymethods]
@@ -107,8 +111,11 @@ impl BaseStruct {
         Ok(BaseStruct::with_cls(base, cls))
     }
 
-    fn to_bytes(&self, _value: &BaseStruct) -> Vec<u8> {
-        todo!()
+    #[classmethod]
+    #[pyo3(name = "to_bytes")]
+    fn to_bytes_py<'py>(cls: &Bound<'py, PyType>, value: &BaseStruct) -> PyResult<Bound<'py, PyAny>> {
+        let struct_ = Struct::from_cls(cls)?;
+        Ok(PyBytes::new_bound(cls.py(), &struct_.to_bytes(value)?).into_any())
     }
 
     #[classmethod]
@@ -123,8 +130,9 @@ impl BaseStruct {
         BaseStruct::from_stream(cls, &mut stream, Version::new(vec![0, ]))
     }
 
-    fn to_file(&self, filepath: &str, value: &BaseStruct) -> io::Result<()> {
-        let bytes = self.to_bytes(value);
+    #[classmethod]
+    fn to_file(cls: &Bound<PyType>, filepath: &str, value: &BaseStruct) -> PyResult<()> {
+        let bytes = Self::to_bytes(cls, value)?;
         let mut file = File::create(filepath)?;
         Ok(file.write_all(&bytes)?)
     }

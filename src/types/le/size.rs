@@ -37,13 +37,13 @@ impl Parseable for Size {
             Size::UInt32(type_)  => type_.to_bytes(&(*value as u32)),
             Size::UInt64(type_)  => type_.to_bytes(&(*value as u64)),
             Size::UInt128(type_) => type_.to_bytes(&(*value as u128)),
-            Size::Fixed(size)    => {
-                if size != value {
-                    Err(Error::new(ErrorKind::InvalidData, format!("Str[{size}] given string of length {value}. Help: This length is calculated AFTER encoding the string as bytes")))
+            Size::Fixed(len)    => {
+                if len != value {
+                    Err(Error::new(ErrorKind::InvalidData, format!("Str/Array[{len}] given a string/list of length {value}. Help: For strings, this length is calculated AFTER encoding the string as bytes")))
                 } else {
-                    Ok(Vec::with_capacity(*size))
+                    Ok(Vec::with_capacity(*len))
                 }
-            },
+            }
         }
     }
 }

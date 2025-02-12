@@ -238,6 +238,11 @@ impl Retriever {
     }
 
     #[cfg_attr(feature = "inline_always", inline(always))]
+    pub fn to_bytes(&self, value: &ParseableType) -> std::io::Result<Vec<u8>> {
+        self.data_type.to_bytes(value)
+    }
+
+    #[cfg_attr(feature = "inline_always", inline(always))]
     pub fn state(&self, repeats: &Vec<Option<isize>>) -> RetState {
         match repeats[self.idx] {
             Some(_) => { RetState::List }

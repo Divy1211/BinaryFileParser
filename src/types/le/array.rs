@@ -17,6 +17,13 @@ pub struct ArrayBuilder {
     pub len_type: Size,
 }
 
+impl ArrayBuilder {
+    pub fn new(len_type: Size) -> Self {
+        Self { len_type }
+    }
+}
+
+
 #[pymethods]
 impl ArrayBuilder {
     pub fn __getitem__(slf: PyRef<Self>, bfp_type: &Bound<PyAny>) -> PyResult<BfpType> {
