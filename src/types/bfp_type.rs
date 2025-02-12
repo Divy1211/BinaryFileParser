@@ -15,6 +15,7 @@ use crate::types::le::size::Size;
 use crate::types::le::str::Str;
 use crate::types::le::str_array::StrArray;
 use crate::types::le::array::Array;
+use crate::types::le::stacked_array::StackedArray;
 use crate::types::parseable::Parseable;
 use crate::types::parseable_type::ParseableType;
 use crate::types::r#struct::Struct;
@@ -54,6 +55,7 @@ pub enum BfpType {
     Option(OptionType),
 
     Array(Array),
+    StackedArray(StackedArray),
 
     Struct(Struct),
 }
@@ -94,39 +96,40 @@ impl BfpType {
 
     pub fn py_name(&self) -> String {
         match self {
-            BfpType::UInt8(_)      => "int".into(),
-            BfpType::UInt16(_)     => "int".into(),
-            BfpType::UInt32(_)     => "int".into(),
-            BfpType::UInt64(_)     => "int".into(),
-            BfpType::UInt128(_)    => "int".into(),
+            BfpType::UInt8(_)                 => "int".into(),
+            BfpType::UInt16(_)                => "int".into(),
+            BfpType::UInt32(_)                => "int".into(),
+            BfpType::UInt64(_)                => "int".into(),
+            BfpType::UInt128(_)               => "int".into(),
 
-            BfpType::Int8(_)       => "int".into(),
-            BfpType::Int16(_)      => "int".into(),
-            BfpType::Int32(_)      => "int".into(),
-            BfpType::Int64(_)      => "int".into(),
-            BfpType::Int128(_)     => "int".into(),
+            BfpType::Int8(_)                  => "int".into(),
+            BfpType::Int16(_)                 => "int".into(),
+            BfpType::Int32(_)                 => "int".into(),
+            BfpType::Int64(_)                 => "int".into(),
+            BfpType::Int128(_)                => "int".into(),
 
-            BfpType::Float32(_)    => "float".into(),
-            BfpType::Float64(_)    => "float".into(),
+            BfpType::Float32(_)               => "float".into(),
+            BfpType::Float64(_)               => "float".into(),
 
-            BfpType::Bool8(_)      => "bool".into(),
-            BfpType::Bool16(_)     => "bool".into(),
-            BfpType::Bool32(_)     => "bool".into(),
-            BfpType::Bool64(_)     => "bool".into(),
-            BfpType::Bool128(_)    => "bool".into(),
+            BfpType::Bool8(_)                 => "bool".into(),
+            BfpType::Bool16(_)                => "bool".into(),
+            BfpType::Bool32(_)                => "bool".into(),
+            BfpType::Bool64(_)                => "bool".into(),
+            BfpType::Bool128(_)               => "bool".into(),
             
-            BfpType::Bytes(_)      => "bytes".into(),
+            BfpType::Bytes(_)                 => "bytes".into(),
 
-            BfpType::Str(_)        => "str".into(),
-            BfpType::NTStr(_)      => "str".into(),
+            BfpType::Str(_)                   => "str".into(),
+            BfpType::NTStr(_)                 => "str".into(),
             
-            BfpType::StrArray(_)   => "list[str]".into(),
+            BfpType::StrArray(_)              => "list[str]".into(),
 
-            BfpType::Option(type_) => format!("{} | None", type_.data_type.py_name()),
+            BfpType::Option(type_)            => format!("{} | None", type_.data_type.py_name()),
 
-            BfpType::Array(type_)  => format!("list[{}]", type_.data_type.py_name()),
+            BfpType::Array(type_)             => format!("list[{}]", type_.data_type.py_name()),
+            BfpType::StackedArray(type_)      => format!("list[list[{}]", type_.data_type.py_name()),
             
-            BfpType::Struct(_)     => "BaseStruct".into()
+            BfpType::Struct(_)                => "BaseStruct".into()
         }
     }
 
@@ -211,6 +214,19 @@ impl BfpType {
                 }
                 ls.into()
             }
+
+            BfpType::StackedArray(type_) => {
+                let ls = type_.get_bfp_ls(value)?;
+                let Size::Fixed(len) = type_.len_type else {
+                    return Ok(ls.into());
+                };
+                if ls.len() != len {
+                    return Err(PyValueError::new_err(format!(
+                        "Attempting to set StackedArrayX[{}] to a list of length {}", len, ls.len(),
+                    )));
+                }
+                ls.into()
+            }
             
             BfpType::Struct(struct_) => {
                 let py_type = struct_.py_type.bind(value.py());
@@ -235,77 +251,82 @@ impl Parseable for BfpType {
 
     fn from_stream(&self, stream: &mut ByteStream, ver: &Version) -> std::io::Result<Self::Type> {
         Ok(match self {
-            BfpType::UInt8(val)       => val.from_stream(stream, ver)?.into(),
-            BfpType::UInt16(val)      => val.from_stream(stream, ver)?.into(),
-            BfpType::UInt32(val)      => val.from_stream(stream, ver)?.into(),
-            BfpType::UInt64(val)      => val.from_stream(stream, ver)?.into(),
-            BfpType::UInt128(val)     => val.from_stream(stream, ver)?.into(),
+            BfpType::UInt8(val)               => val.from_stream(stream, ver)?.into(),
+            BfpType::UInt16(val)              => val.from_stream(stream, ver)?.into(),
+            BfpType::UInt32(val)              => val.from_stream(stream, ver)?.into(),
+            BfpType::UInt64(val)              => val.from_stream(stream, ver)?.into(),
+            BfpType::UInt128(val)             => val.from_stream(stream, ver)?.into(),
             
-            BfpType::Int8(val)        => val.from_stream(stream, ver)?.into(),
-            BfpType::Int16(val)       => val.from_stream(stream, ver)?.into(),
-            BfpType::Int32(val)       => val.from_stream(stream, ver)?.into(),
-            BfpType::Int64(val)       => val.from_stream(stream, ver)?.into(),
-            BfpType::Int128(val)      => val.from_stream(stream, ver)?.into(),
+            BfpType::Int8(val)                => val.from_stream(stream, ver)?.into(),
+            BfpType::Int16(val)               => val.from_stream(stream, ver)?.into(),
+            BfpType::Int32(val)               => val.from_stream(stream, ver)?.into(),
+            BfpType::Int64(val)               => val.from_stream(stream, ver)?.into(),
+            BfpType::Int128(val)              => val.from_stream(stream, ver)?.into(),
             
-            BfpType::Float32(val)     => val.from_stream(stream, ver)?.into(),
-            BfpType::Float64(val)     => val.from_stream(stream, ver)?.into(),
+            BfpType::Float32(val)             => val.from_stream(stream, ver)?.into(),
+            BfpType::Float64(val)             => val.from_stream(stream, ver)?.into(),
             
-            BfpType::Bool8(val)       => val.from_stream(stream, ver)?.into(),
-            BfpType::Bool16(val)      => val.from_stream(stream, ver)?.into(),
-            BfpType::Bool32(val)      => val.from_stream(stream, ver)?.into(),
-            BfpType::Bool64(val)      => val.from_stream(stream, ver)?.into(),
-            BfpType::Bool128(val)     => val.from_stream(stream, ver)?.into(),
+            BfpType::Bool8(val)               => val.from_stream(stream, ver)?.into(),
+            BfpType::Bool16(val)              => val.from_stream(stream, ver)?.into(),
+            BfpType::Bool32(val)              => val.from_stream(stream, ver)?.into(),
+            BfpType::Bool64(val)              => val.from_stream(stream, ver)?.into(),
+            BfpType::Bool128(val)             => val.from_stream(stream, ver)?.into(),
 
-            BfpType::Bytes(val)       => val.from_stream(stream, ver)?.into(),
+            BfpType::Bytes(val)               => val.from_stream(stream, ver)?.into(),
 
-            BfpType::Str(val)         => val.from_stream(stream, ver)?.into(),
-            BfpType::NTStr(val)       => val.from_stream(stream, ver)?.into(),
+            BfpType::Str(val)                 => val.from_stream(stream, ver)?.into(),
+            BfpType::NTStr(val)               => val.from_stream(stream, ver)?.into(),
             
-            BfpType::StrArray(val)    => val.from_stream(stream, ver)?.into(),
+            BfpType::StrArray(val)            => val.from_stream(stream, ver)?.into(),
 
-            BfpType::Option(val)      => val.from_stream(stream, ver)?.into(),
+            BfpType::Option(val)              => val.from_stream(stream, ver)?.into(),
 
-            BfpType::Array(val)       => val.from_stream(stream, ver)?.into(),
+            BfpType::Array(val)               => val.from_stream(stream, ver)?.into(),
+            BfpType::StackedArray(val)        => val.from_stream(stream, ver)?.into(),
             
-            BfpType::Struct(struct_)  => ParseableType::Struct { val: struct_.from_stream(stream, ver)?, struct_: struct_.clone() },
+            BfpType::Struct(struct_)          => ParseableType::Struct {
+                val: struct_.from_stream(stream, ver)?,
+                struct_: struct_.clone()
+            },
         })
     }
 
     fn to_bytes(&self, value: &Self::Type) -> std::io::Result<Vec<u8>> {
         match (self, value) {
-            (BfpType::UInt8(type_),    ParseableType::UInt8(val))         => type_.to_bytes(val),
-            (BfpType::UInt16(type_),   ParseableType::UInt16(val))        => type_.to_bytes(val),
-            (BfpType::UInt32(type_),   ParseableType::UInt32(val))        => type_.to_bytes(val),
-            (BfpType::UInt64(type_),   ParseableType::UInt64(val))        => type_.to_bytes(val),
-            (BfpType::UInt128(type_),  ParseableType::UInt128(val))       => type_.to_bytes(val),
+            (BfpType::UInt8(type_),        ParseableType::UInt8(val))         => type_.to_bytes(val),
+            (BfpType::UInt16(type_),       ParseableType::UInt16(val))        => type_.to_bytes(val),
+            (BfpType::UInt32(type_),       ParseableType::UInt32(val))        => type_.to_bytes(val),
+            (BfpType::UInt64(type_),       ParseableType::UInt64(val))        => type_.to_bytes(val),
+            (BfpType::UInt128(type_),      ParseableType::UInt128(val))       => type_.to_bytes(val),
 
-            (BfpType::Int8(type_),     ParseableType::Int8(val))          => type_.to_bytes(val),
-            (BfpType::Int16(type_),    ParseableType::Int16(val))         => type_.to_bytes(val),
-            (BfpType::Int32(type_),    ParseableType::Int32(val))         => type_.to_bytes(val),
-            (BfpType::Int64(type_),    ParseableType::Int64(val))         => type_.to_bytes(val),
-            (BfpType::Int128(type_),   ParseableType::Int128(val))        => type_.to_bytes(val),
+            (BfpType::Int8(type_),         ParseableType::Int8(val))          => type_.to_bytes(val),
+            (BfpType::Int16(type_),        ParseableType::Int16(val))         => type_.to_bytes(val),
+            (BfpType::Int32(type_),        ParseableType::Int32(val))         => type_.to_bytes(val),
+            (BfpType::Int64(type_),        ParseableType::Int64(val))         => type_.to_bytes(val),
+            (BfpType::Int128(type_),       ParseableType::Int128(val))        => type_.to_bytes(val),
 
-            (BfpType::Float32(type_),  ParseableType::Float32(val))       => type_.to_bytes(val),
-            (BfpType::Float64(type_),  ParseableType::Float64(val))       => type_.to_bytes(val),
+            (BfpType::Float32(type_),      ParseableType::Float32(val))       => type_.to_bytes(val),
+            (BfpType::Float64(type_),      ParseableType::Float64(val))       => type_.to_bytes(val),
 
-            (BfpType::Bool8(type_),    ParseableType::Bool(val))          => type_.to_bytes(val),
-            (BfpType::Bool16(type_),   ParseableType::Bool(val))          => type_.to_bytes(val),
-            (BfpType::Bool32(type_),   ParseableType::Bool(val))          => type_.to_bytes(val),
-            (BfpType::Bool64(type_),   ParseableType::Bool(val))          => type_.to_bytes(val),
-            (BfpType::Bool128(type_),  ParseableType::Bool(val))          => type_.to_bytes(val),
+            (BfpType::Bool8(type_),        ParseableType::Bool(val))          => type_.to_bytes(val),
+            (BfpType::Bool16(type_),       ParseableType::Bool(val))          => type_.to_bytes(val),
+            (BfpType::Bool32(type_),       ParseableType::Bool(val))          => type_.to_bytes(val),
+            (BfpType::Bool64(type_),       ParseableType::Bool(val))          => type_.to_bytes(val),
+            (BfpType::Bool128(type_),      ParseableType::Bool(val))          => type_.to_bytes(val),
 
-            (BfpType::Bytes(type_),    ParseableType::Bytes(val))         => type_.to_bytes(val),
+            (BfpType::Bytes(type_),        ParseableType::Bytes(val))         => type_.to_bytes(val),
 
-            (BfpType::Str(type_),      ParseableType::Str(val))           => type_.to_bytes(val),
-            (BfpType::NTStr(type_),    ParseableType::Str(val))           => type_.to_bytes(val),
+            (BfpType::Str(type_),          ParseableType::Str(val))           => type_.to_bytes(val),
+            (BfpType::NTStr(type_),        ParseableType::Str(val))           => type_.to_bytes(val),
 
-            (BfpType::StrArray(type_), ParseableType::Array(val))         => type_.to_bytes(val),
+            (BfpType::StrArray(type_),     ParseableType::Array(val))         => type_.to_bytes(val),
 
-            (BfpType::Option(type_),   ParseableType::Option(val))        => type_.to_bytes(val),
-            
-            (BfpType::Array(type_),    ParseableType::Array(val))         => type_.to_bytes(val),
+            (BfpType::Option(type_),       ParseableType::Option(val))        => type_.to_bytes(val),
 
-            (BfpType::Struct(type_),   ParseableType::Struct { val, .. }) => type_.to_bytes(val),
+            (BfpType::Array(type_),        ParseableType::Array(val))         => type_.to_bytes(val),
+            (BfpType::StackedArray(type_), ParseableType::Array(val))         => type_.to_bytes(val),
+
+            (BfpType::Struct(type_),       ParseableType::Struct { val, .. }) => type_.to_bytes(val),
 
             _ => unreachable!("BFP Internal Error. *Goodbye cruel world*")
         }

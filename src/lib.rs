@@ -22,6 +22,7 @@ use crate::types::le::encoding::Encoding;
 use crate::types::le::nt_str::NtStr;
 use crate::types::le::option::OptionBuilder;
 use crate::types::le::size::Size;
+use crate::types::le::stacked_array::{StackedArray, StackedArrayBuilder};
 use crate::types::le::str::Str;
 use crate::types::le::str_array::StrArray;
 
@@ -87,11 +88,18 @@ fn le(py: Python, types: &Bound<PyModule>) -> PyResult<()> {
     le.add("Array32", ArrayBuilder { len_type: Size::UInt32(UInt32) })?;
     le.add("Array64", ArrayBuilder { len_type: Size::UInt64(UInt64) })?;
     le.add("Array128", ArrayBuilder { len_type: Size::UInt128(UInt128) })?;
+
+    le.add("StackedArray8", StackedArrayBuilder::new(Size::UInt8(UInt8)))?;
+    le.add("StackedArray16", StackedArrayBuilder::new(Size::UInt16(UInt16)))?;
+    le.add("StackedArray32", StackedArrayBuilder::new(Size::UInt32(UInt32)))?;
+    le.add("StackedArray64", StackedArrayBuilder::new(Size::UInt64(UInt64)))?;
+    le.add("StackedArray128", StackedArrayBuilder::new(Size::UInt128(UInt128)))?;
     
     le.add_class::<Bytes>()?;
     le.add_class::<Str>()?;
     le.add_class::<NtStr>()?;
     le.add_class::<Array>()?;
+    le.add_class::<StackedArray>()?;
     le.add_class::<Encoding>()?;
 
     le.add("void", BfpType::Bytes(Bytes { len: 0 }))?;

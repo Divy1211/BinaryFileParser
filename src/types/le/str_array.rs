@@ -83,10 +83,10 @@ impl Parseable for StrArray {
     #[cfg_attr(feature = "inline_always", inline(always))]
     fn to_bytes(&self, value: &Self::Type) -> std::io::Result<Vec<u8>> {
         let ls = value.ls.read().expect("GIL bound read");
-        let ls = ls.iter().map(String::try_from).collect::<Result<Vec<_>, _>>().expect("All code paths to this function go through get_bfp_ls");
+        let ls = ls.iter().map(String::try_from).collect::<Result<Vec<_>, _>>().expect("All code paths to this fn go through StrArray::get_bfp_ls");
         let mut all_bytes = self.len_type.to_bytes(&ls.len())?;
-        let mut len_bytes = Vec::new();
-        let mut str_bytes = Vec::new();
+        let mut len_bytes = Vec::with_capacity(ls.len());
+        let mut str_bytes = Vec::with_capacity(ls.len());
         for string in ls {
             let mut bytes = str_to_bytes(&string, &self.enc1, &self.enc2)?;
             len_bytes.append(&mut self.str_len_type.to_bytes(&bytes.len())?);

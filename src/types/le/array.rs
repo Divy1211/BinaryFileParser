@@ -6,6 +6,7 @@ use crate::types::bfp_list::BfpList;
 use crate::types::bfp_type::BfpType;
 use crate::types::byte_stream::ByteStream;
 use crate::types::le::size::Size;
+use crate::types::le::stacked_array::StackedArray;
 use crate::types::parseable::Parseable;
 use crate::types::parseable_type::ParseableType;
 use crate::types::version::Version;
@@ -35,6 +36,12 @@ pub struct Array {
 impl Array {
     pub fn new(len_type: Size, bfp_type: BfpType) -> Self {
         Self { len_type, data_type: Box::new(bfp_type) }
+    }
+    pub fn from_stacked(arr: &StackedArray) -> Self {
+        Self {
+            len_type: arr.ls_len_type.clone(),
+            data_type: arr.data_type.clone(),
+        }
     }
     pub fn get_bfp_ls(&self, ls: &Bound<PyAny>) -> PyResult<BfpList> {
         Ok(match ls.extract::<BfpList>() {

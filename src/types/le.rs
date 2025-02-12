@@ -10,3 +10,4 @@ pub mod nt_str;
 pub mod str_array;
 pub mod option;
 pub mod array;
+pub mod stacked_array;
