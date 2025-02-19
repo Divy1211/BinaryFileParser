@@ -6,17 +6,16 @@ from bfp_rs import Retriever, BaseStruct, ByteStream
 from utils import timed
 
 class SubTest(BaseStruct):
-    num1 = Retriever(u8)
-    num2 = Retriever(u8)
+    num1 = Retriever(u8, default = 1)
+    num2 = Retriever(u8, default = 2)
 
     def __str__(self):
         return f"SubTest({self.num1}, {self.num2})"
 
 class Test(BaseStruct):
-    nums = Retriever(StackedAttrArray8[SubTest])
+    nums = Retriever(SubTest, default_factory = SubTest)
+
 
 test = Test.from_bytes(b"\x02\x00\x01\x03\x04")
 
-print(test.nums)
-
-print(Test.to_bytes(test))
+print(Test().nums)

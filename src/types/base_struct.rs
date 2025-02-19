@@ -4,7 +4,7 @@ use std::sync::{Arc, RwLock};
 
 use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
-use pyo3::types::{PyBytes, PyType};
+use pyo3::types::{PyBytes, PyDict, PyType};
 
 use crate::errors::compression_error::CompressionError;
 use crate::errors::version_error::VersionError;
@@ -59,7 +59,7 @@ impl BaseStruct {
     }
     
     pub fn with_cls<'py>(val: BaseStruct, cls: &Bound<'py, PyType>) -> Bound<'py, PyAny> {
-        let obj = cls.call0().expect("always a BaseStruct subclass");
+        let obj = cls.call((Version::new(vec![-1]), false), None).expect("always a BaseStruct subclass");
         *(obj.downcast::<BaseStruct>().expect("infallible").borrow_mut()) = val;
         obj
     }
@@ -74,11 +74,34 @@ impl BaseStruct {
 impl BaseStruct {
     #[new]
     #[classmethod]
-    #[pyo3(signature = (ver = Version::new(vec!(-1))))]
-    fn new_py(cls: &Bound<PyType>, ver: Version) -> PyResult<Self> {
+    #[pyo3(signature = (ver = Version::new(vec![-1]), init_defaults = true, **retriever_inits))]
+    fn new_py(cls: &Bound<PyType>, ver: Version, init_defaults: bool, retriever_inits: Option<&Bound<'_, PyDict>>) -> PyResult<Self> {
         let len = BaseStruct::len(cls)?;
-        let data = vec![None; len];
+        let mut data = vec![None; len];
         let repeats = vec![None; len];
+
+        if !init_defaults {
+            return Ok(BaseStruct::new(ver, data, repeats));
+        }
+
+        let struct_ = Struct::from_cls(cls)?;
+        let retrievers = struct_.retrievers.read().expect("GIL bound read");
+
+        for ret in retrievers.iter() {
+            if !ret.supported(&ver) {
+                continue;
+            }
+            let mut init = retriever_inits
+                .and_then(|di| di.get_item(&ret.name).unwrap_or(None))
+                .map(|obj| ret.data_type.to_parseable(&obj))
+                .transpose()?;
+
+            if init.is_none() {
+                init = Some(ret.from_default(&ver, &repeats, cls.py())?);
+            }
+
+            data[ret.idx] = init;
+        }
         Ok(BaseStruct::new(ver, data, repeats))
     }
 

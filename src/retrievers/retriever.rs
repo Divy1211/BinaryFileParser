@@ -6,6 +6,7 @@ use pyo3::{pyclass, PyObject};
 
 use crate::combinators::combinator::Combinator;
 use crate::combinators::combinator_type::CombinatorType;
+use crate::errors::default_attribute_error::DefaultAttributeError;
 use crate::errors::version_error::VersionError;
 use crate::types::base_struct::BaseStruct;
 use crate::types::bfp_list::BfpList;
@@ -15,6 +16,7 @@ use crate::types::parseable::Parseable;
 use crate::types::parseable_type::ParseableType;
 use crate::types::version::Version;
 
+#[derive(Debug, PartialEq, Eq, Copy, Clone)]
 pub enum RetState {
     None,
     Value,
@@ -55,7 +57,7 @@ impl Retriever {
     #[new]
     #[pyo3(signature = (
         data_type,
-        min_ver = Version::new(vec!(-1)), max_ver = Version::new(vec!(1000)),
+        min_ver = Version::new(vec![-1]), max_ver = Version::new(vec!(1000)),
         default = None, default_factory = None,
         repeat = 1,
         remaining_compressed = false,
@@ -134,7 +136,7 @@ impl Retriever {
         let data = instance.data.read().expect("GIL bound read");
         
         Ok(
-            data[slf.idx].clone().expect("supported value is never Option::None")// todo: default init breaks this assertion
+            data[slf.idx].clone().expect("Attempting to access uninitialised data in struct")
                 .to_bound(slf.py())
         )
     }
@@ -179,6 +181,48 @@ impl Retriever {
 }
 
 impl Retriever {
+    pub fn from_default(&self, ver: &Version, repeats: &Vec<Option<isize>>, py: Python) -> PyResult<ParseableType> {
+        let state = self.state(repeats);
+        if state == RetState::None {
+            return Ok(ParseableType::None);
+        }
+        let repeat = self.repeat(repeats) as usize;
+
+        if !self.default.is_none(py) {
+            let default = self.data_type.to_parseable(self.default.bind(py));
+            if state == RetState::Value {
+                return default;
+            }
+            let default = default?;
+            let mut ls = Vec::with_capacity(repeat);
+            for _ in 0..repeat {
+                ls.push(default.clone());
+            }
+            return Ok(ParseableType::Array(BfpList::new(ls, self.data_type.clone())));
+        }
+
+        if !self.default_factory.is_none(py) {
+            if state == RetState::Value {
+                return self.default_factory
+                    .call_bound(py, (ver.clone(),), None) // default_factory(ver)
+                    .and_then(|obj| self.data_type.to_parseable(obj.bind(py)));
+            }
+            let mut ls = Vec::with_capacity(repeat);
+            for _ in 0..repeat {
+                ls.push(
+                    self.default_factory
+                        .call_bound(py, (ver.clone(),), None) // default_factory(ver)
+                        .and_then(|obj| self.data_type.to_parseable(obj.bind(py)))?
+                );
+            }
+            return Ok(ParseableType::Array(BfpList::new(ls, self.data_type.clone())));
+        }
+
+        Err(DefaultAttributeError::new_err(format!(
+            "Unable to default initialise '{}' as a default value was not provided", self.name)
+        ))
+    }
+
     pub fn construct_fns(&mut self, py: Python) -> PyResult<()> {
         match &self.tmp_on_read {
             Some(obj) => {
