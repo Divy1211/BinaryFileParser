@@ -8,7 +8,7 @@ use crate::combinators::set_repeat::set_repeat_to::SetRepeatTo;
 use crate::combinators::utils::idxes_from_tup;
 use crate::retrievers::retriever::Retriever;
 
-#[pyclass]
+#[pyclass(module = "bfp_rs.combinators")]
 pub struct SetRepeatBuilder {
     target: usize
 }

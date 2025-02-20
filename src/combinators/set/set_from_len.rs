@@ -8,7 +8,7 @@ use crate::types::bfp_type::BfpType;
 use crate::types::parseable_type::ParseableType;
 use crate::types::version::Version;
 
-#[pyclass]
+#[pyclass(module = "bfp_rs.combinators")]
 #[derive(Debug, Clone)]
 pub struct SetFromLen {
     target: Vec<usize>,

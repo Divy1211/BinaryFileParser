@@ -21,7 +21,7 @@ enum State {
     HasSourceConst,
 }
 
-#[pyclass]
+#[pyclass(module = "bfp_rs.combinators")]
 pub struct IfBuilder {
     target: Vec<usize>,
     target_data_type: BfpType,

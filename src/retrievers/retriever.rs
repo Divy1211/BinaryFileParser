@@ -81,7 +81,6 @@ impl Retriever {
 
         mappers: Option<Vec<PyObject>>,
         validators: Option<Vec<PyObject>>,
-
     ) -> PyResult<Self> {
         let tmp_on_read = match on_read {
             None => { None }

@@ -8,7 +8,7 @@ use crate::combinators::set::set_from_len::SetFromLen;
 use crate::combinators::set::set_to::SetTo;
 use crate::types::bfp_type::BfpType;
 
-#[pyclass]
+#[pyclass(module = "bfp_rs.combinators")]
 pub struct SetBuilder {
     target: Vec<usize>,
     target_data_type: BfpType,

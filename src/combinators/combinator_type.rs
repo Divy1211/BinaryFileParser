@@ -18,7 +18,7 @@ use crate::retrievers::retriever::Retriever;
 use crate::types::parseable_type::ParseableType;
 use crate::types::version::Version;
 
-#[pyclass]
+#[pyclass(module = "bfp_rs.combinators")]
 #[derive(Debug, Clone)]
 pub enum CombinatorType {
     SetRepeatFrom(SetRepeatFrom),
