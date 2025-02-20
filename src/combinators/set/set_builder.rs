@@ -2,6 +2,8 @@ use pyo3::prelude::*;
 use pyo3::types::{PyTuple};
 
 use crate::combinators::combinator_type::CombinatorType;
+use crate::combinators::get::Get;
+use crate::combinators::set::set_by::SetBy;
 use crate::combinators::set::set_from::SetFrom;
 use crate::combinators::utils::idxes_from_tup;
 use crate::combinators::set::set_from_len::SetFromLen;
@@ -17,12 +19,21 @@ pub struct SetBuilder {
 
 #[pymethods]
 impl SetBuilder {
+    pub fn by(&self, mut from: Get) -> PyResult<CombinatorType> {
+        from.make_contiguous();
+        Ok(SetBy::new(
+            &self.target,
+            from,
+            &self.target_data_type,
+        ).into())
+    }
+    
     #[pyo3(signature = (*from), text_signature = "(*from: Retriever | int)")]
     pub fn from_(&self, from: &Bound<PyTuple>) -> PyResult<CombinatorType> {
         let (source, _source_data_type, _source_name) = idxes_from_tup(from)?;
         
         Ok(SetFrom::new(
-            &self.target.clone(),
+            &self.target,
             source,
         ).into())
     }

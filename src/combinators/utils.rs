@@ -57,7 +57,11 @@ pub fn idxes_from_tup(target: &Bound<PyTuple>) -> PyResult<(Vec<usize>, BfpType,
                 data_type = ret.data_type;
                 name = ret.name;
                 Ok(ret.idx)
-            }).unwrap_or_else(|_| val.extract::<usize>())
+            })
+            .unwrap_or_else(|_| val.extract::<usize>())
+            .map_err(|_| {
+                PyValueError::new_err("Only Retrievers or indexes may be specified in a path target. Use a single get[_len]() for arithmetic operations on int/list Retrievers")
+            })
     }).collect::<PyResult<_>>()?;
     
     Ok((target, data_type, name))

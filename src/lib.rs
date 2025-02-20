@@ -6,10 +6,13 @@ use crate::errors::default_attribute_error::DefaultAttributeError;
 use crate::errors::parsing_error::ParsingError;
 use crate::errors::version_error::VersionError;
 
-use combinators::set_repeat::set_repeat_builder::set_repeat;
-use combinators::r#if::if_builder::{if_, if_not, if_len};
-use combinators::set::set_builder::set;
+use crate::combinators::set_repeat::set_repeat_builder::set_repeat;
+use crate::combinators::r#if::if_builder::{if_, if_not, if_len};
+use crate::combinators::set::set_builder::set;
+use crate::combinators::get::{get_len, get};
+
 use crate::retrievers::retriever::Retriever;
+
 use crate::types::base_struct::BaseStruct;
 use crate::types::bfp_type::BfpType;
 use crate::types::byte_stream::ByteStream;
@@ -136,6 +139,8 @@ fn combinators(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
     combinators.add_function(wrap_pyfunction!(if_not, combinators)?)?;
     combinators.add_function(wrap_pyfunction!(if_len, combinators)?)?;
     combinators.add_function(wrap_pyfunction!(set, combinators)?)?;
+    combinators.add_function(wrap_pyfunction!(get, combinators)?)?;
+    combinators.add_function(wrap_pyfunction!(get_len, combinators)?)?;
     
     Ok(())
 }

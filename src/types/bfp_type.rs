@@ -136,7 +136,7 @@ impl BfpType {
         }
     }
 
-    pub fn to_parseable_from_usize(&self, value: usize) -> Option<ParseableType> {
+    pub fn to_parseable_from_int(&self, value: i128) -> Option<ParseableType> {
         match self {
             BfpType::UInt8(_)   => { Some(ParseableType::UInt8(value as u8)) },
             BfpType::UInt16(_)  => { Some(ParseableType::UInt16(value as u16)) },
@@ -148,7 +148,7 @@ impl BfpType {
             BfpType::Int16(_)   => { Some(ParseableType::Int16(value as i16)) },
             BfpType::Int32(_)   => { Some(ParseableType::Int32(value as i32)) },
             BfpType::Int64(_)   => { Some(ParseableType::Int64(value as i64)) },
-            BfpType::Int128(_)  => { Some(ParseableType::Int128(value as i128)) },
+            BfpType::Int128(_)  => { Some(ParseableType::Int128(value)) },
             
             _                   => { None }
         }

@@ -1,10 +1,15 @@
 use std::cmp::{Ordering, PartialEq};
+
 use pyo3::exceptions::{PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::types::PyTuple;
+
 use crate::combinators::combinator_type::CombinatorType;
+use crate::combinators::get::Get;
 use crate::combinators::r#if::if_check::IfCheck;
+use crate::combinators::r#if::if_cmp_by::IfCmpBy;
 use crate::combinators::r#if::if_cmp_from::IfCmpFrom;
+use crate::combinators::r#if::if_cmp_len_by::IfCmpLenBy;
 use crate::combinators::r#if::if_cmp_len_from::IfCmpLenFrom;
 use crate::combinators::r#if::if_cmp_len_to::IfCmpLenTo;
 use crate::combinators::r#if::if_cmp_to::IfCmpTo;
@@ -19,6 +24,7 @@ enum State {
     HasTarget,
     HasSource,
     HasSourceConst,
+    HasSourceGet,
 }
 
 #[pyclass(module = "bfp_rs.combinators")]
@@ -28,6 +34,7 @@ pub struct IfBuilder {
     
     source: Option<Vec<usize>>,
     source_const: Option<ParseableType>,
+    source_get: Option<Get>,
 
     ord: Option<Vec<Ordering>>,
     
@@ -44,6 +51,7 @@ impl Default for IfBuilder {
             target_data_type: BfpType::Int8(Int8),
             source: None,
             source_const: None,
+            source_get: None,
             ord: None,
             state: State::HasTarget,
             not: false,
@@ -79,6 +87,14 @@ impl IfBuilder {
         Ok(())
     }
     
+    pub fn cmp_get<'py>(&mut self, mut source: Get, ord: Vec<Ordering>) -> PyResult<()> {
+        source.make_contiguous();
+        self.source_get = Some(source);
+        self.ord = Some(ord);
+        self.state = State::HasSourceGet;
+        Ok(())
+    }
+    
     pub fn cmp(&mut self, source: &Bound<PyTuple>, ord: Vec<Ordering>) -> PyResult<()> {
         if self.state != State::HasTarget {
             return Err(PyTypeError::new_err(
@@ -91,6 +107,8 @@ impl IfBuilder {
             let item = unsafe { source.get_item_unchecked(0) };
             if let Ok(_ret) = item.downcast::<Retriever>() {
                 self.cmp_path(source, ord)
+            } else if let Ok(get) = item.extract::<Get>() {
+                self.cmp_get(get, ord)
             } else {
                 self.cmp_fix(&item, ord)
             }
@@ -142,10 +160,26 @@ impl IfBuilder {
                     com,
                 ).into()
             }
+            State::HasSourceGet if self.len => {
+                IfCmpLenBy::new(
+                    &self.target,
+                    self.source_get.as_ref().expect("infallible"),
+                    self.ord.as_ref().expect("infallible"),
+                    com,
+                ).into()
+            }
+            State::HasSourceGet => {
+                IfCmpBy::new(
+                    &self.target,
+                    self.source_get.as_ref().expect("infallible"),
+                    self.ord.as_ref().expect("infallible"),
+                    com,
+                ).into()
+            }
         })
     }
 
-    #[pyo3(signature = (*source), text_signature = "(*source: Retriever | int)")]
+    #[pyo3(signature = (*source), text_signature = "(*source: Retriever | int | Get)")]
     fn eq<'py>(slf: Bound<'py, Self>, source: &Bound<PyTuple>) -> PyResult<Bound<'py, Self>> {
         let mut this = slf.borrow_mut();
         if this.not {
@@ -156,7 +190,7 @@ impl IfBuilder {
         Ok(slf)
     }
 
-    #[pyo3(signature = (*source), text_signature = "(*source: Retriever | int)")]
+    #[pyo3(signature = (*source), text_signature = "(*source: Retriever | int | Get)")]
     fn neq<'py>(slf: Bound<'py, Self>, source: &Bound<PyTuple>) -> PyResult<Bound<'py, Self>> {
         let mut this = slf.borrow_mut();
         if this.not {
@@ -167,7 +201,7 @@ impl IfBuilder {
         Ok(slf)
     }
 
-    #[pyo3(signature = (*source), text_signature = "(*source: Retriever | int)")]
+    #[pyo3(signature = (*source), text_signature = "(*source: Retriever | int | Get)")]
     fn gt<'py>(slf: Bound<'py, Self>, source: &Bound<PyTuple>) -> PyResult<Bound<'py, Self>> {
         let mut this = slf.borrow_mut();
         if this.not {
@@ -178,7 +212,7 @@ impl IfBuilder {
         Ok(slf)
     }
 
-    #[pyo3(signature = (*source), text_signature = "(*source: Retriever | int)")]
+    #[pyo3(signature = (*source), text_signature = "(*source: Retriever | int | Get)")]
     fn geq<'py>(slf: Bound<'py, Self>, source: &Bound<PyTuple>) -> PyResult<Bound<'py, Self>> {
         let mut this = slf.borrow_mut();
         if this.not {
@@ -189,7 +223,7 @@ impl IfBuilder {
         Ok(slf)
     }
 
-    #[pyo3(signature = (*source), text_signature = "(*source: Retriever | int)")]
+    #[pyo3(signature = (*source), text_signature = "(*source: Retriever | int | Get)")]
     fn lt<'py>(slf: Bound<'py, Self>, source: &Bound<PyTuple>) -> PyResult<Bound<'py, Self>> {
         let mut this = slf.borrow_mut();
         if this.not {
@@ -200,7 +234,7 @@ impl IfBuilder {
         Ok(slf)
     }
     
-    #[pyo3(signature = (*source), text_signature = "(*source: Retriever | int)")]
+    #[pyo3(signature = (*source), text_signature = "(*source: Retriever | int | Get)")]
     fn leq<'py>(slf: Bound<'py, Self>, source: &Bound<PyTuple>) -> PyResult<Bound<'py, Self>> {
         let mut this = slf.borrow_mut();
         if this.not {
@@ -213,7 +247,7 @@ impl IfBuilder {
 }
 
 #[pyfunction]
-#[pyo3(signature = (*target), text_signature = "(*source: Retriever | int)")]
+#[pyo3(signature = (*target), text_signature = "(*source: Retriever | int | Get)")]
 pub fn if_(target: &Bound<PyTuple>) -> PyResult<IfBuilder> {
     let (target, target_data_type, _target_name) = idxes_from_tup(target)?;
     
@@ -225,7 +259,7 @@ pub fn if_(target: &Bound<PyTuple>) -> PyResult<IfBuilder> {
 }
 
 #[pyfunction]
-#[pyo3(signature = (*target), text_signature = "(*source: Retriever | int)")]
+#[pyo3(signature = (*target), text_signature = "(*source: Retriever | int | Get)")]
 pub fn if_not(target: &Bound<PyTuple>) -> PyResult<IfBuilder> {
     let (target, target_data_type, _target_name) = idxes_from_tup(target)?;
     
@@ -238,7 +272,7 @@ pub fn if_not(target: &Bound<PyTuple>) -> PyResult<IfBuilder> {
 }
 
 #[pyfunction]
-#[pyo3(signature = (*target), text_signature = "(*source: Retriever | int)")]
+#[pyo3(signature = (*target), text_signature = "(*source: Retriever | int | Get)")]
 pub fn if_len(target: &Bound<PyTuple>) -> PyResult<IfBuilder> {
     let (target, target_data_type, _target_name) = idxes_from_tup(target)?;
     

@@ -3,7 +3,7 @@ use std::sync::Arc;
 use pyo3::prelude::*;
 use pyo3::types::PyType;
 use pyo3::{pyclass, PyObject};
-
+use pyo3::exceptions::PyValueError;
 use crate::combinators::combinator::Combinator;
 use crate::combinators::combinator_type::CombinatorType;
 use crate::errors::default_attribute_error::DefaultAttributeError;
@@ -91,6 +91,10 @@ impl Retriever {
             None => { None }
             Some(obj) => { Some(Arc::new(obj)) }
         };
+        
+        if repeat < -1 {
+            return Err(PyValueError::new_err("Repeat values cannot be less than -1"));
+        }
         
         Ok(Retriever {
             data_type: BfpType::from_py_any(data_type)?,

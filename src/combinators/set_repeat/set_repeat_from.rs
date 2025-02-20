@@ -1,4 +1,4 @@
-use pyo3::exceptions::PyTypeError;
+use pyo3::exceptions::{PyTypeError, PyValueError};
 use pyo3::prelude::*;
 
 use crate::combinators::combinator::Combinator;
@@ -38,6 +38,13 @@ impl Combinator for SetRepeatFrom {
                 "SetRepeat: '{}' cannot be interpreted as an integer", source_name
             )))
         };
+
+        if source < -1 {
+            return Err(PyValueError::new_err(format!(
+                "SetRepeatBy: Attempting to set repeat of '{}' to '{}' from '{}', which is less than -1",
+                retrievers[self.target].name, source, source_name
+            )));
+        }
         
         repeats[self.target] = Some(source);
         Ok(())

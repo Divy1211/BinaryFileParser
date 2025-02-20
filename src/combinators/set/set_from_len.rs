@@ -47,7 +47,7 @@ impl Combinator for SetFromLen {
             }
         };
 
-        let Some(source) = self.target_data_type.to_parseable_from_usize(source) else {
+        let Some(source) = self.target_data_type.to_parseable_from_int(source as i128) else {
             return Err(PyTypeError::new_err(format!(
                 "SetFromLen: '{}' cannot be set to an int", self.target_name
             )))
