@@ -125,7 +125,8 @@ impl IfBuilder {
             State::HasTarget => {
                 IfCheck::new(
                     &self.target,
-                    com
+                    com,
+                    self.not,
                 ).into()
             }
             State::HasSource if self.len => {

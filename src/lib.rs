@@ -29,6 +29,7 @@ use crate::types::le::stacked_array::{StackedArray, StackedArrayBuilder};
 use crate::types::le::stacked_attr_array::{StackedAttrArray, StackedAttrArrayBuilder};
 use crate::types::le::str::Str;
 use crate::types::le::str_array::StrArray;
+use crate::types::version::Version;
 
 pub mod retrievers;
 pub mod errors;
@@ -122,7 +123,6 @@ fn types(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
     let types = PyModule::new_bound(bfp.py(), "bfp_rs.types")?;
     py_run!(py, types, "import sys; sys.modules['bfp_rs.types'] = types");
     bfp.add_submodule(&types)?;
-    types.add_class::<types::version::Version>()?;
 
     le(py, &types)?;
 
@@ -163,6 +163,7 @@ fn binary_file_parser(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
     bfp.add_class::<ByteStream>()?;
     bfp.add_class::<BaseStruct>()?;
     bfp.add_class::<Retriever>()?;
+    bfp.add_class::<Version>()?;
 
     errors(py, bfp)?;
     types(py, bfp)?;

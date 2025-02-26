@@ -175,7 +175,15 @@ impl BfpList {
         if item.is_instance_of::<PyInt>() {
             let ls = slf.ls.read().expect("GIL bound read");
             
-            let item = item.extract::<usize>().expect("infallible");
+            let mut item = item.extract::<isize>().expect("infallible");
+            if item < 0 {
+                if item < -(ls.len() as isize) {
+                    return Err(PyIndexError::new_err("list index out of range"))
+                }
+                item += ls.len() as isize;
+            }
+            let item = item as usize;
+            
             if item >= ls.len() {
                 return Err(PyIndexError::new_err("list index out of range"))
             }

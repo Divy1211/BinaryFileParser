@@ -127,6 +127,7 @@ impl Parseable for Struct {
             }
             if !retriever.supported(&ver) {
                 data.push(None);
+                continue;
             }
             
             data.push(Some(match retriever.state(&repeats) {

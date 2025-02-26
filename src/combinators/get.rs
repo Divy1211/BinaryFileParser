@@ -199,18 +199,15 @@ impl Get {
         slf.op(other, Item::Mod, true)?;
         Ok(slf)
     }
-
-
+    
     pub fn __and__<'py>(mut slf: PyRefMut<'py, Self>, other: Bound<PyAny>) -> PyResult<PyRefMut<'py, Self>> {
         slf.op(other, Item::BitAnd, false)?;
         Ok(slf)
     }
-
     pub fn __rand__<'py>(mut slf: PyRefMut<'py, Self>, other: Bound<PyAny>) -> PyResult<PyRefMut<'py, Self>> {
         slf.op(other, Item::BitAnd, true)?;
         Ok(slf)
     }
-
     pub fn __or__<'py>(mut slf: PyRefMut<'py, Self>, other: Bound<PyAny>) -> PyResult<PyRefMut<'py, Self>> {
         slf.op(other, Item::BitOr, false)?;
         Ok(slf)
@@ -223,7 +220,6 @@ impl Get {
         slf.op(other, Item::BitXor, false)?;
         Ok(slf)
     }
-
     pub fn __rxor__<'py>(mut slf: PyRefMut<'py, Self>, other: Bound<PyAny>) -> PyResult<PyRefMut<'py, Self>> {
         slf.op(other, Item::BitXor, true)?;
         Ok(slf)

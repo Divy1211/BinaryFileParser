@@ -292,7 +292,7 @@ impl Retriever {
     #[cfg_attr(feature = "inline_always", inline(always))]
     pub fn state(&self, repeats: &Vec<Option<isize>>) -> RetState {
         match repeats[self.idx] {
-            Some(_) => { RetState::List }
+            Some(val) => { if val == -1 { RetState::None } else { RetState::List } }
             None => {
                 match self.repeat {
                     -1 => { RetState::None },

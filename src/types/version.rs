@@ -7,7 +7,7 @@ use pyo3::types::{PyTuple, PyType};
 #[pyclass(module = "bfp_rs", frozen)]
 #[derive(PartialEq, PartialOrd, Eq, Ord, Clone, Debug)]
 pub struct Version {
-    ver: Vec<i32>
+    ver: Vec<i128>
 }
 
 #[pymethods]
@@ -17,7 +17,7 @@ impl Version {
     fn new_py(nums: &Bound<PyTuple>) -> PyResult<Self> {
         let ver = nums.iter()
             .map(|x| {x.extract()})
-            .collect::<Result<Vec<i32>, _>>()?;
+            .collect::<Result<Vec<i128>, _>>()?;
 
         Ok(Version { ver })
     }
@@ -27,7 +27,7 @@ impl Version {
         let ver = ver_str
             .split(".").into_iter()
             .map(|x| {x.parse()})
-            .collect::<Result<Vec<i32>, _>>()?;
+            .collect::<Result<Vec<i128>, _>>()?;
 
         Ok(Version { ver })
     }
@@ -47,7 +47,7 @@ impl Version {
 }
 
 impl Version {
-    pub fn new(ver: Vec<i32>) -> Self {
+    pub fn new(ver: Vec<i128>) -> Self {
         Version { ver }
     }
 

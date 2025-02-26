@@ -58,7 +58,7 @@ impl SetBuilder {
     }
 }
 
-#[pyfunction]
+#[pyfunction(name = "set_")]
 #[pyo3(signature = (*target), text_signature = "(*target: Retriever | int)")]
 pub fn set(target: &Bound<PyTuple>) -> PyResult<SetBuilder> {
     let (target, target_data_type, target_name) = idxes_from_tup(target)?;

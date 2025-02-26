@@ -13,13 +13,15 @@ use crate::types::version::Version;
 pub struct IfCheck {
     source: Vec<usize>,
     com: Box<CombinatorType>,
+    not: bool,
 }
 
 impl IfCheck {
-    pub fn new(source: &Vec<usize>, com: CombinatorType) -> Self {
+    pub fn new(source: &Vec<usize>, com: CombinatorType, not: bool) -> Self {
         IfCheck {
             source: source.clone(),
             com: Box::new(com),
+            not,
         }
     }
 }
@@ -34,13 +36,13 @@ impl Combinator for IfCheck {
     ) -> PyResult<()> {
         let (name, source) = get_rec(&self.source, retrievers, data, ver)?;
         
-        let Ok(source_val) = (&source).try_into() else {
+        let Ok(source_val): Result<bool, _> = (&source).try_into() else {
             return Err(PyTypeError::new_err(format!(
                 "IfCheck: '{}' cannot be interpreted as a boolean", name
             )))
         };
         
-        if source_val {
+        if source_val ^ self.not {
             self.com.run(retrievers, data, repeats, ver)?;
         }
         Ok(())

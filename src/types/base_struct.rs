@@ -7,6 +7,7 @@ use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyDict, PyType};
 
 use crate::errors::compression_error::CompressionError;
+use crate::errors::parsing_error::ParsingError;
 use crate::errors::version_error::VersionError;
 use crate::retrievers::retriever::Retriever;
 use crate::types::byte_stream::ByteStream;
@@ -148,9 +149,21 @@ impl BaseStruct {
     }
 
     #[classmethod]
-    fn from_file<'py>(cls: &Bound<'py, PyType>, filepath: &str) -> PyResult<Bound<'py, PyAny>> {
+    #[pyo3(signature = (filepath, strict = true))]
+    fn from_file<'py>(cls: &Bound<'py, PyType>, filepath: &str, strict: bool) -> PyResult<Bound<'py, PyAny>> {
         let mut stream = ByteStream::from_file(filepath)?;
-        BaseStruct::from_stream(cls, &mut stream, Version::new(vec![0, ]))
+        let struct_ = BaseStruct::from_stream(cls, &mut stream, Version::new(vec![0, ]))?;
+        
+        if !strict {
+            return Ok(struct_);
+        }
+        
+        let rem = stream.remaining().len();
+        if rem > 0 {
+            return Err(ParsingError::new_err(format!("{rem} bytes are left after parsing all retrievers successfully")))
+        }
+        
+        Ok(struct_)
     }
 
     #[classmethod]
@@ -161,8 +174,8 @@ impl BaseStruct {
     }
 
     #[classmethod]
-    #[pyo3(signature = (_stream, _struct_ver = Version::new(vec![0,])))]
-    fn _get_version(_cls: &Bound<PyType>, _stream: &mut ByteStream, _struct_ver: Version) -> PyResult<Version> {
+    #[pyo3(signature = (_stream, _ver = Version::new(vec![0,])))]
+    fn _get_version(_cls: &Bound<PyType>, _stream: &mut ByteStream, _ver: Version) -> PyResult<Version> {
         Err(VersionError::new_err("Un-versioned File"))
     }
 
