@@ -96,7 +96,7 @@ impl Struct {
     }
 
     pub fn compress(&self, bytes: &mut Vec<u8>, idx: usize) -> PyResult<()> {
-        let Some(fn_) = &self.decompress else {
+        let Some(fn_) = &self.compress else {
             return Err(CompressionError::new_err(
                 "Unable to write object to file. A Structure with a compressed section needs to implement '_compress' classmethod."
             ))
@@ -168,7 +168,7 @@ impl Parseable for Struct {
             retriever.call_on_writes(&retrievers, data, repeats, &value.ver)?;
             
             let value = data[retriever.idx].as_ref().expect("supported check done above");
-            
+
             bytes.append(&mut match retriever.state(repeats) {
                 RetState::None => { vec![] }
                 RetState::Value => {

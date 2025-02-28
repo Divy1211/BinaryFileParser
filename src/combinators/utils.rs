@@ -241,13 +241,20 @@ pub fn set_data(
         )))
     }
     
-    data[target] = Some(match target_ret.state(&repeats) {
-        RetState::List if !val.is_ls_of(&target_ret.data_type) => {
-            return Err(PyTypeError::new_err(format!(
-                "Set: Unable to set '{}' from value of incorrect type", target_ret.name
-            )))
-        }
-        _ => { val.clone() }
-    });
+    let state = target_ret.state(&repeats);
+    
+    if state == RetState::List && !val.is_ls_of(&target_ret.data_type) {
+        return Err(PyTypeError::new_err(format!(
+            "Set: Unable to set '{}' from value of incorrect type", target_ret.name
+        )))
+    }
+    
+    let value = target_ret.data_type.try_cast(&val);
+    if value.is_none() {
+        return Err(PyTypeError::new_err(format!(
+            "Set: Unable to set '{}' from value of incorrect type", target_ret.name
+        )))
+    };
+    data[target] = value;
     Ok(())
 }

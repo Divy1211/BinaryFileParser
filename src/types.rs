@@ -7,3 +7,4 @@ pub mod base_struct;
 pub mod bfp_type;
 pub mod r#struct;
 pub mod bfp_list;
+pub mod bfp_type_try_cast;

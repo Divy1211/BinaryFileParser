@@ -105,8 +105,8 @@ impl ParseableType {
     
     pub fn try_to_float(&self) -> Option<f64> {
         match self {
-            ParseableType::Float32(val)   => Some(*val as f64),
-            ParseableType::Float64(val)  => Some(*val),
+            ParseableType::Float32(val) => Some(*val as f64),
+            ParseableType::Float64(val) => Some(*val),
 
             _ => None,
         }

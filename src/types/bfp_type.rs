@@ -132,7 +132,7 @@ impl BfpType {
             BfpType::StackedArray(type_)      => format!("list[list[{}]", type_.data_type.py_name()),
             BfpType::StackedAttrArray(type_)  => format!("list[{}]", type_.data_type.py_name()),
             
-            BfpType::Struct(_)                => "BaseStruct".into()
+            BfpType::Struct(struct_)          => struct_.fully_qualified_name.clone(),
         }
     }
 
@@ -346,7 +346,9 @@ impl Parseable for BfpType {
 
             (BfpType::Struct(type_),           ParseableType::Struct { val, .. }) => type_.to_bytes(val),
 
-            _ => unreachable!("BFP Internal Error. *Goodbye cruel world*")
+            (type_, val) => {
+                unreachable!("BFP Internal Error: Unhandled types {:?} {:?}", type_.py_name(), val)
+            }
         }
     }
 }
