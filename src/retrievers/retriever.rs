@@ -3,7 +3,7 @@ use std::sync::Arc;
 use pyo3::prelude::*;
 use pyo3::types::PyType;
 use pyo3::{pyclass, PyObject};
-use pyo3::exceptions::PyValueError;
+use pyo3::exceptions::{PyTypeError, PyValueError};
 use crate::combinators::combinator::Combinator;
 use crate::combinators::combinator_type::CombinatorType;
 use crate::errors::default_attribute_error::DefaultAttributeError;
@@ -45,8 +45,8 @@ pub struct Retriever {
     tmp_on_read: Option<Arc<PyObject>>,
     tmp_on_write: Option<Arc<PyObject>>,
     
-    mappers: Arc<Vec<PyObject>>,
-    validators: Arc<Vec<PyObject>>,
+    on_get: Arc<Vec<PyObject>>,
+    on_set: Arc<Vec<PyObject>>,
     
     pub name: String,
     pub idx: usize,
@@ -57,11 +57,11 @@ impl Retriever {
     #[new]
     #[pyo3(signature = (
         data_type,
-        min_ver = Version::new(vec![-1]), max_ver = Version::new(vec!(1000)),
+        min_ver = Version::new(vec![-1]), max_ver = Version::new(vec![10_000]),
         default = None, default_factory = None,
         repeat = 1,
         remaining_compressed = false,
-        on_read = None, on_write = None, mappers = None, validators = None
+        on_read = None, on_write = None, on_get = None, on_set = None
     ))]
     fn new(
         py: Python,
@@ -79,8 +79,8 @@ impl Retriever {
         on_read: Option<PyObject>,
         on_write: Option<PyObject>,
 
-        mappers: Option<Vec<PyObject>>,
-        validators: Option<Vec<PyObject>>,
+        on_get: Option<Vec<PyObject>>,
+        on_set: Option<Vec<PyObject>>,
     ) -> PyResult<Self> {
         let tmp_on_read = match on_read {
             None => { None }
@@ -110,8 +110,8 @@ impl Retriever {
             tmp_on_write,
             idx: 0,
             name: String::new(),
-            mappers: Arc::new(mappers.unwrap_or_else(Vec::new)),
-            validators: Arc::new(validators.unwrap_or_else(Vec::new)),
+            on_get: Arc::new(on_get.unwrap_or_else(Vec::new)),
+            on_set: Arc::new(on_set.unwrap_or_else(Vec::new)),
         })
     }
 
@@ -161,7 +161,13 @@ impl Retriever {
         let mut data = instance.data.write().expect("GIL bound write");
         
         data[slf.idx] = Some(match slf.state(&repeats) {
-            RetState::None => { ParseableType::None }
+            RetState::None => {
+                if value.is_none() {
+                    ParseableType::None
+                } else {
+                    return Err(PyTypeError::new_err("Attempting to set a none value, an explicit repeat value is needed"))
+                }
+            }
             RetState::Value => { slf.data_type.to_parseable(&value)? }
             RetState::List => {
                 let value = value.iter()?

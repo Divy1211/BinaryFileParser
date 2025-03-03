@@ -13,14 +13,17 @@ use crate::combinators::r#if::if_cmp_len_by::IfCmpLenBy;
 use crate::combinators::r#if::if_cmp_len_from::IfCmpLenFrom;
 use crate::combinators::r#if::if_cmp_len_to::IfCmpLenTo;
 use crate::combinators::r#if::if_cmp_to::IfCmpTo;
+use crate::combinators::r#if::if_ver::IfVer;
 use crate::combinators::utils::idxes_from_tup;
 use crate::retrievers::retriever::Retriever;
 use crate::types::bfp_type::BfpType;
 use crate::types::le::int::Int8;
 use crate::types::parseable_type::ParseableType;
+use crate::types::version::Version;
 
 #[derive(Debug, PartialEq, Eq)]
 enum State {
+    VerCheck,
     HasTarget,
     HasSource,
     HasSourceConst,
@@ -31,6 +34,9 @@ enum State {
 pub struct IfBuilder {
     target: Vec<usize>,
     target_data_type: BfpType,
+
+    min_ver: Option<Version>,
+    max_ver: Option<Version>,
     
     source: Option<Vec<usize>>,
     source_const: Option<ParseableType>,
@@ -52,6 +58,8 @@ impl Default for IfBuilder {
             source: None,
             source_const: None,
             source_get: None,
+            min_ver: None,
+            max_ver: None,
             ord: None,
             state: State::HasTarget,
             not: false,
@@ -122,6 +130,13 @@ impl IfBuilder {
 impl IfBuilder {
     fn then(&self, com: CombinatorType) -> PyResult<CombinatorType> {
         Ok(match self.state {
+            State::VerCheck => {
+                IfVer::new(
+                    self.min_ver.as_ref().expect("infallible"),
+                    self.max_ver.as_ref().expect("infallible"),
+                    com,
+                ).into()
+            }
             State::HasTarget => {
                 IfCheck::new(
                     &self.target,
@@ -281,6 +296,36 @@ pub fn if_len(target: &Bound<PyTuple>) -> PyResult<IfBuilder> {
         target,
         target_data_type,
         len: true,
+        ..Default::default()
+    })
+}
+
+#[pyfunction]
+pub fn if_ver_min(min_ver: Version) -> PyResult<IfBuilder> {
+    Ok(IfBuilder {
+        min_ver: Some(min_ver),
+        max_ver: Some(Version::new(vec![10_000])),
+        state: State::VerCheck,
+        ..Default::default()
+    })
+}
+
+#[pyfunction]
+pub fn if_ver_max(max_ver: Version) -> PyResult<IfBuilder> {
+    Ok(IfBuilder {
+        min_ver: Some(Version::new(vec![-1])),
+        max_ver: Some(max_ver),
+        state: State::VerCheck,
+        ..Default::default()
+    })
+}
+
+#[pyfunction]
+pub fn if_ver_in(min_ver: Version, max_ver: Version) -> PyResult<IfBuilder> {
+    Ok(IfBuilder {
+        min_ver: Some(min_ver),
+        max_ver: Some(max_ver),
+        state: State::VerCheck,
         ..Default::default()
     })
 }

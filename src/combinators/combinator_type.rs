@@ -8,6 +8,7 @@ use crate::combinators::r#if::if_cmp_len_by::IfCmpLenBy;
 use crate::combinators::r#if::if_cmp_len_from::IfCmpLenFrom;
 use crate::combinators::r#if::if_cmp_len_to::IfCmpLenTo;
 use crate::combinators::r#if::if_cmp_to::IfCmpTo;
+use crate::combinators::r#if::if_ver::IfVer;
 use crate::combinators::set::set_by::SetBy;
 use crate::combinators::set::set_from::SetFrom;
 use crate::combinators::set::set_from_len::SetFromLen;
@@ -37,6 +38,7 @@ pub enum CombinatorType {
     IfCmpLenBy(IfCmpLenBy),
     IfCmpLenFrom(IfCmpLenFrom),
     IfCmpLenTo(IfCmpLenTo),
+    IfVer(IfVer),
 
     SetFrom(SetFrom),
     SetBy(SetBy),
@@ -59,7 +61,8 @@ impl Combinator for CombinatorType {
             CombinatorType::IfCmpLenFrom(com)     => com.run(retrievers, data, repeats, ver),
             CombinatorType::IfCmpLenTo(com)       => com.run(retrievers, data, repeats, ver),
             CombinatorType::IfCheck(com)          => com.run(retrievers, data, repeats, ver),
-
+            CombinatorType::IfVer(com)            => com.run(retrievers, data, repeats, ver),
+            
             CombinatorType::SetFrom(com)          => com.run(retrievers, data, repeats, ver),
             CombinatorType::SetBy(com)            => com.run(retrievers, data, repeats, ver),
             CombinatorType::SetFromLen(com)       => com.run(retrievers, data, repeats, ver),
@@ -80,6 +83,7 @@ impl_from_for_combinator_type!(IfCmpLenBy, IfCmpLenBy);
 impl_from_for_combinator_type!(IfCmpLenFrom, IfCmpLenFrom);
 impl_from_for_combinator_type!(IfCmpLenTo, IfCmpLenTo);
 impl_from_for_combinator_type!(IfCheck, IfCheck);
+impl_from_for_combinator_type!(IfVer, IfVer);
 
 impl_from_for_combinator_type!(SetFrom, SetFrom);
 impl_from_for_combinator_type!(SetBy, SetBy);
