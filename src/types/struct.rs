@@ -131,7 +131,7 @@ impl Parseable for Struct {
             }
             
             data.push(Some(match retriever.state(&repeats) {
-                RetState::None => { ParseableType::None }
+                RetState::NoneValue | RetState::NoneList => { ParseableType::None }
                 RetState::Value => { retriever.from_stream(stream, &ver)? }
                 RetState::List => {
                     let mut ls = Vec::with_capacity(retriever.repeat(&repeats) as usize);
@@ -170,11 +170,10 @@ impl Parseable for Struct {
             let value = data[retriever.idx].as_ref().expect("supported check done above");
 
             bytes.append(&mut match retriever.state(repeats) {
-                RetState::None => { vec![] }
-                RetState::Value => {
+                RetState::Value | RetState::NoneValue => {
                     retriever.to_bytes(value)?
                 }
-                RetState::List => {
+                RetState::List | RetState::NoneList => {
                     let ParseableType::Array(ls) = value else { unreachable!("Retriever state guarantee") };
                     let ls = ls.ls.read().expect("GIL bound read");
                     let mut bytes = Vec::with_capacity(ls.len());

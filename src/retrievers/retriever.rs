@@ -3,7 +3,7 @@ use std::sync::Arc;
 use pyo3::prelude::*;
 use pyo3::types::PyType;
 use pyo3::{pyclass, PyObject};
-use pyo3::exceptions::{PyTypeError, PyValueError};
+use pyo3::exceptions::{PyValueError};
 use crate::combinators::combinator::Combinator;
 use crate::combinators::combinator_type::CombinatorType;
 use crate::errors::default_attribute_error::DefaultAttributeError;
@@ -18,7 +18,8 @@ use crate::types::version::Version;
 
 #[derive(Debug, PartialEq, Eq, Copy, Clone)]
 pub enum RetState {
-    None,
+    NoneList,
+    NoneValue,
     Value,
     List,
 }
@@ -44,7 +45,7 @@ pub struct Retriever {
 
     tmp_on_read: Option<Arc<PyObject>>,
     tmp_on_write: Option<Arc<PyObject>>,
-    
+
     on_get: Arc<Vec<PyObject>>,
     on_set: Arc<Vec<PyObject>>,
     
@@ -92,7 +93,7 @@ impl Retriever {
             Some(obj) => { Some(Arc::new(obj)) }
         };
         
-        if repeat < -1 {
+        if repeat < -2 {
             return Err(PyValueError::new_err("Repeat values cannot be less than -1"));
         }
         
@@ -157,19 +158,31 @@ impl Retriever {
                 "'{}' is not supported in struct version {ver}", slf.name
             )))
         }
-        let repeats = instance.repeats.read().expect("GIL bound read");
+        let mut repeats = instance.repeats.write().expect("GIL bound read");
         let mut data = instance.data.write().expect("GIL bound write");
-        
+
         data[slf.idx] = Some(match slf.state(&repeats) {
-            RetState::None => {
-                if value.is_none() {
-                    ParseableType::None
-                } else {
-                    return Err(PyTypeError::new_err("Attempting to set a none value, an explicit repeat value is needed"))
-                }
+            RetState::Value | RetState::NoneValue if value.is_none() => {
+                repeats[slf.idx] = Some(-1);
+                ParseableType::None
             }
-            RetState::Value => { slf.data_type.to_parseable(&value)? }
-            RetState::List => {
+            RetState::Value | RetState::NoneValue => {
+                slf.data_type.to_parseable(&value)?
+            }
+            RetState::List | RetState::NoneList if value.is_none() => {
+                repeats[slf.idx] = Some(-2);
+                ParseableType::None
+            }
+            RetState::List | RetState::NoneList => {
+                let repeat = slf.repeat(&repeats);
+                let len = value.len()? as isize;
+                if repeat == -2 {
+                    repeats[slf.idx] = Some(len);
+                } else if repeats[slf.idx].is_none() && repeat != len {
+                    return Err(PyValueError::new_err(format!(
+                        "List length mismatch for '{}' which is a retriever of fixed repeat. Expected: {repeat}, Actual: {len}", slf.name
+                    )))
+                }
                 let value = value.iter()?
                     .map(|v| {
                         slf.data_type.to_parseable(&v.expect("obtained from python"))
@@ -192,7 +205,7 @@ impl Retriever {
 impl Retriever {
     pub fn from_default(&self, ver: &Version, repeats: &Vec<Option<isize>>, py: Python) -> PyResult<ParseableType> {
         let state = self.state(repeats);
-        if state == RetState::None {
+        if state == RetState::NoneValue || state == RetState::NoneList {
             return Ok(ParseableType::None);
         }
         let repeat = self.repeat(repeats) as usize;
@@ -292,18 +305,24 @@ impl Retriever {
 
     #[cfg_attr(feature = "inline_always", inline(always))]
     pub fn to_bytes(&self, value: &ParseableType) -> std::io::Result<Vec<u8>> {
+        if *value == ParseableType::None {
+            return Ok(vec![]);
+        }
         self.data_type.to_bytes(value)
     }
 
     #[cfg_attr(feature = "inline_always", inline(always))]
     pub fn state(&self, repeats: &Vec<Option<isize>>) -> RetState {
         match repeats[self.idx] {
-            Some(val) => { if val == -1 { RetState::None } else { RetState::List } }
+            Some(-2) => RetState::NoneList,
+            Some(-1) => RetState::NoneValue,
+            Some(_)  => RetState::List,
             None => {
                 match self.repeat {
-                    -1 => { RetState::None },
-                    1 => { RetState::Value },
-                    _ => { RetState::List },
+                    -2 => RetState::NoneList,
+                    -1 => RetState::NoneValue,
+                    1  => RetState::Value,
+                    _  => RetState::List,
                 }
             }
         }

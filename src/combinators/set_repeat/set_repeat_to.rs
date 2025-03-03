@@ -1,3 +1,4 @@
+use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
 use crate::combinators::combinator::Combinator;
@@ -21,11 +22,17 @@ impl SetRepeatTo {
 impl Combinator for SetRepeatTo {
     fn run(
         &self,
-        _retrievers: &Vec<Retriever>,
+        retrievers: &Vec<Retriever>,
         _data: &mut Vec<Option<ParseableType>>,
         repeats: &mut Vec<Option<isize>>,
         _ver: &Version
     ) -> PyResult<()> {
+        if self.source < -2 {
+            return Err(PyValueError::new_err(format!(
+                "SetRepeatTo: Attempting to set repeat of '{}' to '{}', which is less than -2",
+                retrievers[self.target].name, self.source
+            )));
+        }
         repeats[self.target] = Some(self.source);
         Ok(())
     }

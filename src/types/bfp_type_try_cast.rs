@@ -2,8 +2,8 @@ use crate::types::bfp_type::BfpType;
 use crate::types::parseable_type::ParseableType;
 
 impl BfpType {
-    pub fn try_cast(&self, value: &ParseableType) -> Option<ParseableType> {
-        match (self, value) {
+    pub fn try_cast(&self, value: ParseableType) -> Option<ParseableType> {
+        match (self, &value) {
             (BfpType::UInt8(_type), ParseableType::UInt8(val))     => Some(ParseableType::UInt8(*val as u8)),
             (BfpType::UInt8(_type), ParseableType::UInt16(val))    => Some(ParseableType::UInt8(*val as u8)),
             (BfpType::UInt8(_type), ParseableType::UInt32(val))    => Some(ParseableType::UInt8(*val as u8)),
@@ -294,22 +294,22 @@ impl BfpType {
 
             (BfpType::Bool128(_type), ParseableType::Bool(val))    => Some(ParseableType::Bool(*val)),
 
-            (BfpType::Bytes(_type),            ParseableType::Bytes(_val))         => Some(value.clone()),
+            (BfpType::Bytes(_type),            ParseableType::Bytes(_val))         => Some(value),
 
-            (BfpType::Str(_type),              ParseableType::Str(_val))           => Some(value.clone()),
-            (BfpType::NTStr(_type),            ParseableType::Str(_val))           => Some(value.clone()),
+            (BfpType::Str(_type),              ParseableType::Str(_val))           => Some(value),
+            (BfpType::NTStr(_type),            ParseableType::Str(_val))           => Some(value),
 
-            (BfpType::StrArray(_type),         ParseableType::Array(_val))         => Some(value.clone()),
+            (BfpType::StrArray(_type),         ParseableType::Array(_val))         => Some(value),
 
-            (BfpType::Option(_type),           ParseableType::Option(_val))        => Some(value.clone()),
+            (BfpType::Option(_type),           ParseableType::Option(_val))        => Some(value),
 
-            (BfpType::Array(_type),            ParseableType::Array(_val))         => Some(value.clone()),
-            (BfpType::StackedArray(_type),     ParseableType::Array(_val))         => Some(value.clone()),
-            (BfpType::StackedAttrArray(_type), ParseableType::Array(_val))         => Some(value.clone()),
+            (BfpType::Array(_type),            ParseableType::Array(_val))         => Some(value),
+            (BfpType::StackedArray(_type),     ParseableType::Array(_val))         => Some(value),
+            (BfpType::StackedAttrArray(_type), ParseableType::Array(_val))         => Some(value),
 
             (BfpType::Struct(type_),   ParseableType::Struct { struct_, .. }) => {
                 if type_.fully_qualified_name == struct_.fully_qualified_name {
-                    Some(value.clone())
+                    Some(value)
                 } else {
                     None
                 }

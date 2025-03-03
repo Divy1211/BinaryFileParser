@@ -33,9 +33,9 @@ impl Combinator for SetRepeatBy {
     ) -> PyResult<()> {
         let source = self.source.eval(retrievers, data, repeats, ver)? as isize;
         
-        if source < -1 {
+        if source < -2 {
             return Err(PyValueError::new_err(format!(
-                "SetRepeatBy: Attempting to set repeat of '{}' to '{}', which is less than -1",
+                "SetRepeatBy: Attempting to set repeat of '{}' to '{}', which is less than -2",
                 retrievers[self.target].name, source
             )));
         }

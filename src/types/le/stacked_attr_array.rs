@@ -172,7 +172,7 @@ impl StackedAttrArray {
                 continue;
             }
             for data in data_lss.iter() {
-                bytes.append(&mut retriever.to_bytes(data[i].as_ref().expect("supported check done above"))?)
+                bytes.append(&mut retriever.data_type.to_bytes(data[i].as_ref().expect("supported check done above"))?)
             }
         }
         
