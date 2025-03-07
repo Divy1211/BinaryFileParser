@@ -1,11 +1,13 @@
 use std::sync::{Arc, RwLock};
-
+use pyo3::intern;
 use pyo3::prelude::*;
-use pyo3::types::{PyBytes, PyType};
+use pyo3::types::{PyBytes, PyString, PyType};
 
 use crate::errors::compression_error::CompressionError;
 use crate::errors::version_error::VersionError;
 use crate::retrievers::retriever::{RetState, Retriever};
+use crate::retrievers::retriever_combiner::RetrieverCombiner;
+use crate::retrievers::retriever_ref::RetrieverRef;
 use crate::types::base_struct::BaseStruct;
 use crate::types::bfp_list::BfpList;
 use crate::types::byte_stream::ByteStream;
@@ -17,6 +19,9 @@ use crate::types::version::Version;
 #[derive(Debug, Clone)]
 pub struct Struct {
     pub retrievers: Arc<RwLock<Vec<Retriever>>>,
+    pub combiners: Arc<RwLock<Vec<RetrieverCombiner>>>,
+    pub refs: Arc<RwLock<Vec<RetrieverRef>>>,
+    
     pub py_type: Arc<Py<PyType>>,
     pub fully_qualified_name: String,
     
@@ -36,7 +41,10 @@ impl Eq for Struct {}
 impl Struct {
     pub fn new(py_type: Py<PyType>, fully_qualified_name: String) -> Self {
         Struct {
-            retrievers: Arc::new(RwLock::new(Vec::with_capacity(1))),
+            retrievers: Arc::new(RwLock::new(Vec::new())),
+            combiners: Arc::new(RwLock::new(Vec::new())),
+            refs: Arc::new(RwLock::new(Vec::new())),
+            
             py_type: Arc::new(py_type),
             fully_qualified_name,
             
@@ -46,7 +54,7 @@ impl Struct {
         }
     }
 
-    pub fn append(&self, retriever: &Bound<Retriever>) -> PyResult<usize> {
+    pub fn add_ret(&self, retriever: &Bound<Retriever>) -> PyResult<usize> {
         let mut retriever = retriever.extract::<Retriever>()?;
         let mut retrievers = self.retrievers.write().expect("GIL bound write");
         let idx = retrievers.len();
@@ -55,14 +63,28 @@ impl Struct {
         Ok(idx)
     }
 
+    pub fn add_comb(&self, combiner: &Bound<RetrieverCombiner>) -> PyResult<()> {
+        let combiner = combiner.extract::<RetrieverCombiner>()?;
+        let mut combiners = self.combiners.write().expect("GIL bound write");
+        combiners.push(combiner);
+        Ok(())
+    }
+
+    pub fn add_ref(&self, ref_: &Bound<RetrieverRef>) -> PyResult<()> {
+        let ref_ = ref_.extract::<RetrieverRef>()?;
+        let mut refs = self.refs.write().expect("GIL bound write");
+        refs.push(ref_);
+        Ok(())
+    }
+
     pub fn from_cls(cls: &Bound<PyType>) -> PyResult<Self> {
         let mut struct_ = cls
-            .getattr("struct").expect("always a BaseStruct subclass")
+            .getattr(intern!(cls.py(), "struct")).expect("always a BaseStruct subclass")
             .extract::<Struct>().expect("infallible");
 
-        struct_.get_ver = get_if_impl(cls, "_get_version");
-        struct_.compress = get_if_impl(cls, "_compress");
-        struct_.decompress = get_if_impl(cls, "_decompress");
+        struct_.get_ver = get_if_impl(cls, intern!(cls.py(), "_get_version"));
+        struct_.compress = get_if_impl(cls, intern!(cls.py(), "_compress"));
+        struct_.decompress = get_if_impl(cls, intern!(cls.py(), "_decompress"));
 
         for retriever in struct_.retrievers.write().expect("GIL bound write").iter_mut() {
             retriever.construct_fns(cls.py())?
@@ -192,7 +214,7 @@ impl Parseable for Struct {
 }
 
 
-fn get_if_impl(cls: &Bound<PyType>, attr: &str) -> Option<Arc<PyObject>> {
+fn get_if_impl(cls: &Bound<PyType>, attr: &Bound<PyString>) -> Option<Arc<PyObject>> {
     let py = cls.py();
     let obj = cls.getattr(attr).expect("always a BaseStruct subclass");
     if attr == "_get_version" {

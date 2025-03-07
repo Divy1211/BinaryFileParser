@@ -3,6 +3,7 @@ use std::io::Write;
 use std::sync::{Arc, RwLock};
 
 use pyo3::exceptions::PyTypeError;
+use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyDict, PyType};
 
@@ -10,6 +11,8 @@ use crate::errors::compression_error::CompressionError;
 use crate::errors::parsing_error::ParsingError;
 use crate::errors::version_error::VersionError;
 use crate::retrievers::retriever::Retriever;
+use crate::retrievers::retriever_combiner::RetrieverCombiner;
+use crate::retrievers::retriever_ref::RetrieverRef;
 use crate::types::byte_stream::ByteStream;
 use crate::types::parseable::Parseable;
 use crate::types::parseable_type::ParseableType;
@@ -52,7 +55,7 @@ impl BaseStruct {
 
     pub fn len(cls: &Bound<PyType>) -> PyResult<usize> {
         let struct_ = cls
-            .getattr("struct").expect("always a BaseStruct subclass")
+            .getattr(intern!(cls.py(), "struct")).expect("always a BaseStruct subclass")
             .extract::<Struct>().expect("infallible");
 
         let retrievers = struct_.retrievers.read().expect("immutable");
@@ -63,6 +66,49 @@ impl BaseStruct {
         let obj = cls.call((Version::new(vec![-1]), false), None).expect("always a BaseStruct subclass");
         *(obj.downcast::<BaseStruct>().expect("infallible").borrow_mut()) = val;
         obj
+    }
+    
+    pub fn add_ret(cls: &Bound<PyType>, retriever: &Bound<Retriever>) -> PyResult<()> {
+        if !cls.is_subclass_of::<BaseStruct>()? {
+            return Err(PyTypeError::new_err(
+                "Cannot create retrievers in classes that do not subclass BaseStruct"
+            ))
+        }
+        let struct_ = match cls.getattr(intern!(cls.py(), "struct")) {
+            Ok(struct_) => struct_.downcast_into::<Struct>()?,
+            Err(_) => {
+                let struct_ = Bound::new(cls.py(), Struct::new(cls.extract()?, cls.fully_qualified_name()?.to_string()))?;
+                cls.setattr("struct", &struct_)?;
+                struct_
+            },
+        }.borrow();
+        let idx = struct_.add_ret(retriever)?;
+        retriever.borrow_mut().idx = idx;
+        Ok(())
+    }
+    
+    pub fn add_comb(cls: &Bound<PyType>, retriever: &Bound<RetrieverCombiner>) -> PyResult<()> {
+        let struct_ = match cls.getattr(intern!(cls.py(), "struct")) {
+            Ok(struct_) => struct_.downcast_into::<Struct>()?,
+            Err(_) => {
+                return Err(PyTypeError::new_err(
+                    "Cannot create retrievers in classes that do not subclass BaseStruct. Note that the first retriever in a class cannot be a ref or a combiner"
+                ))
+            },
+        }.borrow();
+        struct_.add_comb(retriever)
+    }
+    
+    pub fn add_ref(cls: &Bound<PyType>, retriever: &Bound<RetrieverRef>) -> PyResult<()> {
+        let struct_ = match cls.getattr(intern!(cls.py(), "struct")) {
+            Ok(struct_) => struct_.downcast_into::<Struct>()?,
+            Err(_) => {
+                return Err(PyTypeError::new_err(
+                    "Cannot create retrievers in classes that do not subclass BaseStruct. Note that the first retriever in a class cannot be a ref or a combiner"
+                ))
+            },
+        }.borrow();
+        struct_.add_ref(retriever)
     }
 
     fn to_bytes<'py>(cls: &Bound<'py, PyType>, value: &BaseStruct) -> PyResult<Vec<u8>> {
@@ -104,26 +150,6 @@ impl BaseStruct {
             data[ret.idx] = init;
         }
         Ok(BaseStruct::new(ver, data, repeats))
-    }
-
-    #[classmethod]
-    pub fn _add_retriever(cls: &Bound<PyType>, retriever: &Bound<Retriever>) -> PyResult<()> {
-        if !cls.is_subclass_of::<BaseStruct>()? {
-            return Err(PyTypeError::new_err(
-                "Cannot create retrievers in classes that do not subclass BaseStruct"
-            ))
-        }
-        let struct_ = match cls.getattr("struct") {
-            Ok(struct_) => struct_.downcast_into::<Struct>()?,
-            Err(_) => {
-                let struct_ = Bound::new(cls.py(), Struct::new(cls.extract()?, cls.fully_qualified_name()?.to_string()))?;
-                cls.setattr("struct", &struct_)?;
-                struct_
-            },
-        }.borrow();
-        let idx = struct_.append(retriever)?;
-        retriever.borrow_mut().idx = idx;
-        Ok(())
     }
 
     #[classmethod]

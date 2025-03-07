@@ -26,7 +26,6 @@ pub enum RetState {
 
 #[pyclass(module = "bfp_rs")]
 #[derive(Debug, Clone)]
-#[allow(dead_code)]
 pub struct Retriever {
     pub data_type: BfpType,
 
@@ -45,9 +44,6 @@ pub struct Retriever {
 
     tmp_on_read: Option<Arc<PyObject>>,
     tmp_on_write: Option<Arc<PyObject>>,
-
-    on_get: Arc<Vec<PyObject>>,
-    on_set: Arc<Vec<PyObject>>,
     
     pub name: String,
     pub idx: usize,
@@ -62,7 +58,7 @@ impl Retriever {
         default = None, default_factory = None,
         repeat = 1,
         remaining_compressed = false,
-        on_read = None, on_write = None, on_get = None, on_set = None
+        on_read = None, on_write = None
     ))]
     fn new(
         py: Python,
@@ -79,9 +75,6 @@ impl Retriever {
 
         on_read: Option<PyObject>,
         on_write: Option<PyObject>,
-
-        on_get: Option<Vec<PyObject>>,
-        on_set: Option<Vec<PyObject>>,
     ) -> PyResult<Self> {
         let tmp_on_read = match on_read {
             None => { None }
@@ -111,8 +104,6 @@ impl Retriever {
             tmp_on_write,
             idx: 0,
             name: String::new(),
-            on_get: Arc::new(on_get.unwrap_or_else(Vec::new)),
-            on_set: Arc::new(on_set.unwrap_or_else(Vec::new)),
         })
     }
 
@@ -122,7 +113,7 @@ impl Retriever {
     }
 
     fn __get__<'py>(
-        slf: Bound<'py, Retriever>,
+        slf: Bound<'py, Self>,
         instance: Bound<'py, PyAny>,
         _owner: Bound<'py, PyType>,
     ) -> PyResult<Bound<'py, PyAny>> {
@@ -196,7 +187,7 @@ impl Retriever {
     fn __set_name__(slf: Bound<Self>, owner: &Bound<PyType>, name: &str) -> PyResult<()> {
         slf.borrow_mut().name = name.to_string();
         
-        BaseStruct::_add_retriever(owner, &slf)?;
+        BaseStruct::add_ret(owner, &slf)?;
 
         Ok(())
     }

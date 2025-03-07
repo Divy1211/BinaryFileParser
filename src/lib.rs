@@ -12,7 +12,8 @@ use crate::combinators::set::set_builder::set;
 use crate::combinators::get::{get_len, get};
 
 use crate::retrievers::retriever::Retriever;
-
+use crate::retrievers::retriever_combiner::RetrieverCombiner;
+use crate::retrievers::retriever_ref::RetrieverRef;
 use crate::types::base_struct::BaseStruct;
 use crate::types::bfp_type::BfpType;
 use crate::types::byte_stream::ByteStream;
@@ -166,6 +167,8 @@ fn binary_file_parser(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
     bfp.add_class::<ByteStream>()?;
     bfp.add_class::<BaseStruct>()?;
     bfp.add_class::<Retriever>()?;
+    bfp.add_class::<RetrieverRef>()?;
+    bfp.add_class::<RetrieverCombiner>()?;
     bfp.add_class::<Version>()?;
 
     errors(py, bfp)?;
