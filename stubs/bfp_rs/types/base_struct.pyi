@@ -1,8 +1,6 @@
-from typing import Any, Type, TypeVar
+from typing import Any, Self
 
 from bfp_rs import ByteStream, Version
-
-T = TypeVar("T", bound = "BaseStruct")
 
 
 class BaseStruct:
@@ -10,19 +8,19 @@ class BaseStruct:
     """
     ver: Version
 
-    def __new__(cls: Type[T], ver: Version = Version(-1), init_defaults: bool = True, **retriever_inits: Any) -> T: ...
+    def __new__(cls, ver: Version = Version(-1), init_defaults: bool = True, **retriever_inits: Any) -> Self: ...
 
     @classmethod
-    def from_stream(cls: Type[T], stream: ByteStream, ver: Version = Version(0)) -> T: ...
+    def from_stream(cls, stream: ByteStream, ver: Version = Version(0)) -> Self: ...
 
     @classmethod
     def to_bytes(cls, value: BaseStruct) -> bytes: ...
 
     @classmethod
-    def from_bytes(cls: Type[T], bytes: bytes) -> T: ...
+    def from_bytes(cls, bytes: bytes) -> Self: ...
 
     @classmethod
-    def from_file(cls: Type[T], filepath: str, strict: bool = True) -> T: ...
+    def from_file(cls, filepath: str, strict: bool = True) -> Self: ...
 
     @classmethod
     def to_file(cls, filepath: str, value: BaseStruct) -> None: ...

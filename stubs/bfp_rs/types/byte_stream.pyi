@@ -1,19 +1,17 @@
-from typing import Type, TypeVar
-
-T = TypeVar("T", bound = "ByteStream")
+from typing import Type, TypeVar, Self
 
 
 class ByteStream:
     """
     """
 
-    def __new__(cls: Type[T]) -> T: ...
+    def __new__(cls) -> Self: ...
 
     @classmethod
-    def from_file(cls: Type[T], filepath: str) -> T: ...
+    def from_file(cls, filepath: str) -> Self: ...
 
     @classmethod
-    def from_bytes(cls: Type[T], bytes_: bytes) -> T: ...
+    def from_bytes(cls, bytes_: bytes) -> Self: ...
 
     def get(self, n: int) -> bytes: ...
 
