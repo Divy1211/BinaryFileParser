@@ -7,7 +7,7 @@ use crate::errors::parsing_error::ParsingError;
 use crate::errors::version_error::VersionError;
 
 use crate::combinators::set_repeat::set_repeat_builder::set_repeat;
-use crate::combinators::r#if::if_builder::{if_, if_not, if_len, if_ver_min, if_ver_max, if_ver_in};
+use crate::combinators::r#if::if_builder::{if_, if_not, if_len, if_ver};
 use crate::combinators::set::set_builder::set;
 use crate::combinators::get::{get_len, get};
 
@@ -139,12 +139,10 @@ fn combinators(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
     combinators.add_function(wrap_pyfunction!(if_, combinators)?)?;
     combinators.add_function(wrap_pyfunction!(if_not, combinators)?)?;
     combinators.add_function(wrap_pyfunction!(if_len, combinators)?)?;
+    combinators.add_function(wrap_pyfunction!(if_ver, combinators)?)?;
     combinators.add_function(wrap_pyfunction!(set, combinators)?)?;
     combinators.add_function(wrap_pyfunction!(get, combinators)?)?;
     combinators.add_function(wrap_pyfunction!(get_len, combinators)?)?;
-    combinators.add_function(wrap_pyfunction!(if_ver_min, combinators)?)?;
-    combinators.add_function(wrap_pyfunction!(if_ver_max, combinators)?)?;
-    combinators.add_function(wrap_pyfunction!(if_ver_in, combinators)?)?;
     
     Ok(())
 }

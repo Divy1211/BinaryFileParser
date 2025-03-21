@@ -1,6 +1,7 @@
 from .errors import *
 from .retrievers import *
 from .types import *
+from .help import *
 
 __all__ = [
     "CompressionError",
@@ -11,4 +12,6 @@ __all__ = [
     "Retriever", "RetrieverCombiner", "RetrieverRef",
 
     "Version", "BaseStruct", "ByteStream",
+
+    "ret", "ref", "com",
 ]

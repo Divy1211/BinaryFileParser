@@ -141,6 +141,9 @@ impl Retriever {
         instance: Bound<BaseStruct>,
         value: Bound<PyAny>,
     ) -> PyResult<()> {
+        if instance.is_none() {
+            return Err(PyValueError::new_err("Retriever is not assignable"))
+        }
         let slf = slf.borrow();
         let instance = instance.borrow();
         if !slf.supported(&instance.ver) {

@@ -207,7 +207,7 @@ impl IfBuilder {
     }
 
     #[pyo3(signature = (*source), text_signature = "(*source: Retriever | int | Get)")]
-    fn neq<'py>(slf: Bound<'py, Self>, source: &Bound<PyTuple>) -> PyResult<Bound<'py, Self>> {
+    fn ne<'py>(slf: Bound<'py, Self>, source: &Bound<PyTuple>) -> PyResult<Bound<'py, Self>> {
         let mut this = slf.borrow_mut();
         if this.not {
             this.cmp(source, vec![Ordering::Equal])?;
@@ -229,7 +229,7 @@ impl IfBuilder {
     }
 
     #[pyo3(signature = (*source), text_signature = "(*source: Retriever | int | Get)")]
-    fn geq<'py>(slf: Bound<'py, Self>, source: &Bound<PyTuple>) -> PyResult<Bound<'py, Self>> {
+    fn ge<'py>(slf: Bound<'py, Self>, source: &Bound<PyTuple>) -> PyResult<Bound<'py, Self>> {
         let mut this = slf.borrow_mut();
         if this.not {
             this.cmp(source, vec![Ordering::Less])?;
@@ -251,7 +251,7 @@ impl IfBuilder {
     }
     
     #[pyo3(signature = (*source), text_signature = "(*source: Retriever | int | Get)")]
-    fn leq<'py>(slf: Bound<'py, Self>, source: &Bound<PyTuple>) -> PyResult<Bound<'py, Self>> {
+    fn le<'py>(slf: Bound<'py, Self>, source: &Bound<PyTuple>) -> PyResult<Bound<'py, Self>> {
         let mut this = slf.borrow_mut();
         if this.not {
             this.cmp(source, vec![Ordering::Greater])?;
@@ -301,30 +301,11 @@ pub fn if_len(target: &Bound<PyTuple>) -> PyResult<IfBuilder> {
 }
 
 #[pyfunction]
-pub fn if_ver_min(min_ver: Version) -> PyResult<IfBuilder> {
+#[pyo3(signature = (*, min_ = Version::new(vec![-1]), max_ = Version::new(vec![10_000])), text_signature = "(*, min_: Version = Version(-1), max_: Version = Version(10_000))")]
+pub fn if_ver(min_: Version, max_: Version) -> PyResult<IfBuilder> {
     Ok(IfBuilder {
-        min_ver: Some(min_ver),
-        max_ver: Some(Version::new(vec![10_000])),
-        state: State::VerCheck,
-        ..Default::default()
-    })
-}
-
-#[pyfunction]
-pub fn if_ver_max(max_ver: Version) -> PyResult<IfBuilder> {
-    Ok(IfBuilder {
-        min_ver: Some(Version::new(vec![-1])),
-        max_ver: Some(max_ver),
-        state: State::VerCheck,
-        ..Default::default()
-    })
-}
-
-#[pyfunction]
-pub fn if_ver_in(min_ver: Version, max_ver: Version) -> PyResult<IfBuilder> {
-    Ok(IfBuilder {
-        min_ver: Some(min_ver),
-        max_ver: Some(max_ver),
+        min_ver: Some(min_),
+        max_ver: Some(max_),
         state: State::VerCheck,
         ..Default::default()
     })

@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import Any, Callable
 
 from bfp_rs import Version, BaseStruct
+from bfp_rs.combinators.combinator import Combinator
 
 
 class Retriever:
@@ -17,8 +18,8 @@ class Retriever:
         default_factory: Callable[[Version], Any] = None,
         repeat: int = 1,
         remaining_compressed: bool = False,
-        on_read: Callable[[], list] = None,
-        on_write: Callable[[], list] = None,
+        on_read: Callable[[], list[Combinator]] = None,
+        on_write: Callable[[], list[Combinator]] = None,
     ) -> Retriever:
         ...
 
