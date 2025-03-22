@@ -1,3 +1,5 @@
+#![allow(unexpected_cfgs)]
+
 use pyo3::prelude::*;
 use pyo3::py_run;
 
