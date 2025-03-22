@@ -25,6 +25,7 @@ var/
 include/
 man/
 venv/
+venv-wsl/
 *.egg-info/
 .installed.cfg
 *.egg
@@ -72,3 +73,7 @@ docs/_build/
 .python-version
 
 asp_test/*
+
+flamegraph*
+perf*
+profile.*.gz

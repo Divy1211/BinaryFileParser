@@ -301,11 +301,11 @@ pub fn if_len(target: &Bound<PyTuple>) -> PyResult<IfBuilder> {
 }
 
 #[pyfunction]
-#[pyo3(signature = (*, min_ = Version::new(vec![-1]), max_ = Version::new(vec![10_000])), text_signature = "(*, min_: Version = Version(-1), max_: Version = Version(10_000))")]
-pub fn if_ver(min_: Version, max_: Version) -> PyResult<IfBuilder> {
+#[pyo3(signature = (*, min = Version::new(vec![-1]), max = Version::new(vec![10_000])), text_signature = "(*, min: Version = Version(-1), max: Version = Version(10_000))")]
+pub fn if_ver(min: Version, max: Version) -> PyResult<IfBuilder> {
     Ok(IfBuilder {
-        min_ver: Some(min_),
-        max_ver: Some(max_),
+        min_ver: Some(min),
+        max_ver: Some(max),
         state: State::VerCheck,
         ..Default::default()
     })
