@@ -72,7 +72,7 @@ docs/_build/
 # Pyenv
 .python-version
 
-asp_test/*
+asp_test/scxs/*
 
 flamegraph*
 perf*

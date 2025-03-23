@@ -1,0 +1,29 @@
+from __future__ import annotations
+
+from bfp_rs import BaseStruct, Retriever, Version
+from bfp_rs.types.le import (
+    Array16, bool8, Array, nt_str16, u32,
+    u8,
+)
+
+from asp_test.sections.scx_versions import DE_LATEST
+from asp_test.sections.unit_data.victory_options import VictoryOptions
+from asp_test.sections.unit_data.view import ViewF, ViewI
+
+
+class ScenarioPlayerData(BaseStruct):
+    # @formatter:off
+    name: str                                = Retriever(nt_str16,       default = "Scenario Editor Phantom")
+    editor_view: ViewF                       = Retriever(ViewF,          default_factory = ViewF)
+    initial_view: ViewI                      = Retriever(ViewI,          default_factory = ViewI)
+    aok_allied_victory: bool                 = Retriever(bool8,          default = False)
+    diplomacy_stances_interaction: list[int] = Retriever(Array16[u8],    default_factory = lambda _: [3, 0, 3, 3, 3, 3, 3, 3, 3])
+    """aka relations"""
+    diplomacy_stances_ai_system: list[int]   = Retriever(Array[9][u32],  min_ver = Version(1,  9), default_factory = lambda _: [0, 1, 4, 4, 4, 4, 4, 4, 4])
+    """aka unit_diplomacy"""
+    colour: int                              = Retriever(u32,            min_ver = Version(1, 18), default = 0)
+    victory_options: VictoryOptions          = Retriever(VictoryOptions, default_factory = lambda _ver: VictoryOptions())
+    # @formatter:on
+
+    def __new__(cls, ver: Version = DE_LATEST, init_defaults = True, **retriever_inits):
+        return super().__new__(cls, ver, init_defaults, **retriever_inits)

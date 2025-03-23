@@ -1,0 +1,46 @@
+from __future__ import annotations
+
+from bfp_rs import BaseStruct, Retriever, Version
+from bfp_rs.types.le import f32, i32, i8
+
+
+class VictoryCondition(BaseStruct):
+    # @formatter:off
+    type: int = Retriever(i8, default = 0)
+    """
+    - 0 Capture,
+    - 1 Create,
+    - 2 Destroy,
+    - 3 DestroyMultiple,
+    - 4 BringToArea,
+    - 5 BringToObject,
+    - 6 Attribute,
+    - 7 Explore,
+    - 8 CreateInArea,
+    - 9 DestroyAll,
+    - 10 DestroyPlayer,
+    - 11 Points,
+    """
+    object_type: int   = Retriever(i32, default = 0)
+    player_id: int     = Retriever(i32, default = 0)
+    area_x1: float     = Retriever(f32, default = 0)
+    area_y1: float     = Retriever(f32, default = 0)
+    area_x2: float     = Retriever(f32, default = 0)
+    area_y2: float     = Retriever(f32, default = 0)
+    number: int        = Retriever(i32, default = 0)
+    count: int         = Retriever(i32, default = 0)
+    source_object: int = Retriever(i32, default = 0)
+    target_object: int = Retriever(i32, default = 0)
+    victory_group: int = Retriever(i8,  default = 0)
+    ally_flag: int     = Retriever(i8,  default = 0)
+    state: int         = Retriever(i8,  default = 0)
+    """
+    - 0: Not achieved
+    - 1: Failed
+    - 2: Achieved
+    - 3: Disabled
+    """
+    # @formatter:on
+
+    def __new__(cls, ver: Version = Version(2), init_defaults = True, **retriever_inits):
+        return super().__new__(cls, ver, init_defaults, **retriever_inits)

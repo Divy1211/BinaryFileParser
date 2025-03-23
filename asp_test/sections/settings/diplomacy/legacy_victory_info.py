@@ -1,0 +1,27 @@
+from bfp_rs import BaseStruct, Retriever, Version
+from bfp_rs.types.le import bool32, i32, u32
+
+from asp_test.sections.settings.diplomacy.area_f import AreaF
+from asp_test.sections.scx_versions import DE_LATEST
+
+
+class LegacyVictoryInfo(BaseStruct):
+    # @formatter:off
+    unit_type: int                = Retriever(i32,    default = 0)
+    all: bool                     = Retriever(bool32, default = 0)
+    player: int                   = Retriever(i32,    default = 0)
+    destination_object_ref: int   = Retriever(i32,    default = 0)
+    area: AreaF                   = Retriever(AreaF,  default_factory = AreaF)
+    victory_type: int             = Retriever(i32,    default = 0)
+    quantity: int                 = Retriever(i32,    default = 0)
+    resource: int                 = Retriever(i32,    default = 0)
+    object_ref: int               = Retriever(i32,    default = 0)
+    destination_object_ref2: int  = Retriever(i32,    default = 0)
+    object: int                   = Retriever(u32,    default = 0)
+    """unused"""
+    destination_object: int       = Retriever(u32,    default = 0)
+    """unused"""
+    # @formatter:on
+
+    def __new__(cls, ver: Version = DE_LATEST, init_defaults = True, **retriever_inits):
+        return super().__new__(cls, ver, init_defaults, **retriever_inits)
