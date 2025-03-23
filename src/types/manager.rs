@@ -17,7 +17,7 @@ impl Manager {
         let info = match cls.getattr(intern!(cls.py(), "info")) {
             Ok(info) => info.downcast_into::<ManagerInfo>()?,
             Err(_) => {
-                let info = Bound::new(cls.py(), ManagerInfo::new(cls.fully_qualified_name()?.to_string()))?;
+                let info = Bound::new(cls.py(), ManagerInfo::new())?;
                 cls.setattr("info", &info)?;
                 info
             },

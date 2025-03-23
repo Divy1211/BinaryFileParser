@@ -9,14 +9,12 @@ use crate::retrievers::retriever_ref::RetrieverRef;
 #[derive(Debug, Clone)]
 pub struct ManagerInfo {
     refs: Arc<RwLock<Vec<RetrieverRef>>>,
-    fully_qualified_name: String,
 }
 
 impl ManagerInfo {
-    pub fn new(fully_qualified_name: String) -> Self {
+    pub fn new() -> Self {
         Self {
             refs: Arc::new(RwLock::new(Vec::new())),
-            fully_qualified_name
         }
     }
 
