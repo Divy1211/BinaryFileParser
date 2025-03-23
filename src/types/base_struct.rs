@@ -92,7 +92,7 @@ impl BaseStruct {
             Ok(struct_) => struct_.downcast_into::<Struct>()?,
             Err(_) => {
                 return Err(PyTypeError::new_err(
-                    "Cannot create retrievers in classes that do not subclass BaseStruct. Note that the first retriever in a class cannot be a ref or a combiner"
+                    "Cannot create combiners in classes that do not subclass BaseStruct. Note that the first retriever in a BaseStruct cannot be a ref or a combiner"
                 ))
             },
         }.borrow();
@@ -104,7 +104,7 @@ impl BaseStruct {
             Ok(struct_) => struct_.downcast_into::<Struct>()?,
             Err(_) => {
                 return Err(PyTypeError::new_err(
-                    "Cannot create retrievers in classes that do not subclass BaseStruct. Note that the first retriever in a class cannot be a ref or a combiner"
+                    "Cannot create refs in classes that do not subclass BaseStruct or Manager. Note that the first retriever in a BaseStruct cannot be a ref or a combiner"
                 ))
             },
         }.borrow();

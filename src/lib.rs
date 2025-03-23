@@ -32,6 +32,7 @@ use crate::types::le::stacked_array::{StackedArray, StackedArrayBuilder};
 use crate::types::le::stacked_attr_array::{StackedAttrArray, StackedAttrArrayBuilder};
 use crate::types::le::str::Str;
 use crate::types::le::str_array::StrArray;
+use crate::types::manager::Manager;
 use crate::types::version::Version;
 
 pub mod retrievers;
@@ -170,6 +171,7 @@ fn binary_file_parser(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
     bfp.add_class::<RetrieverRef>()?;
     bfp.add_class::<RetrieverCombiner>()?;
     bfp.add_class::<Version>()?;
+    bfp.add_class::<Manager>()?;
 
     errors(py, bfp)?;
     types(py, bfp)?;

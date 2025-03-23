@@ -1,11 +1,13 @@
 use std::sync::Arc;
 use pyo3::exceptions::PyValueError;
+use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::types::{PyTuple, PyType};
 use crate::errors::version_error::VersionError;
 use crate::retrievers::retriever::Retriever;
 use crate::retrievers::retriever_combiner::RetrieverCombiner;
 use crate::types::base_struct::BaseStruct;
+use crate::types::manager::Manager;
 
 #[derive(Debug, Clone)]
 enum Ref {
@@ -45,11 +47,15 @@ impl RetrieverRef {
 
     fn __get__<'py>(
         slf: Bound<'py, Self>,
-        instance: Bound<'py, PyAny>,
+        mut instance: Bound<'py, PyAny>,
         _owner: Bound<'py, PyType>,
     ) -> PyResult<Bound<'py, PyAny>> {
         if instance.is_none() {
             return Ok(slf.into_any())
+        }
+        // Not checking for is_instance_of is fine, because refs can only be made in BaseStruct or Manager
+        if let Ok(inner) = instance.getattr(intern!(slf.py(), "struct_")) {
+            instance = inner;
         }
         
         let ver = instance.downcast::<BaseStruct>()?.borrow().ver.clone();
@@ -76,11 +82,15 @@ impl RetrieverRef {
 
     fn __set__(
         slf: Bound<Self>,
-        instance: Bound<PyAny>,
+        mut instance: Bound<PyAny>,
         value: Bound<PyAny>,
     ) -> PyResult<()> {
         if instance.is_none() {
             return Err(PyValueError::new_err("RetrieverRef is not assignable"))
+        }
+        // Not checking for is_instance_of is fine, because refs can only be made in BaseStruct or Manager
+        if let Ok(inner) = instance.getattr(intern!(slf.py(), "struct_")) {
+            instance = inner;
         }
 
         let ver = instance.downcast::<BaseStruct>()?.borrow().ver.clone();
@@ -131,8 +141,10 @@ impl RetrieverRef {
         }).collect::<PyResult<_>>()?;
         drop(this);
         
-        BaseStruct::add_ref(owner, &slf)?;
-
-        Ok(())
+        if owner.is_subclass_of::<Manager>()? {
+            Manager::add_ref(owner, &slf)
+        } else {
+            BaseStruct::add_ref(owner, &slf)
+        }
     }
 }

@@ -34,4 +34,4 @@ class Test(BaseStruct):
 
 
 test = Test.from_bytes(b"\x01\x02")
-print(test.com_a0)
+print(test.a0)
