@@ -1,7 +1,8 @@
 from bfp_rs.types import Version
+from bfp_rs.retrievers import Retriever
+
 from bfp_rs.combinators.combinator import Combinator
 from bfp_rs.combinators.get import Get
-from bfp_rs.retrievers import Retriever
 
 
 class IfBuilder:

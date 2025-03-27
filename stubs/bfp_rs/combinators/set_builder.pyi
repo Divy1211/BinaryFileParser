@@ -1,8 +1,9 @@
 from typing import Any
 
+from bfp_rs.retrievers import Retriever
+
 from bfp_rs.combinators.combinator import Combinator
 from bfp_rs.combinators.get import Get
-from bfp_rs.retrievers import Retriever
 
 
 class SetBuilder:

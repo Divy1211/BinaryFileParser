@@ -19,7 +19,7 @@ pub struct RetrieverCombiner  {
 #[pymethods]
 impl RetrieverCombiner {
     #[new]
-    #[pyo3(signature = (*target), text_signature = "(*target: Retriever | int)")]
+    #[pyo3(signature = (*target), text_signature = "(*target: Retriever | RetrieverRef | RetrieverCombiner)")]
     pub fn new(target: Bound<PyTuple>) -> PyResult<Self> {
         if <Bound<PyTuple> as PyTupleMethods>::len(&target) == 0 {
             return Err(PyValueError::new_err("Combiner targets must contain at least one retriever"))
