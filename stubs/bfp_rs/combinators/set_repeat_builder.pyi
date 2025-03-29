@@ -28,7 +28,7 @@ class SetRepeatBuilder:
 
         Args:
             *source: The retriever path to fetch the value from. This can be a sequence of retrievers/list indices
-            starting in the current struct
+                starting in the current struct
 
         Returns:
             A combinator that encodes the setter logic defined by the SetBuilder chain
@@ -41,7 +41,7 @@ class SetRepeatBuilder:
 
         Args:
             *source: The retriever path to fetch the value from. This can be a sequence of retrievers/list indices
-            starting in the current struct
+                starting in the current struct
 
         Returns:
             A combinator that encodes the setter logic defined by the SetBuilder chain
@@ -69,7 +69,7 @@ def set_repeat(target: Retriever) -> SetRepeatBuilder:
 
     Args:
         *target: The retriever path to set the repeat for. This can be a sequence of retrievers/list indices
-        starting in the current struct
+            starting in the current struct
 
     Returns:
         A SetRepeatBuilder instance to continue defining additional combinator properties

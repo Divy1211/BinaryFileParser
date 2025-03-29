@@ -30,7 +30,7 @@ class Get:
 
 def get(*source: Retriever | int) -> Get:
     """
-    Fetches the value of a retriever. If the resulting value is an int, it's result can be manipulated with int
+    Fetches the value of a retriever. If the resulting value is an ``int``, it's result can be manipulated with ``int``
     operations. For example, ``get(Struct1.sub_struct1, SubStruct1.sub_list1, 1, SubStruct2.property)+1`` is like doing
     ``struct1.sub_struct1.sub_list1[1].property+1``
 

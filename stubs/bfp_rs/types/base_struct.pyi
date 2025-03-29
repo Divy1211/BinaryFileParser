@@ -36,6 +36,10 @@ class BaseStruct:
 
         Returns:
             An instance of this struct
+
+        Raises:
+            CompressionError: If the ``_decompress`` method is not defined and ``remaining_compressed`` is set to
+                ``True`` in one of the retrievers
         """
         ...
 
@@ -49,6 +53,10 @@ class BaseStruct:
 
         Returns:
             The byte representation of this struct
+
+        Raises:
+            CompressionError: If the ``_compress`` method is not defined and ``remaining_compressed`` is set to ``True``
+                in one of the retrievers
         """
         ...
 
@@ -62,6 +70,10 @@ class BaseStruct:
 
         Returns:
             An instance of this struct
+
+        Raises:
+            CompressionError: If the ``_decompress`` method is not defined and ``remaining_compressed`` is set to
+                ``True`` in one of the retrievers
         """
         ...
 
@@ -74,11 +86,15 @@ class BaseStruct:
             filepath: The file to use for deserialization
             strict: Raise an error if the complete file is not consumed after deserialization
 
-        Raises:
-            ParsingError: When strict is set to true and the complete file is not consumed after deserialization
-
         Returns:
             An instance of this struct
+
+        Raises:
+            ParsingError: When ``strict`` is set to ``True`` and the complete file is not consumed after deserialization
+
+            CompressionError: If the ``_decompress`` method is not defined and ``remaining_compressed`` is set to
+                ``True`` in one of the retrievers
+
         """
         ...
 
@@ -90,6 +106,10 @@ class BaseStruct:
         Args:
             filepath: The path to write the serialized file to
             value: The instance to serialize
+
+        Raises:
+            CompressionError: If the ``_compress`` method is not defined and ``remaining_compressed`` is set to ``True``
+                in one of the retrievers
         """
         ...
 

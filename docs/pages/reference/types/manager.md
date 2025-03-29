@@ -1,0 +1,1 @@
+::: bfp_rs.types.manager.Manager

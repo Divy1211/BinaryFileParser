@@ -17,7 +17,7 @@ class RetrieverRef:
 
         Args:
             *target: The retriever path to alias. This can be a sequence of retrievers/list indices starting in the
-            current struct
+                current struct
         """
         ...
 

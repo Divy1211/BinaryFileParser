@@ -1,0 +1,1 @@
+::: bfp_rs.errors.compression_error.CompressionError

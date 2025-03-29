@@ -25,3 +25,6 @@ class Bytes(Generic[N]):
 
     @classmethod
     def __class_getitem__(cls, item: int) -> type: ...
+
+class void(Bytes[0]):
+    ...

@@ -28,7 +28,7 @@ class IfBuilder:
 
         Args:
             *source: The retriever path to fetch the value from. This can be a sequence of retrievers/list indices
-            starting in the current struct
+                starting in the current struct
 
         Returns:
             An IfBuilder instance to continue defining additional combinator properties
@@ -41,7 +41,7 @@ class IfBuilder:
 
         Args:
             *source: The retriever path to fetch the value from. This can be a sequence of retrievers/list indices
-            starting in the current struct
+                starting in the current struct
 
         Returns:
             An IfBuilder instance to continue defining additional combinator properties
@@ -54,7 +54,7 @@ class IfBuilder:
 
         Args:
             *source: The retriever path to fetch the value from. This can be a sequence of retrievers/list indices
-            starting in the current struct
+                starting in the current struct
 
         Returns:
             An IfBuilder instance to continue defining additional combinator properties
@@ -67,7 +67,7 @@ class IfBuilder:
 
         Args:
             *source: The retriever path to fetch the value from. This can be a sequence of retrievers/list indices
-            starting in the current struct
+                starting in the current struct
 
         Returns:
             An IfBuilder instance to continue defining additional combinator properties
@@ -80,7 +80,7 @@ class IfBuilder:
 
         Args:
             *source: The retriever path to fetch the value from. This can be a sequence of retrievers/list indices
-            starting in the current struct
+                starting in the current struct
 
         Returns:
             An IfBuilder instance to continue defining additional combinator properties
@@ -93,7 +93,7 @@ class IfBuilder:
 
         Args:
             *source: The retriever path to fetch the value from. This can be a sequence of retrievers/list indices
-            starting in the current struct
+                starting in the current struct
 
         Returns:
             An IfBuilder instance to continue defining additional combinator properties
@@ -106,7 +106,7 @@ def if_(target: Retriever | int | Get) -> IfBuilder:
 
     Args:
         *target: The retriever path to fetch the value from. This can be a sequence of retrievers/list indices
-        starting in the current struct
+            starting in the current struct
 
     Returns:
         An IfBuilder instance to continue defining additional combinator properties
@@ -119,7 +119,7 @@ def if_not(target: Retriever | int | Get) -> IfBuilder:
 
     Args:
         *target: The retriever path to fetch the value from. This can be a sequence of retrievers/list indices
-        starting in the current struct
+            starting in the current struct
 
     Returns:
         An IfBuilder instance to continue defining additional combinator properties
@@ -132,7 +132,7 @@ def if_len(target: Retriever | int | Get) -> IfBuilder:
 
     Args:
         *target: The retriever path to fetch the value from. This can be a sequence of retrievers/list indices
-        starting in the current struct
+            starting in the current struct
 
     Returns:
         An IfBuilder instance to continue defining additional combinator properties

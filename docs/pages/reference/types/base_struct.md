@@ -1,0 +1,1 @@
+::: bfp_rs.types.base_struct.BaseStruct

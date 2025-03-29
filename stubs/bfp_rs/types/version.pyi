@@ -22,7 +22,7 @@ class Version:
 
         Args:
             ver_str: A string of the format "x.y.z" (there may be more or lesser than three components) where x, y, and
-            z are numbers
+                z are numbers
 
         Returns:
             A version instance
