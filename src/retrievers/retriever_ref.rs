@@ -54,7 +54,7 @@ impl RetrieverRef {
             return Ok(slf.into_any())
         }
         // Not checking for is_instance_of is fine, because refs can only be made in BaseStruct or Manager
-        if let Ok(inner) = instance.getattr(intern!(slf.py(), "struct_")) {
+        if let Ok(inner) = instance.getattr(intern!(slf.py(), "_struct")) {
             instance = inner;
         }
         
@@ -89,7 +89,7 @@ impl RetrieverRef {
             return Err(PyValueError::new_err("RetrieverRef is not assignable"))
         }
         // Not checking for is_instance_of is fine, because refs can only be made in BaseStruct or Manager
-        if let Ok(inner) = instance.getattr(intern!(slf.py(), "struct_")) {
+        if let Ok(inner) = instance.getattr(intern!(slf.py(), "_struct")) {
             instance = inner;
         }
 

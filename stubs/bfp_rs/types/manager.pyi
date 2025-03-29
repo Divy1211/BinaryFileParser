@@ -3,9 +3,17 @@ from bfp_rs.types import BaseStruct
 
 class Manager:
     """
-    Superclass for creating grouped retriever references and functions on them. Use this to provide a more coherent API
-    for struct modification when the internal struct is messy
+    Base class for defining a more coherent and organised API to access properties of a struct with a complicated
+    internal structure using ``RetrieverRef``s
     """
-    struct_: BaseStruct
+    _struct: BaseStruct
+    "The struct whose properties are referenced by this manager instance"
 
-    def __init__(self, struct: BaseStruct): ...
+    def __new__(cls, struct: BaseStruct):
+        """
+        Construct an instance of this manager with its references bound to the properties of the given struct
+
+        Args:
+            struct: The struct to reference properties from
+        """
+        ...
