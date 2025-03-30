@@ -26,7 +26,7 @@ forward from v0.3.0 may still be introduced as the API is fully ironed out.
 
 ## Getting Started
 
-https://divy1211.github.io/BinaryFileParser/tutorial/getting_started/
+View the BFP tutorial [here](https://divy1211.github.io/BinaryFileParser/tutorial/getting_started/)
 
 ## About the Author
 
