@@ -2,7 +2,17 @@
 
 A blazingly fast python library written in rust for serializing/deserializing python objects to/from binary files. BFP syntax is declarative and very versatile, allowing the user to specify file formats in a very readable and concise manner.
 
-## Installation (dev)
+## Installation
+
+```
+pip install --pre binary-file-parser
+```
+
+Note: whilst v0.3.0 is currently in alpha, it is the version new users are recommended to use, as the API has been
+significantly reworked from v0.2 and will become the standard once it matures and stabilises. Minor breakage moving
+forward from v0.3.0 may still be introduced as the API is fully ironed out.
+
+## Development
 
 1. Have [rust](https://www.rust-lang.org/) and [python](https://www.python.org/) installed
 2. Create an empty directory and `cd` into it
@@ -14,13 +24,9 @@ A blazingly fast python library written in rust for serializing/deserializing py
    - release: `maturin develop --release`
 7. Play
 
-## Installation
-
-PyPI: TODO
-
 ## Getting Started
 
-TODO
+https://divy1211.github.io/BinaryFileParser/tutorial/getting_started/
 
 ## About the Author
 
