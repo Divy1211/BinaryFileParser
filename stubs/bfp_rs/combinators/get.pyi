@@ -3,8 +3,8 @@ from bfp_rs.retrievers import Retriever
 
 class Get:
     """
-    Performs manipulations on retriever values before passing them to combinators as inputs, like adding the value of
-    two retrievers.
+    Encodes and performs manipulations on retriever values before passing them to combinators as inputs. For example, it
+    can be used to add the value of two retrievers.
     """
 
     def __add__(self, other: Get | int) -> Get: ...
@@ -42,7 +42,7 @@ def get(*source: Retriever | int) -> Get:
         An instance encoding the retriever path and manipulations to perform during parsing
 
     Raises:
-        ValueError: If the value at the source path is not an int, and int operations are attempted
+        ValueError: If the value at the source path is not an ``int``, and ``int`` operations are attempted
     """
     ...
 

@@ -12,13 +12,14 @@ class IfBuilder:
     """
     def then(self, com: Combinator) -> Combinator:
         """
-        Finishes the if-combinator construction, should be called last on an IfBuilder
+        Finishes the if-combinator construction by defining a nested combinator, should be called last on an
+        ``IfBuilder``
 
         Args:
             com: The nested combinator to run if the conditions for this if combinator are met
 
         Returns:
-            A combinator that encodes the conditional logic defined by the IfBuilder chain
+            A combinator that encodes the conditional logic defined by the ``IfBuilder`` chain
         """
         ...
 
@@ -31,7 +32,7 @@ class IfBuilder:
                 starting in the current struct
 
         Returns:
-            An IfBuilder instance to continue defining additional combinator properties
+            An ``IfBuilder`` instance to continue defining additional combinator properties
         """
         ...
 
@@ -44,7 +45,7 @@ class IfBuilder:
                 starting in the current struct
 
         Returns:
-            An IfBuilder instance to continue defining additional combinator properties
+            An ``IfBuilder`` instance to continue defining additional combinator properties
         """
         ...
 
@@ -57,7 +58,7 @@ class IfBuilder:
                 starting in the current struct
 
         Returns:
-            An IfBuilder instance to continue defining additional combinator properties
+            An ``IfBuilder`` instance to continue defining additional combinator properties
         """
         ...
 
@@ -70,7 +71,7 @@ class IfBuilder:
                 starting in the current struct
 
         Returns:
-            An IfBuilder instance to continue defining additional combinator properties
+            An ``IfBuilder`` instance to continue defining additional combinator properties
         """
         ...
 
@@ -83,7 +84,7 @@ class IfBuilder:
                 starting in the current struct
 
         Returns:
-            An IfBuilder instance to continue defining additional combinator properties
+            An ``IfBuilder`` instance to continue defining additional combinator properties
         """
         ...
 
@@ -96,7 +97,7 @@ class IfBuilder:
                 starting in the current struct
 
         Returns:
-            An IfBuilder instance to continue defining additional combinator properties
+            An ``IfBuilder`` instance to continue defining additional combinator properties
         """
         ...
 
@@ -109,7 +110,7 @@ def if_(target: Retriever | int | Get) -> IfBuilder:
             starting in the current struct
 
     Returns:
-        An IfBuilder instance to continue defining additional combinator properties
+        An ``IfBuilder`` instance to continue defining additional combinator properties
     """
     ...
 
@@ -122,7 +123,7 @@ def if_not(target: Retriever | int | Get) -> IfBuilder:
             starting in the current struct
 
     Returns:
-        An IfBuilder instance to continue defining additional combinator properties
+        An ``IfBuilder`` instance to continue defining additional combinator properties
     """
     ...
 
@@ -135,7 +136,7 @@ def if_len(target: Retriever | int | Get) -> IfBuilder:
             starting in the current struct
 
     Returns:
-        An IfBuilder instance to continue defining additional combinator properties
+        An ``IfBuilder`` instance to continue defining additional combinator properties
     """
     ...
 
@@ -149,6 +150,6 @@ def if_ver(*, min: Version = Version(-1), max: Version = Version(10_000)) -> IfB
         max: The maximum required version
 
     Returns:
-        An IfBuilder instance to continue defining additional combinator properties
+        An ``IfBuilder`` instance to continue defining additional combinator properties
     """
     ...

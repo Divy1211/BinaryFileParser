@@ -1,7 +1,7 @@
 class Version:
     """
-    Defines lexical comparisons similar to a tuple. e.g.: Version(1, 2) is v1.2 and considered higher than Version(1, 1)
-    which is v1.1
+    Defines lexical comparisons similar to a tuple. e.g.: ``Version(1, 2)`` is ``v1.2`` and considered higher than
+    ``Version(1, 1)`` which is ``v1.1``
 
     Any number of version components may be defined
     """

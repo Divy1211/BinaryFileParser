@@ -1,4 +1,4 @@
-from bfp_rs.types import BaseStruct
+from bfp_rs.types.base_struct import BaseStruct
 
 
 class Manager:

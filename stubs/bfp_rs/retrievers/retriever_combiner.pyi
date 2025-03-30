@@ -9,13 +9,14 @@ from bfp_rs.retrievers.retriever_ref import RetrieverRef
 class RetrieverCombiner:
     """
     Multiplexes retrievers that are mutually exclusive by version but hold the same value conceptually into a single
-    property
+    property for ease of access across multi-versioned structs
     """
 
     def __new__(cls, *target: Retriever | RetrieverRef | RetrieverCombiner) -> RetrieverCombiner:
         """
-        Multiplexes retrievers that are mutually exclusive by version but hold the same value conceptually into a single
-        property
+        Create a new combiner property from the given retrievers. Note: mutual exclusivity is not checked for the
+        provided retrievers, and the first supported retriever from the ones provided will be used as the "source" when
+        this combiner's property is accessed
 
         Args:
             *target: The retrievers to group/select from

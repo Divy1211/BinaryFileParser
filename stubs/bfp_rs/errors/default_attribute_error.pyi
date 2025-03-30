@@ -1,5 +1,5 @@
 class DefaultAttributeError(AttributeError):
     """
-    Thrown when a default struct is initialized without an appropriate default value
+    Thrown when a struct is default initialized without an appropriate default value being provided
     """
     ...

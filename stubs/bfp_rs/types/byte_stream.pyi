@@ -8,26 +8,26 @@ class ByteStream:
     @classmethod
     def from_file(cls, filepath: str) -> Self:
         """
-        Construct a ByteStream from a file.
+        Construct a ``ByteStream`` from a file.
 
         Args:
             filepath: The file to read
 
         Returns:
-            A ByteStream instance
+            A ``ByteStream`` instance
         """
         ...
 
     @classmethod
     def from_bytes(cls, bytes_: bytes) -> Self:
         """
-        Construct a bytestream from bytes
+        Construct a ``ByteStream`` from bytes
 
         Args:
             bytes_: The bytes
 
         Returns:
-            A ByteStream instance
+            A ``ByteStream`` instance
         """
         ...
 
@@ -38,11 +38,11 @@ class ByteStream:
         Args:
             n: The number of bytes to get
 
-        Raises
+        Raises:
             OsError: Attempting to request more bytes than the stream has left
 
         Returns:
-            bytes of the specified length
+            A ``bytes`` string of the specified length
         """
         ...
 
@@ -53,11 +53,11 @@ class ByteStream:
         Args:
             n: The number of bytes to get
 
-        Raises
+        Raises:
             OsError: Attempting to request more bytes than the stream has left
 
         Returns:
-            bytes of the specified length
+            A ``bytes`` string of the specified length
         """
         ...
 
@@ -66,6 +66,7 @@ class ByteStream:
         Get all the remaining bytes from the stream and seek to the end
 
         Returns:
-            All the bytes from the stream. May be ``b""`` if the stream is empty
+            A ``bytes`` string consisting of all the bytes remaining in the stream. May be ``b""`` if the stream is
+            empty
         """
         ...

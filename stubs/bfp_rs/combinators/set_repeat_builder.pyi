@@ -12,13 +12,14 @@ class SetRepeatBuilder:
 
     def by(self, from_: Get) -> Combinator:
         """
-        Set the repeat of the previously selected property to the result after performing the manipulations of a get/get_len instance
+        Set the repeat of the previously selected property to the result after performing the manipulations from the
+        provided ``Get`` instance
 
         Args:
-            *from_: The Get instance that encodes the manipulations to perform
+            *from_: The ``Get`` instance that encodes the manipulations to perform
 
         Returns:
-            A combinator that encodes the setter logic defined by the SetBuilder chain
+            A combinator that encodes the setter logic defined by the ``SetRepeatBuilder`` chain
         """
         ...
 
@@ -31,7 +32,7 @@ class SetRepeatBuilder:
                 starting in the current struct
 
         Returns:
-            A combinator that encodes the setter logic defined by the SetBuilder chain
+            A combinator that encodes the setter logic defined by the ``SetRepeatBuilder`` chain
         """
         ...
 
@@ -44,9 +45,9 @@ class SetRepeatBuilder:
                 starting in the current struct
 
         Returns:
-            A combinator that encodes the setter logic defined by the SetBuilder chain
+            A combinator that encodes the setter logic defined by the ``SetRepeatBuilder`` chain
 
-        Raises
+        Raises:
             ValueError: if the source value is not a list
         """
         ...
@@ -59,7 +60,7 @@ class SetRepeatBuilder:
             val: The literal value
 
         Returns:
-            A combinator that encodes the setter logic defined by the SetBuilder chain
+            A combinator that encodes the setter logic defined by the ``SetRepeatBuilder`` chain
         """
         ...
 
@@ -72,6 +73,6 @@ def set_repeat(target: Retriever) -> SetRepeatBuilder:
             starting in the current struct
 
     Returns:
-        A SetRepeatBuilder instance to continue defining additional combinator properties
+        A ``SetRepeatBuilder`` instance to continue defining additional combinator properties
     """
     ...

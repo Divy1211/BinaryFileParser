@@ -1,5 +1,5 @@
 class ParsingError(Exception):
     """
-    An umbrella class for any exception arising during read/write
+    A superclass class for any exception arising during deserialization/serialization
     """
     ...
