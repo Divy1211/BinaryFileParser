@@ -98,7 +98,7 @@ class PcapFile(BaseStruct):
     # default_factory! 
 ```
 
-you can try to read the pcap file now and see if all goes well:
+You can try to read the pcap file now and see if all goes well:
 
 ```py
 pcap = PcapFile.from_file(r"/path/to/ipv4frags.pcap")
@@ -171,7 +171,7 @@ class PcapFile(BaseStruct):
 
 Here, [`Tail`](../../reference/types/le/tail/) reads a list of it's given type until the end of file
 
-- Once again notice that we can simply pass a struct (or any other type in BFP) to a container type like `Tail`. This composition of types is at the heart of BFP's declarative style and ease of use.
+Once again notice that we can simply pass a struct (or any other type in BFP) to a container type like `Tail`. This composition of types is at the heart of BFP's declarative style and ease of use.
 
 We're now ready to remove `strict = False` and parse the whole file:
 
@@ -180,3 +180,41 @@ pcap = PcapFile.from_file(r"../ipv4frags.pcap")
 ```
 
 Yippee!! You've just created your first serialization file format using BFP!
+
+## The Code
+
+Here's the completed code in all it's glory:
+
+```py
+from bfp_rs import BaseStruct, Retriever, ret
+from bfp_rs.combinators import set_repeat
+from bfp_rs.types.le import Bytes, u16, u32, Tail
+
+
+class Packet(BaseStruct):
+    # @formatter:off
+    timestamp_seconds: int       = Retriever(u32,      default = 0)
+    timestamp_micro_seconds: int = Retriever(u32,      default = 0)
+    captured_length: int         = Retriever(u32,      default = 0, on_read = lambda: [set_repeat(ret(Packet.data)).from_(Packet.captured_length)])
+    original_length: int         = Retriever(u32,      default = 0)
+    data: list[bytes]            = Retriever(Bytes[1], default = b"\x00")
+    # @formatter:on
+
+class PcapHeader(BaseStruct):
+    # @formatter:off
+    magic_number: bytes     = Retriever(Bytes[4],     default = b"\xd4\xc3\xb2\xa1")
+    version_major: int      = Retriever(u16,          default = 2)
+    version_minor: int      = Retriever(u16,          default = 4)
+    timezone: int           = Retriever(u32,          default = 0)
+    timestamp_accuracy: int = Retriever(u32,          default = 0)
+    snap_length: int        = Retriever(u32,          default = 0)
+    link_layer_type: int    = Retriever(u32,          default = 1)
+    # @formatter:on
+
+class PcapFile(BaseStruct):
+    header: PcapHeader      = Retriever(PcapHeader,   default_factory = PcapHeader)
+    packets: list[Packet]   = Retriever(Tail[Packet], default_factory = lambda _ver: [])
+
+pcap = PcapFile.from_file(r"../ipv4frags.pcap")
+print(len(pcap.packets)) # prints 3
+```
