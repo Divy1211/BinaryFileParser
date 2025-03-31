@@ -32,4 +32,4 @@ class void(Bytes[0]):
     An alias for ``Bytes[0]``. Effectively a no-op but useful for adding retriever related hooks right at the beginning
     of a struct
     """
-    ...
+

@@ -44,7 +44,7 @@ def get(*source: Retriever | int) -> Get:
     Raises:
         ValueError: If the value at the source path is not an ``int``, and ``int`` operations are attempted
     """
-    ...
+
 
 def get_len(*source: Retriever | int) -> Get:
     """
@@ -61,4 +61,4 @@ def get_len(*source: Retriever | int) -> Get:
     Raises:
         ValueError: If the value at the source path is not a list
     """
-    ...
+

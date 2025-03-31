@@ -16,4 +16,4 @@ class Manager:
         Args:
             struct: The struct to reference properties from
         """
-        ...
+

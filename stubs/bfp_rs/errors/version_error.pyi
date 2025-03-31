@@ -4,4 +4,4 @@ class VersionError(ParsingError):
     """
     Thrown when an unsupported property is accessed in a struct according to it's version
     """
-    ...
+

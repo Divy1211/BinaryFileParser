@@ -26,7 +26,7 @@ class BaseStruct:
             **retriever_inits:
                 Specify overrides for the default values of retrievers for initialisation by name
         """
-        ...
+
 
     @classmethod
     def from_stream(cls, stream: ByteStream, ver: Version = Version(0)) -> Self:
@@ -44,7 +44,7 @@ class BaseStruct:
             CompressionError: If the ``_decompress`` method is not defined and ``remaining_compressed`` is set to
                 ``True`` in one of the retrievers
         """
-        ...
+
 
     @classmethod
     def to_bytes(cls, value: BaseStruct) -> bytes:
@@ -61,7 +61,7 @@ class BaseStruct:
             CompressionError: If the ``_compress`` method is not defined and ``remaining_compressed`` is set to ``True``
                 in one of the retrievers
         """
-        ...
+
 
     @classmethod
     def from_bytes(cls, bytes_: bytes) -> Self:
@@ -78,7 +78,7 @@ class BaseStruct:
             CompressionError: If the ``_decompress`` method is not defined and ``remaining_compressed`` is set to
                 ``True`` in one of the retrievers
         """
-        ...
+
 
     @classmethod
     def from_file(cls, filepath: str, strict: bool = True) -> Self:
@@ -99,7 +99,7 @@ class BaseStruct:
                 ``True`` in one of the retrievers
 
         """
-        ...
+
 
     @classmethod
     def to_file(cls, filepath: str, value: BaseStruct):
@@ -114,7 +114,7 @@ class BaseStruct:
             CompressionError: If the ``_compress`` method is not defined and ``remaining_compressed`` is set to ``True``
                 in one of the retrievers
         """
-        ...
+
 
     @classmethod
     def _get_version(cls, stream: ByteStream, ver: Version = Version(0)) -> Version:
@@ -128,7 +128,7 @@ class BaseStruct:
         Returns:
               The version to use for versioning this struct
         """
-        ...
+
 
     @classmethod
     def _compress(cls, bytes_: bytes) -> bytes:
@@ -142,7 +142,7 @@ class BaseStruct:
         Returns:
               The compressed bytes
         """
-        ...
+
 
     @classmethod
     def _decompress(cls, bytes_: bytes) -> bytes:
@@ -156,4 +156,4 @@ class BaseStruct:
         Returns:
               The decompressed bytes
         """
-        ...
+

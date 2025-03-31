@@ -20,7 +20,7 @@ class RetrieverRef:
             *target: The retriever path to alias. This can be a sequence of retrievers/list indices starting in the
                 current struct
         """
-        ...
+
 
     def __get__(self, instance: BaseStruct, owner: Type[BaseStruct]) -> Any: ...
 

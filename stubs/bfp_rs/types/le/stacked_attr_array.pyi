@@ -46,7 +46,7 @@ class StackedAttrArray8(StackedAttrArray[T], Generic[T]):
     - ``OptionX[S]``: all the ``uX``s are [de]serialized as their own list followed by as many objects
       of type ``S`` as non-zero ``uX``s. All the indices with a zero ``uX`` are set to ``None``
     """
-    ...
+
 class StackedAttrArray16(StackedAttrArray[T], Generic[T]):
     """
     [De]serialize a ``list[T]`` whose length is indicated by a leading ``u16`` using the syntax
@@ -58,7 +58,7 @@ class StackedAttrArray16(StackedAttrArray[T], Generic[T]):
     - ``OptionX[S]``: all the ``uX``s are [de]serialized as their own list followed by as many objects
       of type ``S`` as non-zero ``uX``s. All the indices with a zero ``uX`` are set to ``None``
     """
-    ...
+
 class StackedAttrArray32(StackedAttrArray[T], Generic[T]):
     """
     [De]serialize a ``list[T]`` whose length is indicated by a leading ``u32`` using the syntax
@@ -70,7 +70,7 @@ class StackedAttrArray32(StackedAttrArray[T], Generic[T]):
     - ``OptionX[S]``: all the ``uX``s are [de]serialized as their own list followed by as many objects
       of type ``S`` as non-zero ``uX``s. All the indices with a zero ``uX`` are set to ``None``
     """
-    ...
+
 class StackedAttrArray64(StackedAttrArray[T], Generic[T]):
     """
     [De]serialize a ``list[T]`` whose length is indicated by a leading ``u64`` using the syntax
@@ -82,7 +82,7 @@ class StackedAttrArray64(StackedAttrArray[T], Generic[T]):
     - ``OptionX[S]``: all the ``uX``s are [de]serialized as their own list followed by as many objects
       of type ``S`` as non-zero ``uX``s. All the indices with a zero ``uX`` are set to ``None``
     """
-    ...
+
 class StackedAttrArray128(StackedAttrArray[T], Generic[T]):
     """
     [De]serialize a ``list[T]`` whose length is indicated by a leading ``u128`` using the syntax
@@ -94,4 +94,4 @@ class StackedAttrArray128(StackedAttrArray[T], Generic[T]):
     - ``OptionX[S]``: all the ``uX``s are [de]serialized as their own list followed by as many objects
       of type ``S`` as non-zero ``uX``s. All the indices with a zero ``uX`` are set to ``None``
     """
-    ...
+

@@ -35,39 +35,39 @@ class c_str(NtStr):
     ``c_str._0[Encoding.UTF8, Encoding.ASCII]`` to specify a main and optionally a second fallback encoding
     (UTF8 and ASCII are defaults)
     """
-    ...
+
 class nt_str8(NtStr):
     """
     [De]serialize a null terminated string whose length is also indicated by a leading ``u8``. Use the syntax
     ``nt_str8._0[Encoding.UTF8, Encoding.ASCII]`` to specify a main and optionally a second fallback encoding
     (UTF8 and ASCII are defaults)
     """
-    ...
+
 class nt_str16(NtStr):
     """
     [De]serialize a null terminated string whose length is also indicated by a leading ``u16``. Use the syntax
     ``nt_str16._0[Encoding.UTF8, Encoding.ASCII]`` to specify a main and optionally a second fallback encoding
     (UTF8 and ASCII are defaults)
     """
-    ...
+
 class nt_str32(NtStr):
     """
     [De]serialize a null terminated string whose length is also indicated by a leading ``u32``. Use the syntax
     ``nt_str32._0[Encoding.UTF8, Encoding.ASCII]`` to specify a main and optionally a second fallback encoding
     (UTF8 and ASCII are defaults)
     """
-    ...
+
 class nt_str64(NtStr):
     """
     [De]serialize a null terminated string whose length is also indicated by a leading ``u64``. Use the syntax
     ``nt_str64._0[Encoding.UTF8, Encoding.ASCII]`` to specify a main and optionally a second fallback encoding
     (UTF8 and ASCII are defaults)
     """
-    ...
+
 class nt_str128(NtStr):
     """
     [De]serialize a null terminated string whose length is also indicated by a leading ``u128``. Use the syntax
     ``nt_str128._0[Encoding.UTF8, Encoding.ASCII]`` to specify a main and optionally a second fallback encoding
     (UTF8 and ASCII are defaults)
     """
-    ...
+

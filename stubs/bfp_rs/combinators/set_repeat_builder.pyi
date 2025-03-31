@@ -21,7 +21,7 @@ class SetRepeatBuilder:
         Returns:
             A combinator that encodes the setter logic defined by the ``SetRepeatBuilder`` chain
         """
-        ...
+
 
     def from_(self, *source: Retriever | int) -> Combinator:
         """
@@ -34,7 +34,7 @@ class SetRepeatBuilder:
         Returns:
             A combinator that encodes the setter logic defined by the ``SetRepeatBuilder`` chain
         """
-        ...
+
 
     def from_len(self, *source: Retriever | int) -> Combinator:
         """
@@ -50,7 +50,7 @@ class SetRepeatBuilder:
         Raises:
             ValueError: if the source value is not a list
         """
-        ...
+
 
     def to(self, val: Any) -> Combinator:
         """
@@ -62,7 +62,7 @@ class SetRepeatBuilder:
         Returns:
             A combinator that encodes the setter logic defined by the ``SetRepeatBuilder`` chain
         """
-        ...
+
 
 def set_repeat(target: Retriever) -> SetRepeatBuilder:
     """
@@ -75,4 +75,4 @@ def set_repeat(target: Retriever) -> SetRepeatBuilder:
     Returns:
         A ``SetRepeatBuilder`` instance to continue defining additional combinator properties
     """
-    ...
+

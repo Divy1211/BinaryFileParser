@@ -73,7 +73,7 @@ class Retriever:
                 A function that must return a list of ``Combinator``s to use for fine-grained operations during
                 serialization
         """
-        ...
+
 
 
     def supported(self, ver: Version) -> bool:
@@ -84,7 +84,7 @@ class Retriever:
         Args:
             ver: the version to check support for
         """
-        ...
+
 
     def __get__(self, instance: Any, owner: Any) -> Any: ...
 

@@ -40,7 +40,7 @@ class StackedArray8(StackedArray[T], Generic[T]):
     Essentially, instead of each list's length immediately preceding them, all the lengths for the sub lists are
     specified right at the start after specifying how many sub lists there are
     """
-    ...
+
 class StackedArray16(StackedArray[T], Generic[T]):
     """
     [De]serialize a ``list[list[T]]`` whose length is indicated by a leading ``u16`` followed by that many ``u16``s
@@ -54,7 +54,7 @@ class StackedArray16(StackedArray[T], Generic[T]):
     Essentially, instead of each list's length immediately preceding them, all the lengths for the sub lists are
     specified right at the start after specifying how many sub lists there are
     """
-    ...
+
 class StackedArray32(StackedArray[T], Generic[T]):
     """
     [De]serialize a ``list[list[T]]`` whose length is indicated by a leading ``u32`` followed by that many ``u32``s
@@ -68,7 +68,7 @@ class StackedArray32(StackedArray[T], Generic[T]):
     Essentially, instead of each list's length immediately preceding them, all the lengths for the sub lists are
     specified right at the start after specifying how many sub lists there are
     """
-    ...
+
 class StackedArray64(StackedArray[T], Generic[T]):
     """
     [De]serialize a ``list[list[T]]`` whose length is indicated by a leading ``u64`` followed by that many ``u64``s
@@ -82,7 +82,7 @@ class StackedArray64(StackedArray[T], Generic[T]):
     Essentially, instead of each list's length immediately preceding them, all the lengths for the sub lists are
     specified right at the start after specifying how many sub lists there are
     """
-    ...
+
 class StackedArray128(StackedArray[T], Generic[T]):
     """
     [De]serialize a ``list[list[T]]`` whose length is indicated by a leading ``u128`` followed by that many ``u128``s
@@ -96,4 +96,4 @@ class StackedArray128(StackedArray[T], Generic[T]):
     Essentially, instead of each list's length immediately preceding them, all the lengths for the sub lists are
     specified right at the start after specifying how many sub lists there are
     """
-    ...
+

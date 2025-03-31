@@ -35,7 +35,7 @@ class str_array8(StrArray):
     ``str_array8._0[Encoding.UTF8, Encoding.ASCII]`` or ``str_array8._0[N]._0[Encoding.UTF8, Encoding.ASCII]`` to
     specify a main and optionally a second fallback encoding (UTF8 and ASCII are defaults)
     """
-    ...
+
 class str_array16(StrArray):
     """
     [De]serialize a ``list[str]`` whose length is indicated by a leading ``u16`` followed by that many ``u16``s
@@ -44,7 +44,7 @@ class str_array16(StrArray):
     ``str_array16._0[Encoding.UTF8, Encoding.ASCII]`` or ``str_array16._0[N]._0[Encoding.UTF8, Encoding.ASCII]`` to
     specify a main and optionally a second fallback encoding (UTF8 and ASCII are defaults)
     """
-    ...
+
 class str_array32(StrArray):
     """
     [De]serialize a ``list[str]`` whose length is indicated by a leading ``u32`` followed by that many ``u32``s
@@ -53,7 +53,7 @@ class str_array32(StrArray):
     ``str_array32._0[Encoding.UTF8, Encoding.ASCII]`` or ``str_array32._0[N]._0[Encoding.UTF8, Encoding.ASCII]`` to
     specify a main and optionally a second fallback encoding (UTF8 and ASCII are defaults)
     """
-    ...
+
 class str_array64(StrArray):
     """
     [De]serialize a ``list[str]`` whose length is indicated by a leading ``u64`` followed by that many ``u64``s
@@ -62,7 +62,7 @@ class str_array64(StrArray):
     ``str_array64._0[Encoding.UTF8, Encoding.ASCII]`` or ``str_array64._0[N]._0[Encoding.UTF8, Encoding.ASCII]`` to
     specify a main and optionally a second fallback encoding (UTF8 and ASCII are defaults)
     """
-    ...
+
 class str_array128(StrArray):
     """
     [De]serialize a ``list[str]`` whose length is indicated by a leading ``u128`` followed by that many ``u128``s
@@ -71,4 +71,4 @@ class str_array128(StrArray):
     ``str_array128._0[Encoding.UTF8, Encoding.ASCII]`` or ``str_array128._0[N]._0[Encoding.UTF8, Encoding.ASCII]`` to
     specify a main and optionally a second fallback encoding (UTF8 and ASCII are defaults)
     """
-    ...
+

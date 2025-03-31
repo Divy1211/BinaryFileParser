@@ -21,7 +21,7 @@ class RetrieverCombiner:
         Args:
             *target: The retrievers to group/select from
         """
-        ...
+
 
     def __get__(self, instance: BaseStruct, owner: Type[BaseStruct]) -> Any: ...
 

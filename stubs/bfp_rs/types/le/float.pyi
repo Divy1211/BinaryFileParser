@@ -24,9 +24,9 @@ class f32(Float):
     """
     [De]serialize a ``float`` with a width of 4 bytes
     """
-    ...
+
 class f64(Float):
     """
     [De]serialize a ``float`` with a width of 8 bytes
     """
-    ...
+

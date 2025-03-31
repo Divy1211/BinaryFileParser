@@ -13,7 +13,7 @@ class Version:
         Args:
             *nums: The component numbers of the version
         """
-        ...
+
 
     @classmethod
     def from_str(cls: Version, ver_str: str) -> Version:
@@ -27,7 +27,7 @@ class Version:
         Returns:
             A version instance
         """
-        ...
+
 
     def __le__(self, other: Version) -> bool: ...
     def __ge__(self, other: Version) -> bool: ...

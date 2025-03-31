@@ -21,7 +21,7 @@ class IfBuilder:
         Returns:
             A combinator that encodes the conditional logic defined by the ``IfBuilder`` chain
         """
-        ...
+
 
     def eq(self, *source: Retriever | int | Get) -> IfBuilder:
         """
@@ -34,7 +34,7 @@ class IfBuilder:
         Returns:
             An ``IfBuilder`` instance to continue defining additional combinator properties
         """
-        ...
+
 
     def ne(self, *source: Retriever | int | Get) -> IfBuilder:
         """
@@ -47,7 +47,7 @@ class IfBuilder:
         Returns:
             An ``IfBuilder`` instance to continue defining additional combinator properties
         """
-        ...
+
 
     def gt(self, *source: Retriever | int | Get) -> IfBuilder:
         """
@@ -60,7 +60,7 @@ class IfBuilder:
         Returns:
             An ``IfBuilder`` instance to continue defining additional combinator properties
         """
-        ...
+
 
     def ge(self, *source: Retriever | int | Get) -> IfBuilder:
         """
@@ -73,7 +73,7 @@ class IfBuilder:
         Returns:
             An ``IfBuilder`` instance to continue defining additional combinator properties
         """
-        ...
+
 
     def lt(self, *source: Retriever | int | Get) -> IfBuilder:
         """
@@ -86,7 +86,7 @@ class IfBuilder:
         Returns:
             An ``IfBuilder`` instance to continue defining additional combinator properties
         """
-        ...
+
 
     def le(self, *source: Retriever | int | Get) -> IfBuilder:
         """
@@ -99,7 +99,7 @@ class IfBuilder:
         Returns:
             An ``IfBuilder`` instance to continue defining additional combinator properties
         """
-        ...
+
 
 def if_(target: Retriever | int | Get) -> IfBuilder:
     """
@@ -112,7 +112,7 @@ def if_(target: Retriever | int | Get) -> IfBuilder:
     Returns:
         An ``IfBuilder`` instance to continue defining additional combinator properties
     """
-    ...
+
 
 def if_not(target: Retriever | int | Get) -> IfBuilder:
     """
@@ -125,7 +125,7 @@ def if_not(target: Retriever | int | Get) -> IfBuilder:
     Returns:
         An ``IfBuilder`` instance to continue defining additional combinator properties
     """
-    ...
+
 
 def if_len(target: Retriever | int | Get) -> IfBuilder:
     """
@@ -138,7 +138,7 @@ def if_len(target: Retriever | int | Get) -> IfBuilder:
     Returns:
         An ``IfBuilder`` instance to continue defining additional combinator properties
     """
-    ...
+
 
 def if_ver(*, min: Version = Version(-1), max: Version = Version(10_000)) -> IfBuilder:
     """
@@ -152,4 +152,4 @@ def if_ver(*, min: Version = Version(-1), max: Version = Version(10_000)) -> IfB
     Returns:
         An ``IfBuilder`` instance to continue defining additional combinator properties
     """
-    ...
+

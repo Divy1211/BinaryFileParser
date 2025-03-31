@@ -31,24 +31,24 @@ class Array8(Array[T], Generic[T]):
     """
     [De]serialize a ``list[T]`` whose length is indicated by a leading ``u8``
     """
-    ...
+
 class Array16(Array[T], Generic[T]):
     """
     [De]serialize a ``list[T]`` whose length is indicated by a leading ``u16``
     """
-    ...
+
 class Array32(Array[T], Generic[T]):
     """
     [De]serialize a ``list[T]`` whose length is indicated by a leading ``u32``
     """
-    ...
+
 class Array64(Array[T], Generic[T]):
     """
     [De]serialize a ``list[T]`` whose length is indicated by a leading ``u64``
     """
-    ...
+
 class Array128(Array[T], Generic[T]):
     """
     [De]serialize a ``list[T]`` whose length is indicated by a leading ``u128``
     """
-    ...
+

@@ -16,7 +16,7 @@ class ByteStream:
         Returns:
             A ``ByteStream`` instance
         """
-        ...
+
 
     @classmethod
     def from_bytes(cls, bytes_: bytes) -> Self:
@@ -29,7 +29,7 @@ class ByteStream:
         Returns:
             A ``ByteStream`` instance
         """
-        ...
+
 
     def get(self, n: int) -> bytes:
         """
@@ -44,7 +44,7 @@ class ByteStream:
         Returns:
             A ``bytes`` string of the specified length
         """
-        ...
+
 
     def peek(self, n: int) -> bytes:
         """
@@ -59,7 +59,7 @@ class ByteStream:
         Returns:
             A ``bytes`` string of the specified length
         """
-        ...
+
 
     def remaining(self) -> bytes:
         """
@@ -69,4 +69,4 @@ class ByteStream:
             A ``bytes`` string consisting of all the bytes remaining in the stream. May be ``b""`` if the stream is
             empty
         """
-        ...
+

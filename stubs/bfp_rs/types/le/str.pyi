@@ -35,32 +35,32 @@ class str8(Str):
     ``str8._0[Encoding.UTF8, Encoding.ASCII]`` to specify a main and optionally a second fallback encoding
     (UTF8 and ASCII are defaults)
     """
-    ...
+
 class str16(Str):
     """
     [De]serialize a string whose length is indicated by a leading ``u16``. Use the syntax
     ``str16._0[Encoding.UTF8, Encoding.ASCII]`` to specify a main and optionally a second fallback encoding
     (UTF8 and ASCII are defaults)
     """
-    ...
+
 class str32(Str):
     """
     [De]serialize a string whose length is indicated by a leading ``u32``. Use the syntax
     ``str32._0[Encoding.UTF8, Encoding.ASCII]`` to specify a main and optionally a second fallback encoding
     (UTF8 and ASCII are defaults)
     """
-    ...
+
 class str64(Str):
     """
     [De]serialize a string whose length is indicated by a leading ``u64``. Use the syntax
     ``str64._0[Encoding.UTF8, Encoding.ASCII]`` to specify a main and optionally a second fallback encoding
     (UTF8 and ASCII are defaults)
     """
-    ...
+
 class str128(Str):
     """
     [De]serialize a string whose length is indicated by a leading ``u128``. Use the syntax
     ``str128._0[Encoding.UTF8, Encoding.ASCII]`` to specify a main and optionally a second fallback encoding
     (UTF8 and ASCII are defaults)
     """
-    ...
+
