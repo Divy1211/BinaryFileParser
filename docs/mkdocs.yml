@@ -13,7 +13,7 @@ use_directory_urls: true
 nav:
   -                                 "index.md"
   - Tutorial:
-      - PCAP Parser:                "tutorial/pcap_parser.md"
+      - Example Parser:             "tutorial/pcap_parser.md"
       - Struct Versioning:          "tutorial/struct_versioning.md"
       - Compressed Files:           "tutorial/compressed_files.md"
       - Advanced Combinators:       "tutorial/advanced_combinators.md"
