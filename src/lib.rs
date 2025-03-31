@@ -32,6 +32,7 @@ use crate::types::le::stacked_array::{StackedArray, StackedArrayBuilder};
 use crate::types::le::stacked_attr_array::{StackedAttrArray, StackedAttrArrayBuilder};
 use crate::types::le::str::Str;
 use crate::types::le::str_array::StrArray;
+use crate::types::le::tail::Tail;
 use crate::types::manager::Manager;
 use crate::types::version::Version;
 
@@ -117,6 +118,7 @@ fn le(py: Python, types: &Bound<PyModule>) -> PyResult<()> {
     le.add_class::<StackedArray>()?;
     le.add_class::<StackedAttrArray>()?;
     le.add_class::<Encoding>()?;
+    le.add_class::<Tail>()?;
 
     le.add("void", BfpType::Bytes(Bytes { len: 0 }))?;
     

@@ -78,6 +78,10 @@ impl ByteStream {
         self.progress = self.bytes.len();
         &self.bytes[n..]
     }
+    
+    pub fn is_empty(&self) -> bool {
+        self.progress == self.bytes.len()
+    }
 }
 
 #[pymethods]
@@ -115,6 +119,12 @@ impl ByteStream {
         let mut slf = slf.borrow_mut();
         let py = slf.py();
         Ok(PyBytes::new_bound(py, slf.remaining()))
+    }
+
+    #[pyo3(name = "is_empty")]
+    fn is_empty_py<'py>(slf: Bound<'py, Self>) -> bool {
+        let slf = slf.borrow();
+        slf.is_empty()
     }
 }
 

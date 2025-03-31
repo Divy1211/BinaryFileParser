@@ -10,6 +10,7 @@ from .stacked_array import *
 from .stacked_attr_array import *
 from .str import *
 from .str_array import *
+from .tail import *
 
 __all__ = [
     "u8",
@@ -82,5 +83,6 @@ __all__ = [
     "StackedArray",
     "StackedAttrArray",
     "Encoding",
+    "Tail",
     "void",
 ]
