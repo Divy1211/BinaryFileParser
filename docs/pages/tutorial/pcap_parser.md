@@ -69,8 +69,10 @@ class PcapFile(BaseStruct):
 
 !!! question "Why do we have two different syntaxes for defining defaults?"
     What stops us from using `default = PcapHeader()`? There are two reasons:
-        - The `PcapHeader` instance has no way to know what struct version it is in (this will make more sense in the next section on struct versioning in this tutorial)
-        - If done this way, every default instance of a `PcapFile` would point to the same `PcapHeader`. Read more about this [here](https://stackoverflow.com/questions/64136035/why-should-i-set-a-function-list-argument-as-empty-or-none-instead-of-using-a-no)
+
+    - The `PcapHeader` instance has no way to know what struct version it is in (this will make more sense in the next section on struct versioning in this tutorial).
+    - If done this way, every default instance of a `PcapFile` would point to the same `PcapHeader`. Read more about this [here](https://stackoverflow.com/questions/64136035/why-should-i-set-a-function-list-argument-as-empty-or-none-instead-of-using-a-no).
+
 
 At this point, the full code looks like:
 
