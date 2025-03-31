@@ -47,7 +47,7 @@ A couple of things are new here, so let's go over them one by one:
     !!! tip "Use the API Reference!"
         If you can't guess what each of the types do, you can always check out the API reference for what the types (e.g.[`Bytes`](../../reference/types/le/bytes/)) in each `Retriever` do. You can do the same for any other types here that you may not recognise!
 
-3. Each `Retriever` optionally accepts a `default` argument - this is used if you ever decide to create a new instance of your struct in code. This may not always be required, but it is good practise to specify it anyway.
+3. Each `Retriever` optionally accepts a `default` argument - this is used if you ever decide to create a new instance of your struct in code. This may not always be required, but it is good practice to specify it anyway.
 4. The properties are wrapped in `@formatter:off` and `@formatter:on` so that the vertical alignment of the types and arguments does not get messed up. This is the recommended way to write BFP structs, as it maintains readability and allows you to determine a struct's schema at a glance.
 5. At this point, you can create a **default** `PcapHeader` **instance** of your own:
    ```py
