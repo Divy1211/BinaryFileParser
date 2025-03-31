@@ -13,7 +13,11 @@ use_directory_urls: true
 nav:
   -                                 "index.md"
   - Tutorial:
-      - Getting Started:            "tutorial/getting_started.md"
+      - PCAP Parser:                "tutorial/pcap_parser.md"
+      - Struct Versioning:          "tutorial/struct_versioning.md"
+      - Compressed Files:           "tutorial/compressed_files.md"
+      - Advanced Combinators:       "tutorial/advanced_combinators.md"
+
   - API Reference:
       - Combinators:
           - Combinator:             "reference/combinators/combinator.md"
@@ -48,6 +52,7 @@ nav:
               - StackedAttrArray:   "reference/types/le/stacked_attr_array.md"
               - Str:                "reference/types/le/str.md"
               - StrArray:           "reference/types/le/str_array.md"
+              - Tail:               "reference/types/le/tail.md"
 
       - Help:                       "reference/help.md"
 

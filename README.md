@@ -26,7 +26,8 @@ forward from v0.3.0 may still be introduced as the API is fully ironed out.
 
 ## Getting Started
 
-View the BFP tutorial [here](https://divy1211.github.io/BinaryFileParser/tutorial/getting_started/)
+View the BFP tutorial [here](https://divy1211.github.io/BinaryFileParser/tutorial/pcap_parser/) which will walk you through
+constructing a PCAP file parser
 
 ## About the Author
 
