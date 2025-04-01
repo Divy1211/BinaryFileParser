@@ -144,7 +144,7 @@ Let's break down what's going on here:
 1. We're changing the default of `ver` to `Version(2, 4)` in the constructor. This means when someone creates a default instance using `PcapFile()`, it's version will be initialized to `v2.4`
 2. Since we want people to be able to create defaults of a different version by using `PcapFile(ver = Version(2, 4, 1))`, we need to fix the `magic_number` manually so that it is serialized correctly when we write this new instance to a file.
 
-!!! tip "Differing defaults across version"
+!!! tip "Different Defaults Across Versions"
 
     You can use `min_ver` and `max_ver` to make it so that a different property is used for the default initialization:
     ```py
@@ -156,6 +156,7 @@ Let's break down what's going on here:
     This means that we no longer need to have special logic in the constructor to fix it for us, but it has the downside that it is more awkward to use, since the property you need to access now changes depending on the file version - BFP offers a way to combine such properties into one using a [`RetrieverCombiner`](../../reference/retrievers/retriever_combiner/). Using these is covered in the [Advanced Retrievers](../../tutorial/advanced_retrievers/) section of this tutorial.
 
     Note that the choice to implement correct defaults for different versions with different properites or with special logic in the constructor is up to the struct designer, neither method is preferred over the other by BFP itself.
+
 
 !!! note "PCAP Variants"
 
