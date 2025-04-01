@@ -146,7 +146,7 @@ Let's break down what's going on here:
 
 !!! tip "Different Defaults Across Versions"
 
-    You can use `min_ver` and `max_ver` to make it so that a different property is used for the default initialization:
+    You can use `min_ver` and `max_ver` to make it so that a different property is used for the default initialization in each version, which allows specifying a different default:
     ```py
     class PcapHeader(BaseStruct):
         # @formatter:off
