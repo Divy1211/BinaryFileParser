@@ -85,7 +85,7 @@ This function must determine a struct version from the [`ByteStream`](../../refe
 
 - We raise an error if we see any other version than `v2.4` since that's the only one we know how to parse
 - We also raise an error if the magic number is not one of the ones we recognise
-- Arbitrarily assign a different higher version when magic is set to `b"\xa1\xb2\xc3\xd4"`. Note that since this file is stored in little endian and `ByteStream` returns raw bytes, we need to reverse the order of the bytes before making the comparison.
+- Arbitrarily assign a different higher version when magic is set to `b"\xa1\xb2\xcd\x34"`. Note that since this file is stored in little endian and `ByteStream` returns raw bytes, we need to reverse the order of the bytes before making the comparison.
 - When a version is set this way, it is recursively also set for all sub-structs unless they also override `_get_version` for themselves
 - When you override the `_get_version` function in a sub struct, the second argument `ver` is given the version of the parent struct
 
