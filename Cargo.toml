@@ -1,6 +1,6 @@
 [package]
 name = "bfp-rs"
-version = "0.3.1-alpha1"
+version = "0.3.2-alpha1"
 edition = "2021"
 
 [profile.release]

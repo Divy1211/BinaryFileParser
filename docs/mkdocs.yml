@@ -17,6 +17,8 @@ nav:
       - Struct Versioning:          "tutorial/struct_versioning.md"
       - Compressed Files:           "tutorial/compressed_files.md"
       - Advanced Combinators:       "tutorial/advanced_combinators.md"
+      - Advanced Retrievers:        "tutorial/advanced_retrievers.md"
+      - Using Managers:             "tutorial/using_managers.md"
 
   - API Reference:
       - Combinators:

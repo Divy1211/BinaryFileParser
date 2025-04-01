@@ -8,9 +8,9 @@ A blazingly fast python library written in rust for serializing/deserializing py
 pip install --pre binary-file-parser
 ```
 
-Note: whilst v0.3.0 is currently in alpha, it is the version new users are recommended to use, as the API has been
+Note: whilst v0.3 is currently in alpha, it is the version new users are recommended to use, as the API has been
 significantly reworked from v0.2 and will become the standard once it matures and stabilises. Minor breakage moving
-forward from v0.3.0 may still be introduced as the API is fully ironed out.
+forward from v0.3 may still be introduced as the API is fully ironed out.
 
 ## Development
 

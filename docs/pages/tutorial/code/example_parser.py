@@ -14,7 +14,7 @@ class Packet(BaseStruct):
 
 class PcapHeader(BaseStruct):
     # @formatter:off
-    magic_number: bytes     = Retriever(Bytes[4],     default = b"\xd4\xc3\xb2\xa1")
+    magic_number: bytes     = Retriever(Bytes[4],     default = b"\xa1\xb2\xc3\xd4")
     version_major: int      = Retriever(u16,          default = 2)
     version_minor: int      = Retriever(u16,          default = 4)
     timezone: int           = Retriever(u32,          default = 0)
@@ -32,4 +32,9 @@ class PcapFile(BaseStruct):
         ver_bytes = stream.peek(8)[4:]
         return Version(u16.from_bytes(ver_bytes[:2]), u16.from_bytes(ver_bytes[2:]))
 
-PcapFile.from_file(r"../ipv4frags.pcap")
+test = PcapFile.from_file(r"../ipv4frags.pcap")
+
+test.packets = test.packets[:2]
+
+PcapFile.to_file(r"../ipv4frags_m.pcap", test)
+

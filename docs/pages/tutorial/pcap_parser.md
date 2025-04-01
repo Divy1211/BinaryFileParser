@@ -29,7 +29,7 @@ from bfp_rs.types.le import Bytes, u16, u32
 
 class PcapHeader(BaseStruct):
     # @formatter:off
-    magic_number: bytes     = Retriever(Bytes[4],     default = b"\xd4\xc3\xb2\xa1")
+    magic_number: bytes     = Retriever(Bytes[4],     default = b"\xa1\xb2\xc3\xd4")
     version_major: int      = Retriever(u16,          default = 2)
     version_minor: int      = Retriever(u16,          default = 4)
     timezone: int           = Retriever(u32,          default = 0)
@@ -70,7 +70,7 @@ class PcapFile(BaseStruct):
 !!! question "Why do we have two different syntaxes for defining defaults?"
     What stops us from using `default = PcapHeader()`? There are two reasons:
 
-    - The `PcapHeader` instance has no way to know what struct version it is in (this will make more sense in the next section on struct versioning in this tutorial).
+    - The `PcapHeader` instance has no way to know what struct version it is in (this will make more sense in the next section on [Struct Versioning](../../tutorial/struct_versioning/) in this tutorial).
     - If done this way, every default instance of a `PcapFile` would point to the same `PcapHeader`. Read more about this [here](https://stackoverflow.com/questions/64136035/why-should-i-set-a-function-list-argument-as-empty-or-none-instead-of-using-a-no).
 
 
@@ -82,7 +82,7 @@ from bfp_rs.types.le import Bytes, u16, u32
 
 class PcapHeader(BaseStruct):
     # @formatter:off
-    magic_number: bytes     = Retriever(Bytes[4],     default = b"\xd4\xc3\xb2\xa1")
+    magic_number: bytes     = Retriever(Bytes[4],     default = b"\xa1\xb2\xc3\xd4")
     version_major: int      = Retriever(u16,          default = 2)
     version_minor: int      = Retriever(u16,          default = 4)
     timezone: int           = Retriever(u32,          default = 0)
@@ -108,7 +108,7 @@ We get an error:
 
 ```pycon
 Traceback (most recent call last):
-  File "/path/to/pcap_file.py", line 35, in <module>
+  File "/path/to/code.py", line 35, in <module>
     PcapFile.from_file(r"../ipv4frags.pcap")
 errors.ParsingError: 2966 bytes are left after parsing all retrievers successfully
 ```
@@ -121,7 +121,7 @@ So how do we test the definition we have so far? We can set `strict = False` in 
 
 ```py
 pcap = PcapFile.from_file(r"/path/to/ipv4frags.pcap", strict = False)
-print(pcap.header.magic_number) # prints b"\xd4\xc3\xb2\xa1"
+print(pcap.header.magic_number) # prints b"\xa1\xb2\xc3\xd4"
 ```
 
 ## Completing the Definition
@@ -181,6 +181,12 @@ pcap = PcapFile.from_file(r"../ipv4frags.pcap")
 
 Yippee!! You've just created your first serialization file format using BFP!
 
+If you now make edits to this file programmatically, you can save it to a new file:
+
+```py
+PcapFile.to_file(r"../ipv4frags.pcap", pcap)
+```
+
 ## The Code
 
 Here's the completed code in all it's glory:
@@ -202,7 +208,7 @@ class Packet(BaseStruct):
 
 class PcapHeader(BaseStruct):
     # @formatter:off
-    magic_number: bytes     = Retriever(Bytes[4],     default = b"\xd4\xc3\xb2\xa1")
+    magic_number: bytes     = Retriever(Bytes[4],     default = b"\xa1\xb2\xc3\xd4")
     version_major: int      = Retriever(u16,          default = 2)
     version_minor: int      = Retriever(u16,          default = 4)
     timezone: int           = Retriever(u32,          default = 0)
@@ -217,4 +223,9 @@ class PcapFile(BaseStruct):
 
 pcap = PcapFile.from_file(r"../ipv4frags.pcap")
 print(len(pcap.packets)) # prints 3
+
+# edit pcap to remove the last packet
+pcap.packets = pcap.packets[:2]
+
+PcapFile.to_file(r"../ipv4frags.pcap", pcap)
 ```

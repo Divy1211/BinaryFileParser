@@ -2,12 +2,13 @@ use std::fs::File;
 use std::io::Write;
 use std::sync::{Arc, RwLock};
 
-use pyo3::exceptions::PyTypeError;
+use pyo3::exceptions::{PyTypeError};
 use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyDict, PyType};
 
 use crate::errors::compression_error::CompressionError;
+use crate::errors::default_attribute_error::DefaultAttributeError;
 use crate::errors::parsing_error::ParsingError;
 use crate::errors::version_error::VersionError;
 use crate::retrievers::retriever::Retriever;
@@ -144,7 +145,16 @@ impl BaseStruct {
                 .transpose()?;
 
             if init.is_none() {
-                init = Some(ret.from_default(&ver, &repeats, cls.py())?);
+                init = match ret.from_default(&ver, &repeats, cls.py()) {
+                    Ok(val) => Some(val),
+                    Err(e) => {
+                        let err = DefaultAttributeError::new_err(format!(
+                            "Error occurred during initialization of default value for property '{}'", ret.name
+                        ));
+                        err.set_cause(cls.py(), Some(e));
+                        return Err(err);
+                    }
+                };
             }
 
             data[ret.idx] = init;

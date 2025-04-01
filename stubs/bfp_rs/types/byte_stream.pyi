@@ -70,3 +70,10 @@ class ByteStream:
             empty
         """
 
+    def is_empty(self) -> bool:
+        """
+        Checks if this stream has been fully consumed
+
+        Returns:
+            ``True`` if the stream has no more bytes to return, else ``False``
+        """
