@@ -212,9 +212,9 @@ class PcapFile(BaseStruct):
         if major != 2 or minor != 4:
             raise VersionError(f"Unrecognised version v{major}.{minor} for Pcap file")
 
-        if magic[:2] == b"\xd4\xc3":
+        if magic == b"\xd4\xc3\xb2\xa1":
             return Version(2, 4)
-        if magic[:2] == b"\x34\xcd":
+        if magic == b"\xcd\x34\xb2\xa1":
             return Version(2, 4, 1)
 
         raise VersionError(f"Unrecognised magic_number {magic[::-1]!r} for pcap file")
