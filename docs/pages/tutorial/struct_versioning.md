@@ -1,6 +1,6 @@
 ## What is Struct Versioning
 
-If a binary file format changes over the course of development, you can version the structure to conditionally parse or skip parsing certain properties. When coming up with a new struct for a new project, it is highly recommended that some sort of versioning information be included at the start of the file itself as a future proofing measure. For the sake of this tutorial, we'll look at how we'd modify the `PcapFile` definition from the previous tutorial to include some extra fields conditionally, based on the `magic_number` property
+If a binary file format changes over the course of development, you can version the structure to conditionally parse or skip parsing certain properties, which is useful for maintaining parser compatibility with older files. When coming up with a new struct for a new project, it is highly recommended that some sort of versioning information be included at the start of the file itself as a future proofing measure. For the sake of this tutorial, we'll look at how we'd modify the `PcapFile` definition from the previous tutorial to include some extra fields conditionally, based on the `magic_number` property
 
 ## The Modified PCAP
 
