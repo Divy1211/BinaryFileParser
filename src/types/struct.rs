@@ -131,27 +131,26 @@ impl Struct {
             Ok(())
         })
     }
-}
 
-impl Parseable for Struct {
-    type Type = BaseStruct;
-    
-    fn from_stream(&self, stream: &mut ByteStream, ver: &Version) -> std::io::Result<BaseStruct> {
+    pub fn from_stream_(&self, stream: &mut ByteStream, ver: &Version, show_progress: bool) -> std::io::Result<BaseStruct> {
         let retrievers = self.retrievers.read().expect("immutable"); // todo: change to Arc<Vec<>> with builder pattern?
         let mut data = Vec::with_capacity(retrievers.len());
         let mut repeats = vec![None; retrievers.len()];
-        
+
         let ver = self.get_ver(stream, ver)?;
-        
+
         for retriever in retrievers.iter() {
             if retriever.remaining_compressed {
                 *stream = self.decompress(stream.remaining())?
+            }
+            if show_progress {
+                print!("➡ Reading property '{}'", retriever.name);
             }
             if !retriever.supported(&ver) {
                 data.push(None);
                 continue;
             }
-            
+
             data.push(Some(match retriever.state(&repeats) {
                 RetState::NoneValue | RetState::NoneList => { ParseableType::None }
                 RetState::Value => { retriever.from_stream(stream, &ver)? }
@@ -163,32 +162,39 @@ impl Parseable for Struct {
                     BfpList::new(ls, retriever.data_type.clone()).into()
                 }
             }));
-            
+
             retriever.call_on_reads(&retrievers, &mut data, &mut repeats, &ver)?;
+
+            if show_progress {
+                println!("\r✔ Read property '{}'        ", retriever.name);
+            }
         }
         Ok(BaseStruct::new(ver.clone(), data, repeats))
     }
 
-    fn to_bytes(&self, value: &BaseStruct) -> std::io::Result<Vec<u8>> {
+    pub fn to_bytes_(&self, value: &BaseStruct, show_progress: bool) -> std::io::Result<Vec<u8>> {
         let mut data_lock = value.data.write().expect("GIL bound write");
         let mut repeats_lock = value.repeats.write().expect("GIL bound write");
-        
+
         let data = data_lock.as_mut();
         let repeats = repeats_lock.as_mut();
         let retrievers = self.retrievers.read().expect("immutable");
-        
+
         let mut bytes = Vec::with_capacity(retrievers.len());
         let mut compress_idx = None;
-        
+
         for retriever in retrievers.iter() {
             if !retriever.supported(&value.ver) {
                 continue;
+            }
+            if show_progress {
+                print!("⬅ Writing property '{}'", retriever.name);
             }
             if retriever.remaining_compressed {
                 compress_idx = Some(bytes.len());
             }
             retriever.call_on_writes(&retrievers, data, repeats, &value.ver)?;
-            
+
             let value = data[retriever.idx].as_ref().expect("supported check done above");
 
             bytes.append(&mut match retriever.state(repeats) {
@@ -204,12 +210,28 @@ impl Parseable for Struct {
                     }
                     bytes
                 }
-            })
+            });
+
+            if show_progress {
+                println!("\r✔ Wrote property '{}'        ", retriever.name);
+            }
         }
         if let Some(idx) = compress_idx {
             self.compress(&mut bytes, idx)?;
         }
         Ok(bytes)
+    }
+}
+
+impl Parseable for Struct {
+    type Type = BaseStruct;
+    
+    fn from_stream(&self, stream: &mut ByteStream, ver: &Version) -> std::io::Result<BaseStruct> {
+        self.from_stream_(stream, ver, false)
+    }
+
+    fn to_bytes(&self, value: &BaseStruct) -> std::io::Result<Vec<u8>> {
+        self.to_bytes_(value, false)
     }
 }
 

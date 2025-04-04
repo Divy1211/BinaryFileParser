@@ -15,7 +15,6 @@ use crate::retrievers::retriever::Retriever;
 use crate::retrievers::retriever_combiner::RetrieverCombiner;
 use crate::retrievers::retriever_ref::RetrieverRef;
 use crate::types::byte_stream::ByteStream;
-use crate::types::parseable::Parseable;
 use crate::types::parseable_type::ParseableType;
 use crate::types::r#struct::Struct;
 use crate::types::version::Version;
@@ -114,7 +113,7 @@ impl BaseStruct {
 
     fn to_bytes<'py>(cls: &Bound<'py, PyType>, value: &BaseStruct) -> PyResult<Vec<u8>> {
         let struct_ = Struct::from_cls(cls)?;
-        Ok(struct_.to_bytes(value)?)
+        Ok(struct_.to_bytes_(value, true)?)
     }
 }
 
@@ -167,7 +166,7 @@ impl BaseStruct {
     fn from_stream<'py>(cls: &Bound<'py, PyType>, stream: &mut ByteStream, ver: Version) -> PyResult<Bound<'py, PyAny>> {
         let struct_ = Struct::from_cls(cls)?;
 
-        let base = struct_.from_stream(stream, &ver)?;
+        let base = struct_.from_stream_(stream, &ver, true)?;
         Ok(BaseStruct::with_cls(base, cls))
     }
 
@@ -175,7 +174,7 @@ impl BaseStruct {
     #[pyo3(name = "to_bytes")]
     fn to_bytes_py<'py>(cls: &Bound<'py, PyType>, value: &BaseStruct) -> PyResult<Bound<'py, PyAny>> {
         let struct_ = Struct::from_cls(cls)?;
-        Ok(PyBytes::new_bound(cls.py(), &struct_.to_bytes(value)?).into_any())
+        Ok(PyBytes::new_bound(cls.py(), &struct_.to_bytes_(value, true)?).into_any())
     }
 
     #[classmethod]
