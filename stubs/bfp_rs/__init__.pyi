@@ -1,6 +1,7 @@
+from .help import *
+from .mut import *
 from .retrievers import *
 from .types import *
-from .help import *
 
 __all__ = [
     "ByteStream",
@@ -12,6 +13,8 @@ __all__ = [
 
     "Version",
     "Manager",
+
+    "borrow_mut", "set_mut",
 
     "ret", "ref", "com",
 ]

@@ -98,7 +98,7 @@ With this, we're done! Now you'll be able to [de]serialize PCAP files with the s
 You can check if you can still read the old format:
 
 ```py
-test = PcapFile.from_file(r"../ipv4frags.pcap")
+test = PcapFile.from_file(r"ipv4frags.pcap")
 print(test.ver) # prints v2.4
 ```
 
@@ -226,7 +226,7 @@ class PcapFile(BaseStruct):
             self.header.magic_number = b"\xa1\xb2\xcd\x34"
         return self
 
-test = PcapFile.from_file(r"../ipv4frags.pcap")
+test = PcapFile.from_file(r"ipv4frags.pcap")
 print(test.ver)
 
 print(test.header.protocol)

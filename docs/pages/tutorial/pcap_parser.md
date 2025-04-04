@@ -109,7 +109,7 @@ We get an error:
 ```pycon
 Traceback (most recent call last):
   File "/path/to/code.py", line 35, in <module>
-    PcapFile.from_file(r"../ipv4frags.pcap")
+    PcapFile.from_file(r"ipv4frags.pcap")
 errors.ParsingError: 2966 bytes are left after parsing all retrievers successfully
 ```
 
@@ -176,7 +176,7 @@ Once again notice that we can simply pass a struct (or any other type in BFP) to
 We're now ready to remove `strict = False` and parse the whole file:
 
 ```py
-pcap = PcapFile.from_file(r"../ipv4frags.pcap")
+pcap = PcapFile.from_file(r"ipv4frags.pcap")
 ```
 
 Yippee!! You've just created your first serialization file format using BFP!
@@ -184,7 +184,7 @@ Yippee!! You've just created your first serialization file format using BFP!
 If you now make edits to this file programmatically, you can save it to a new file:
 
 ```py
-PcapFile.to_file(r"../ipv4frags.pcap", pcap)
+PcapFile.to_file(r"ipv4frags.pcap", pcap)
 ```
 
 ## The Code
@@ -221,11 +221,11 @@ class PcapFile(BaseStruct):
     header: PcapHeader      = Retriever(PcapHeader,   default_factory = PcapHeader)
     packets: list[Packet]   = Retriever(Tail[Packet], default_factory = lambda _ver: [])
 
-pcap = PcapFile.from_file(r"../ipv4frags.pcap")
+pcap = PcapFile.from_file(r"ipv4frags.pcap")
 print(len(pcap.packets)) # prints 3
 
 # edit pcap to remove the last packet
 pcap.packets = pcap.packets[:2]
 
-PcapFile.to_file(r"../ipv4frags.pcap", pcap)
+PcapFile.to_file(r"ipv4frags.pcap", pcap)
 ```

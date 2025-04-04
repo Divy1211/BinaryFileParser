@@ -57,7 +57,7 @@ class PcapFile(BaseStruct):
             self.header.magic_number = b"\xa1\xb2\xcd\x34"
         return self
 
-test = PcapFile.from_file(r"../ipv4frags.pcap")
+test = PcapFile.from_file(r"ipv4frags.pcap")
 print(test.ver)
 
 print(test.header.protocol)

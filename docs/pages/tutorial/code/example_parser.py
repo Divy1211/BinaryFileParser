@@ -1,4 +1,4 @@
-from bfp_rs import BaseStruct, Retriever, Version, ByteStream, ret
+from bfp_rs import BaseStruct, Retriever, Version, ByteStream, ret, set_mut, borrow_mut
 from bfp_rs.combinators import set_repeat
 from bfp_rs.types.le import Bytes, u16, u32, Tail
 
@@ -32,9 +32,4 @@ class PcapFile(BaseStruct):
         ver_bytes = stream.peek(8)[4:]
         return Version(u16.from_bytes(ver_bytes[:2]), u16.from_bytes(ver_bytes[2:]))
 
-test = PcapFile.from_file(r"../ipv4frags.pcap")
-
-test.packets = test.packets[:2]
-
-PcapFile.to_file(r"../ipv4frags_m.pcap", test)
-
+test = PcapFile.from_file(r"ipv4frags.pcap")
