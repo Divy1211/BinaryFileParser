@@ -1,7 +1,8 @@
 use std::fs::File;
 use std::io::Write;
 use std::sync::{Arc, RwLock};
-
+use std::time::Duration;
+use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 use pyo3::exceptions::{PyTypeError};
 use pyo3::intern;
 use pyo3::prelude::*;
@@ -15,6 +16,7 @@ use crate::retrievers::retriever::Retriever;
 use crate::retrievers::retriever_combiner::RetrieverCombiner;
 use crate::retrievers::retriever_ref::RetrieverRef;
 use crate::types::byte_stream::ByteStream;
+use crate::types::parseable::Parseable;
 use crate::types::parseable_type::ParseableType;
 use crate::types::r#struct::Struct;
 use crate::types::version::Version;
@@ -111,9 +113,52 @@ impl BaseStruct {
         struct_.add_ref(retriever)
     }
 
-    fn to_bytes<'py>(cls: &Bound<'py, PyType>, value: &BaseStruct) -> PyResult<Vec<u8>> {
+    fn to_bytes<'py>(cls: &Bound<'py, PyType>, value: &BaseStruct, filepath: &str) -> PyResult<Vec<u8>> {
         let struct_ = Struct::from_cls(cls)?;
-        Ok(struct_.to_bytes_(value, true)?)
+        let bar = MultiProgress::new();
+        
+        let spinner = bar.add(ProgressBar::new_spinner());
+        spinner.set_style(
+            ProgressStyle::default_spinner()
+                .template("{spinner} {msg}")
+                .unwrap(),
+        );
+        spinner.set_message(format!("⬅ Writing File '{}'", filepath));
+        spinner.enable_steady_tick(Duration::from_millis(100));
+        
+        let bytes_ = struct_.to_bytes_(value, Some(bar))?;
+
+        spinner.set_message(format!("✔ Finished Writing File '{}'", filepath));
+        spinner.finish();
+        
+        Ok(bytes_)
+    }
+
+    fn from_stream_<'py>(cls: &Bound<'py, PyType>, stream: &mut ByteStream, ver: Version, filepath: Option<&str>) -> PyResult<Bound<'py, PyAny>> {
+        let struct_ = Struct::from_cls(cls)?;
+
+        let Some(filepath) = filepath else {
+            let base = struct_.from_stream_(stream, &ver, None)?;
+            return Ok(BaseStruct::with_cls(base, cls));
+        };
+        
+        
+        let bar =  MultiProgress::new();
+        let spinner = bar.add(ProgressBar::new_spinner());
+        spinner.set_style(
+            ProgressStyle::default_spinner()
+                .template("{spinner} {msg}")
+                .unwrap(),
+        );
+        spinner.set_message(format!("➡ Reading File '{}'", filepath));
+        spinner.enable_steady_tick(Duration::from_millis(100));
+        
+        let base = struct_.from_stream_(stream, &ver, Some(bar))?;
+        
+        spinner.set_message(format!("✔ Finished Reading File '{}'", filepath));
+        spinner.finish();
+        
+        Ok(BaseStruct::with_cls(base, cls))
     }
 }
 
@@ -164,17 +209,14 @@ impl BaseStruct {
     #[classmethod]
     #[pyo3(signature = (stream, ver = Version::new(vec![0,])))]
     fn from_stream<'py>(cls: &Bound<'py, PyType>, stream: &mut ByteStream, ver: Version) -> PyResult<Bound<'py, PyAny>> {
-        let struct_ = Struct::from_cls(cls)?;
-
-        let base = struct_.from_stream_(stream, &ver, true)?;
-        Ok(BaseStruct::with_cls(base, cls))
+        BaseStruct::from_stream_(cls, stream, ver, None)
     }
 
     #[classmethod]
     #[pyo3(name = "to_bytes")]
     fn to_bytes_py<'py>(cls: &Bound<'py, PyType>, value: &BaseStruct) -> PyResult<Bound<'py, PyAny>> {
         let struct_ = Struct::from_cls(cls)?;
-        Ok(PyBytes::new_bound(cls.py(), &struct_.to_bytes_(value, true)?).into_any())
+        Ok(PyBytes::new_bound(cls.py(), &struct_.to_bytes(value)?).into_any())
     }
 
     #[classmethod]
@@ -187,7 +229,7 @@ impl BaseStruct {
     #[pyo3(signature = (filepath, strict = true))]
     fn from_file<'py>(cls: &Bound<'py, PyType>, filepath: &str, strict: bool) -> PyResult<Bound<'py, PyAny>> {
         let mut stream = ByteStream::from_file(filepath)?;
-        let struct_ = BaseStruct::from_stream(cls, &mut stream, Version::new(vec![0, ]))?;
+        let struct_ = BaseStruct::from_stream_(cls, &mut stream, Version::new(vec![0, ]), Some(filepath))?;
         
         if !strict {
             return Ok(struct_);
@@ -203,7 +245,7 @@ impl BaseStruct {
 
     #[classmethod]
     fn to_file(cls: &Bound<PyType>, filepath: &str, value: &BaseStruct) -> PyResult<()> {
-        let bytes = Self::to_bytes(cls, value)?;
+        let bytes = Self::to_bytes(cls, value, filepath)?;
         let mut file = File::create(filepath)?;
         Ok(file.write_all(&bytes)?)
     }
