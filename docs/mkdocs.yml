@@ -30,6 +30,7 @@ nav:
       - Errors:
           - CompressionError:       "reference/errors/compression_error.md"
           - DefaultAttributeError:  "reference/errors/default_attribute_error.md"
+          - MutabilityError:        "reference/errors/mutability_error.md"
           - ParsingError:           "reference/errors/parsing_error.md"
           - VersionError:           "reference/errors/version_error.md"
       - Retrievers:
