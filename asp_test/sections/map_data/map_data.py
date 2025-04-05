@@ -1,11 +1,17 @@
 from __future__ import annotations
 
-from bfp_rs import BaseStruct, ByteStream, Retriever, Version
+from bfp_rs import BaseStruct, ByteStream, Retriever, Version, ret
 from bfp_rs.types.le import bool8, u32
 from bfp_rs.combinators import set_repeat, get
 
 from asp_test.sections.map_data.terrain_tile import TerrainTile
 from asp_test.sections.scx_versions import MAP_LATEST
+
+def terrain_tiles_repeat():
+    return [
+        set_repeat(ret(MapData.terrain_tiles)).by(get(MapData.height) * get(MapData.width))
+    ]
+
 
 class MapData(BaseStruct):
     # @formatter:off
@@ -13,7 +19,7 @@ class MapData(BaseStruct):
     version                          = Retriever(u32,    min_ver = Version(1), default = 2)
     no_waves_on_shore: bool          = Retriever(bool8,  min_ver = Version(2), default = False)
     width: int                       = Retriever(u32,                          default = 144)
-    height: int                      = Retriever(u32,                          default = 144, on_read = lambda: [set_repeat(MapData.terrain_tiles).by(get(MapData.height) * get(MapData.width))])
+    height: int                      = Retriever(u32,                          default = 144, on_read = terrain_tiles_repeat)
     terrain_tiles: list[TerrainTile] = Retriever(TerrainTile,                  default_factory = TerrainTile, repeat = 144**2)
     # @formatter:on
 

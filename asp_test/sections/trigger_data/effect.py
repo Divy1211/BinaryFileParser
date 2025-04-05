@@ -1,19 +1,23 @@
 from __future__ import annotations
 
-from bfp_rs import BaseStruct, Retriever, Version, RetrieverRef
+from bfp_rs import BaseStruct, Retriever, Version, RetrieverRef, ret
 from bfp_rs.types.le import Array32, i32, nt_str32
 from bfp_rs.combinators import set_repeat
 
 from asp_test.sections.scx_versions import TRIGGER_LATEST
 
+def selected_unit_ids():
+    return [
+        set_repeat(ret(Effect.selected_unit_ids)).from_(ret(Effect._properties), 4)
+    ]
 
 class Effect(BaseStruct):
     # @formatter:off
     type: int                       = Retriever(i32,          default = -1)
-    _properties: list[int]          = Retriever(Array32[i32], default_factory = lambda v: [-1]*58, on_read = lambda: [set_repeat(Effect.selected_object_ids).from_(Effect._properties, 4)])
+    _properties: list[int]          = Retriever(Array32[i32], default_factory = lambda v: [-1]*58, on_read = selected_unit_ids)
     message: str                    = Retriever(nt_str32,     default = "")
     sound_name: str                 = Retriever(nt_str32,     default = "")
-    selected_object_ids: list[int]  = Retriever(i32,          default = -1, repeat = 0)
+    selected_unit_ids: list[int]    = Retriever(i32,          default = -1, repeat = 0)
     unused_string1: str             = Retriever(nt_str32,     default = "", min_ver = Version(3, 9))
     unused_string2: str             = Retriever(nt_str32,     default = "", min_ver = Version(3, 9))
 

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from bfp_rs import BaseStruct, Retriever, Version
+from bfp_rs import BaseStruct, Retriever, Version, ret
 from bfp_rs.types.le import Array32, bool32, bool8, i32, nt_str32, u32, u8
 from bfp_rs.combinators import set_repeat
 
@@ -8,6 +8,16 @@ from asp_test.sections.scx_versions import TRIGGER_LATEST
 from asp_test.sections.trigger_data.condition import Condition
 from asp_test.sections.trigger_data.effect import Effect
 
+
+def effect_display_orders_repeat():
+    return [
+        set_repeat(ret(Trigger.effect_display_orders)).from_len(ret(Trigger.effects))
+    ]
+
+def condition_display_orders_repeat():
+    return [
+        set_repeat(ret(Trigger.condition_display_orders)).from_len(ret(Trigger.conditions))
+    ]
 
 class Trigger(BaseStruct):
     # @formatter:off
@@ -25,9 +35,9 @@ class Trigger(BaseStruct):
     description: str                       = Retriever(nt_str32,                                        default = "")
     name: str                              = Retriever(nt_str32,                                        default = "Trigger 0")
     short_description: str                 = Retriever(nt_str32,               min_ver = Version(1, 8), default = "")
-    effects: list[Effect]                  = Retriever(Array32[Effect],                                 default_factory = lambda _: [], on_read = lambda: [set_repeat(Trigger.effect_display_orders).from_len(Trigger.effects)])
+    effects: list[Effect]                  = Retriever(Array32[Effect],                                 default_factory = lambda _: [], on_read = effect_display_orders_repeat)
     effect_display_orders: list[int]       = Retriever(u32,                                             default = 0, repeat = 0)
-    conditions: list[Condition]            = Retriever(Array32[Condition],                              default_factory = lambda _: [], on_read = lambda: [set_repeat(Trigger.condition_display_orders).from_len(Trigger.conditions)])
+    conditions: list[Condition]            = Retriever(Array32[Condition],                              default_factory = lambda _: [], on_read = condition_display_orders_repeat)
     condition_display_orders: list[int]    = Retriever(u32,                                             default = 0, repeat = 0)
     # @formatter:on
 
