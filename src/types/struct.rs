@@ -1,4 +1,5 @@
 use std::sync::{Arc, RwLock};
+use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyString, PyType};
@@ -131,27 +132,38 @@ impl Struct {
             Ok(())
         })
     }
-}
 
-impl Parseable for Struct {
-    type Type = BaseStruct;
-    
-    fn from_stream(&self, stream: &mut ByteStream, ver: &Version) -> std::io::Result<BaseStruct> {
+    pub fn from_stream_(&self, stream: &mut ByteStream, ver: &Version, bar: Option<MultiProgress>) -> std::io::Result<BaseStruct> {
         let retrievers = self.retrievers.read().expect("immutable"); // todo: change to Arc<Vec<>> with builder pattern?
         let mut data = Vec::with_capacity(retrievers.len());
         let mut repeats = vec![None; retrievers.len()];
-        
+
         let ver = self.get_ver(stream, ver)?;
+
+        let mut progress = None;
+        if let Some(bar) = bar {
+            let pb = bar.add(ProgressBar::new(retrievers.len() as u64));
+            pb.set_style(
+                ProgressStyle::default_bar()
+                    .template("  [{bar:40.cyan/blue}] {pos}/{len}{msg}")
+                    .unwrap(),
+            );
+            progress = Some(pb);
+        }
         
-        for retriever in retrievers.iter() {
+        for (i, retriever) in retrievers.iter().enumerate() {
             if retriever.remaining_compressed {
                 *stream = self.decompress(stream.remaining())?
+            }
+            if let Some(progress) = progress.as_ref() {
+                progress.set_message(format!("\n    ➡ Reading '{}'", retriever.name));
+                progress.set_position((i+1) as u64);
             }
             if !retriever.supported(&ver) {
                 data.push(None);
                 continue;
             }
-            
+
             data.push(Some(match retriever.state(&repeats) {
                 RetState::NoneValue | RetState::NoneList => { ParseableType::None }
                 RetState::Value => { retriever.from_stream(stream, &ver)? }
@@ -163,32 +175,53 @@ impl Parseable for Struct {
                     BfpList::new(ls, retriever.data_type.clone()).into()
                 }
             }));
-            
+
             retriever.call_on_reads(&retrievers, &mut data, &mut repeats, &ver)?;
+
+            if let Some(progress) = progress.as_ref() {
+                progress.set_message("");
+                progress.finish();
+            }
         }
         Ok(BaseStruct::new(ver.clone(), data, repeats))
     }
 
-    fn to_bytes(&self, value: &BaseStruct) -> std::io::Result<Vec<u8>> {
+    pub fn to_bytes_(&self, value: &BaseStruct, bar: Option<MultiProgress>) -> std::io::Result<Vec<u8>> {
         let mut data_lock = value.data.write().expect("GIL bound write");
         let mut repeats_lock = value.repeats.write().expect("GIL bound write");
-        
+
         let data = data_lock.as_mut();
         let repeats = repeats_lock.as_mut();
         let retrievers = self.retrievers.read().expect("immutable");
-        
+
         let mut bytes = Vec::with_capacity(retrievers.len());
         let mut compress_idx = None;
+
+        let mut progress = None;
+        if let Some(bar) = bar {
+            let pb = bar.add(ProgressBar::new(retrievers.len() as u64));
+            pb.set_style(
+                ProgressStyle::default_bar()
+                    .template("  [{bar:40.cyan/blue}] {pos}/{len}{msg}")
+                    .unwrap(),
+            );
+            progress = Some(pb);
+        }
         
-        for retriever in retrievers.iter() {
+        for (i, retriever) in retrievers.iter().enumerate() {
             if !retriever.supported(&value.ver) {
                 continue;
             }
+            if let Some(progress) = progress.as_ref() {
+                progress.set_message(format!("\n    ⬅ Writing '{}'", retriever.name));
+                progress.set_position((i+1) as u64);
+            }
+
             if retriever.remaining_compressed {
                 compress_idx = Some(bytes.len());
             }
             retriever.call_on_writes(&retrievers, data, repeats, &value.ver)?;
-            
+
             let value = data[retriever.idx].as_ref().expect("supported check done above");
 
             bytes.append(&mut match retriever.state(repeats) {
@@ -204,12 +237,30 @@ impl Parseable for Struct {
                     }
                     bytes
                 }
-            })
+            });
         }
+        
+        if let Some(progress) = progress.as_ref() {
+            progress.set_message("");
+            progress.finish();
+        }
+        
         if let Some(idx) = compress_idx {
             self.compress(&mut bytes, idx)?;
         }
         Ok(bytes)
+    }
+}
+
+impl Parseable for Struct {
+    type Type = BaseStruct;
+    
+    fn from_stream(&self, stream: &mut ByteStream, ver: &Version) -> std::io::Result<BaseStruct> {
+        self.from_stream_(stream, ver, None)
+    }
+
+    fn to_bytes(&self, value: &BaseStruct) -> std::io::Result<Vec<u8>> {
+        self.to_bytes_(value, None)
     }
 }
 

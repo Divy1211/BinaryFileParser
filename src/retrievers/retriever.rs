@@ -54,6 +54,7 @@ impl Retriever {
     #[new]
     #[pyo3(signature = (
         data_type,
+        *,
         min_ver = Version::new(vec![-1]), max_ver = Version::new(vec![10_000]),
         default = None, default_factory = None,
         repeat = 1,

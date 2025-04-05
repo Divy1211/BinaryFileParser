@@ -20,8 +20,28 @@ class Bool:
     @classmethod
     def to_file(cls, filepath: str, value: bool): ...
 
-class bool8(Bool): ...
-class bool16(Bool): ...
-class bool32(Bool): ...
-class bool64(Bool): ...
-class bool128(Bool): ...
+class bool8(Bool):
+    """
+    [De]serialize a ``bool`` by reading a ``num: u8`` and evaluating `num != 0`
+    """
+
+class bool16(Bool):
+    """
+    [De]serialize a ``bool`` by reading a ``num: u16`` and evaluating `num != 0`
+    """
+
+class bool32(Bool):
+    """
+    [De]serialize a ``bool`` by reading a ``num: u32`` and evaluating `num != 0`
+    """
+
+class bool64(Bool):
+    """
+    [De]serialize a ``bool`` by reading a ``num: u64`` and evaluating `num != 0`
+    """
+
+class bool128(Bool):
+    """
+    [De]serialize a ``bool`` by reading a ``num: u128`` and evaluating `num != 0`
+    """
+

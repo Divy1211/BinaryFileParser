@@ -7,15 +7,20 @@ use crate::errors::compression_error::CompressionError;
 use crate::errors::default_attribute_error::DefaultAttributeError;
 use crate::errors::parsing_error::ParsingError;
 use crate::errors::version_error::VersionError;
+use crate::errors::mutability_error::MutabilityError;
 
 use crate::combinators::set_repeat::set_repeat_builder::set_repeat;
 use crate::combinators::r#if::if_builder::{if_, if_not, if_len, if_ver};
 use crate::combinators::set::set_builder::set;
 use crate::combinators::get::{get_len, get};
 
+use crate::help::BorrowMutGuard;
+use crate::help::set_mut;
+
 use crate::retrievers::retriever::Retriever;
 use crate::retrievers::retriever_combiner::RetrieverCombiner;
 use crate::retrievers::retriever_ref::RetrieverRef;
+
 use crate::types::base_struct::BaseStruct;
 use crate::types::bfp_type::BfpType;
 use crate::types::byte_stream::ByteStream;
@@ -32,6 +37,7 @@ use crate::types::le::stacked_array::{StackedArray, StackedArrayBuilder};
 use crate::types::le::stacked_attr_array::{StackedAttrArray, StackedAttrArrayBuilder};
 use crate::types::le::str::Str;
 use crate::types::le::str_array::StrArray;
+use crate::types::le::tail::Tail;
 use crate::types::manager::Manager;
 use crate::types::version::Version;
 
@@ -40,6 +46,7 @@ pub mod errors;
 pub mod types;
 pub mod macros;
 pub mod combinators;
+pub mod help;
 
 fn le(py: Python, types: &Bound<PyModule>) -> PyResult<()> {
     let le = PyModule::new_bound(types.py(), "bfp_rs.types.le")?;
@@ -117,6 +124,7 @@ fn le(py: Python, types: &Bound<PyModule>) -> PyResult<()> {
     le.add_class::<StackedArray>()?;
     le.add_class::<StackedAttrArray>()?;
     le.add_class::<Encoding>()?;
+    le.add_class::<Tail>()?;
 
     le.add("void", BfpType::Bytes(Bytes { len: 0 }))?;
     
@@ -158,6 +166,7 @@ fn errors(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
     errors.add("CompressionError", py.get_type_bound::<CompressionError>())?;
     errors.add("DefaultValueError", py.get_type_bound::<DefaultAttributeError>())?;
     errors.add("VersionError", py.get_type_bound::<VersionError>())?;
+    errors.add("MutabilityError", py.get_type_bound::<MutabilityError>())?;
 
     Ok(())
 }
@@ -172,6 +181,10 @@ fn binary_file_parser(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
     bfp.add_class::<RetrieverCombiner>()?;
     bfp.add_class::<Version>()?;
     bfp.add_class::<Manager>()?;
+    
+    bfp.add_class::<BorrowMutGuard>()?;
+
+    bfp.add_function(wrap_pyfunction!(set_mut, bfp)?)?;
 
     errors(py, bfp)?;
     types(py, bfp)?;

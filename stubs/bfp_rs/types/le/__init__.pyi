@@ -1,6 +1,6 @@
 from .array import *
 from .bool import *
-from .bytes import Bytes
+from .bytes import *
 from .encodings import *
 from .float import *
 from .int import *
@@ -10,8 +10,7 @@ from .stacked_array import *
 from .stacked_attr_array import *
 from .str import *
 from .str_array import *
-
-void = Bytes[0]
+from .tail import *
 
 __all__ = [
     "u8",
@@ -84,5 +83,6 @@ __all__ = [
     "StackedArray",
     "StackedAttrArray",
     "Encoding",
+    "Tail",
     "void",
 ]

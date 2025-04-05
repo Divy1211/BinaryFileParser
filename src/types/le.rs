@@ -12,3 +12,4 @@ pub mod option;
 pub mod array;
 pub mod stacked_array;
 pub mod stacked_attr_array;
+pub mod tail;

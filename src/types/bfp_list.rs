@@ -7,7 +7,7 @@ use pyo3::exceptions::{PyIndexError, PyTypeError, PyValueError};
 use pyo3::prelude::{PyAnyMethods, PyTypeMethods};
 use pyo3::types::{PyInt, PySlice, PySliceIndices, PySliceMethods};
 use pyo3::{pyclass, pymethods, Bound, IntoPy, PyAny, PyRef, PyRefMut, PyResult};
-
+use crate::errors::mutability_error::MutabilityError;
 use crate::types::bfp_type::BfpType;
 use crate::types::parseable_type::ParseableType;
 
@@ -16,13 +16,15 @@ use crate::types::parseable_type::ParseableType;
 pub struct BfpList {
     pub ls: Arc<RwLock<Vec<ParseableType>>>,
     pub data_type: BfpType,
+    pub immutable: Arc<RwLock<bool>>,
 }
 
 impl BfpList {
     pub fn new(ls: Vec<ParseableType>, data_type: BfpType) -> BfpList {
         BfpList {
             ls: Arc::new(RwLock::new(ls)),
-            data_type
+            data_type,
+            immutable: Arc::new(RwLock::new(false)),
         }
     }
     
@@ -58,12 +60,18 @@ impl Eq for BfpList {}
 #[pymethods]
 impl BfpList {
     fn append(slf: PyRefMut<BfpList>, val: Bound<'_, PyAny>) -> PyResult<()> {
+        if *slf.immutable.read().expect("GIL bound read") {
+            return Err(MutabilityError::new_err("This list is set as immutable by it's API designer"));
+        }
         let mut ls = slf.ls.write().expect("GIL bound write");
         ls.push(slf.data_type.to_parseable(&val)?);
         Ok(())
     }
 
     fn extend(slf: PyRefMut<BfpList>, val: Bound<'_, PyAny>) -> PyResult<()> {
+        if *slf.immutable.read().expect("GIL bound read") {
+            return Err(MutabilityError::new_err("This list is set as immutable by it's API designer"));
+        }
         let mut ls = slf.ls.write().expect("GIL bound write");
         let mut vals = val.iter()?
             .map(|v| {
@@ -76,6 +84,9 @@ impl BfpList {
     }
 
     fn insert(slf: PyRefMut<BfpList>, mut item: isize, val: Bound<'_, PyAny>) -> PyResult<()> {
+        if *slf.immutable.read().expect("GIL bound read") {
+            return Err(MutabilityError::new_err("This list is set as immutable by it's API designer"));
+        }
         let mut ls = slf.ls.write().expect("GIL bound write");
         
         if item < 0 {
@@ -89,6 +100,9 @@ impl BfpList {
 
     /// note that remove in python takes a value, not an index
     fn remove(slf: PyRefMut<BfpList>, val: Bound<'_, PyAny>) -> PyResult<()> {
+        if *slf.immutable.read().expect("GIL bound read") {
+            return Err(MutabilityError::new_err("This list is set as immutable by it's API designer"));
+        }
         let mut ls = slf.ls.write().expect("GIL bound write");
         let val = slf.data_type.to_parseable(&val)?;
         
@@ -105,6 +119,9 @@ impl BfpList {
 
     #[pyo3(signature = (item = -1))]
     fn pop<'py>(slf: PyRefMut<'py, BfpList>, mut item: isize) -> PyResult<Bound<'py, PyAny>> {
+        if *slf.immutable.read().expect("GIL bound read") {
+            return Err(MutabilityError::new_err("This list is set as immutable by it's API designer"));
+        }
         let mut ls = slf.ls.write().expect("GIL bound write");
         
         if item < 0 {
@@ -118,12 +135,18 @@ impl BfpList {
     }
 
     fn clear<'py>(slf: PyRefMut<'py, BfpList>) -> PyResult<()> {
+        if *slf.immutable.read().expect("GIL bound read") {
+            return Err(MutabilityError::new_err("This list is set as immutable by it's API designer"));
+        }
         let mut ls = slf.ls.write().expect("GIL bound write");
         ls.clear();
         Ok(())
     }
 
     fn index(slf: PyRefMut<BfpList>, val: Bound<'_, PyAny>) -> PyResult<usize> {
+        if *slf.immutable.read().expect("GIL bound read") {
+            return Err(MutabilityError::new_err("This list is set as immutable by it's API designer"));
+        }
         let ls = slf.ls.read().expect("GIL bound read");
         let val = slf.data_type.to_parseable(&val)?;
         
@@ -135,7 +158,7 @@ impl BfpList {
         }
     }
 
-    fn count(slf: PyRefMut<BfpList>, val: Bound<'_, PyAny>) -> PyResult<usize> {
+    fn count(slf: PyRef<BfpList>, val: Bound<'_, PyAny>) -> PyResult<usize> {
         let ls = slf.ls.read().expect("GIL bound read");
         let val = slf.data_type.to_parseable(&val)?;
         Ok(
@@ -146,12 +169,18 @@ impl BfpList {
     }
 
     fn reverse(slf: PyRefMut<BfpList>) -> PyResult<()> {
+        if *slf.immutable.read().expect("GIL bound read") {
+            return Err(MutabilityError::new_err("This list is set as immutable by it's API designer"));
+        }
         let mut ls = slf.ls.write().expect("GIL bound write");
         ls.reverse();
         Ok(())
     }
     
     fn sort(slf: PyRefMut<BfpList>) -> PyResult<()> {
+        if *slf.immutable.read().expect("GIL bound read") {
+            return Err(MutabilityError::new_err("This list is set as immutable by it's API designer"));
+        }
         let mut ls = slf.ls.write().expect("GIL bound write");
         if !slf.data_type.is_ord() {
             return Err(PyTypeError::new_err(format!(
@@ -163,7 +192,7 @@ impl BfpList {
         Ok(())
     }
 
-    fn copy(slf: PyRefMut<BfpList>) -> Self {
+    fn copy(slf: PyRef<BfpList>) -> Self {
         slf.clone()
     }
 
@@ -213,7 +242,10 @@ impl BfpList {
         ))
     }
 
-    fn __setitem__(slf: PyRef<BfpList>, item: Bound<PyAny>, val: Bound<PyAny>) -> PyResult<()> {
+    fn __setitem__(slf: PyRefMut<BfpList>, item: Bound<PyAny>, val: Bound<PyAny>) -> PyResult<()> {
+        if *slf.immutable.read().expect("GIL bound read") {
+            return Err(MutabilityError::new_err("This list is set as immutable by it's API designer"));
+        }
         if item.is_instance_of::<PyInt>() {
             let mut ls = slf.ls.write().expect("GIL bound write");
             
@@ -250,7 +282,10 @@ impl BfpList {
         ))
     }
 
-    fn __delitem__(slf: PyRef<BfpList>, item: Bound<PyAny>) -> PyResult<()> {
+    fn __delitem__(slf: PyRefMut<BfpList>, item: Bound<PyAny>) -> PyResult<()> {
+        if *slf.immutable.read().expect("GIL bound read") {
+            return Err(MutabilityError::new_err("This list is set as immutable by it's API designer"));
+        }
         if item.is_instance_of::<PyInt>() {
             let mut ls = slf.ls.write().expect("GIL bound write");
             

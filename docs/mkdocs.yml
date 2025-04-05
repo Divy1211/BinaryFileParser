@@ -1,0 +1,177 @@
+docs_dir:           "pages/"
+
+repo_name:          "BinaryFileParser"
+repo_url:           "https://github.com/Divy1211/BinaryFileParser/tree/bfp-rs"
+
+site_author:        "Alian713"
+site_description:   "Documentation for using BFP"
+site_name:          "Binary File Parser Docs"
+edit_uri:           "edit/main/docs/pages/"
+
+use_directory_urls: true
+
+nav:
+  -                                 "index.md"
+  - Tutorial:
+      - Example Parser:             "tutorial/pcap_parser.md"
+      - Struct Versioning:          "tutorial/struct_versioning.md"
+      - Compressed Files:           "tutorial/compressed_files.md"
+      - Advanced Combinators:       "tutorial/advanced_combinators.md"
+      - Advanced Retrievers:        "tutorial/advanced_retrievers.md"
+      - Using Managers:             "tutorial/using_managers.md"
+
+  - API Reference:
+      - Combinators:
+          - Combinator:             "reference/combinators/combinator.md"
+          - Get:                    "reference/combinators/get.md"
+          - IfBuilder:              "reference/combinators/if_builder.md"
+          - SetBuilder:             "reference/combinators/set_builder.md"
+          - SetRepeatBuilder:       "reference/combinators/set_repeat_builder.md"
+      - Errors:
+          - CompressionError:       "reference/errors/compression_error.md"
+          - DefaultAttributeError:  "reference/errors/default_attribute_error.md"
+          - MutabilityError:        "reference/errors/mutability_error.md"
+          - ParsingError:           "reference/errors/parsing_error.md"
+          - VersionError:           "reference/errors/version_error.md"
+      - Retrievers:
+        - Retriever:                "reference/retrievers/retriever.md"
+        - RetrieverCombiner:        "reference/retrievers/retriever_combiner.md"
+        - RetrieverRef:             "reference/retrievers/retriever_ref.md"
+      - Types:
+          - BaseStruct:             "reference/types/base_struct.md"
+          - ByteStream:             "reference/types/byte_stream.md"
+          - Manager:                "reference/types/manager.md"
+          - Version:                "reference/types/version.md"
+          - Little Endian:
+              - Array:              "reference/types/le/array.md"
+              - Bool:               "reference/types/le/bool.md"
+              - Bytes:              "reference/types/le/bytes.md"
+              - Encodings:          "reference/types/le/encodings.md"
+              - Float:              "reference/types/le/float.md"
+              - Int:                "reference/types/le/int.md"
+              - NtStr:              "reference/types/le/nt_str.md"
+              - Option:             "reference/types/le/option.md"
+              - StackedArray:       "reference/types/le/stacked_array.md"
+              - StackedAttrArray:   "reference/types/le/stacked_attr_array.md"
+              - Str:                "reference/types/le/str.md"
+              - StrArray:           "reference/types/le/str_array.md"
+              - Tail:               "reference/types/le/tail.md"
+
+      - Help:                       "reference/help.md"
+
+markdown_extensions:
+  - attr_list
+  - admonition                # Create not and warning boxes        https://squidfunk.github.io/mkdocs-material/reference/admonitions/#admonition
+  - md_in_html
+  - pymdownx.caret            # Handling sub- and superscripts      https://facelessuser.github.io/pymdown-extensions/extensions/caret/
+  - pymdownx.critic           #                                     https://facelessuser.github.io/pymdown-extensions/extensions/critic/
+  - pymdownx.details          # Collapsable elements                https://facelessuser.github.io/pymdown-extensions/extensions/details/
+  - pymdownx.inlinehilite     # Inline code highlighting            https://facelessuser.github.io/pymdown-extensions/extensions/inlinehilite/
+  - pymdownx.keys             # Add styling keyboard keys           https://facelessuser.github.io/pymdown-extensions/extensions/keys/
+  - pymdownx.mark             # Highlighting of text                https://facelessuser.github.io/pymdown-extensions/extensions/mark/
+  - pymdownx.smartsymbols     # Creating special characters         https://facelessuser.github.io/pymdown-extensions/extensions/smartsymbols/
+  - pymdownx.snippets         #                                     https://facelessuser.github.io/pymdown-extensions/extensions/snippets/
+  - pymdownx.superfences
+  - pymdownx.tabbed           # Tabs                                https://facelessuser.github.io/pymdown-extensions/extensions/tabbed/
+  - pymdownx.tasklist         #                                     https://facelessuser.github.io/pymdown-extensions/extensions/tasklist/
+  - pymdownx.tilde            # Strikethrough of text               https://facelessuser.github.io/pymdown-extensions/extensions/tilde/
+  - pymdownx.arithmatex:      # Preserve LaTeX math equations       https://facelessuser.github.io/pymdown-extensions/extensions/arithmatex/
+      generic: true
+  - pymdownx.emoji:           # Emojis                              https://facelessuser.github.io/pymdown-extensions/extensions/emoji/
+      emoji_index:     !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+  - pymdownx.highlight:       # Highlighting code blocks            https://facelessuser.github.io/pymdown-extensions/extensions/highlight/
+      linenums:     true
+      use_pygments: true
+  - pymdownx.superfences:     # Complicated code fences             https://facelessuser.github.io/pymdown-extensions/extensions/superfences/
+      custom_fences:
+        - name:   mermaid
+          class:  mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tasklist:        # Creating Check-able tasklist        https://facelessuser.github.io/pymdown-extensions/extensions/tasklist/
+      custom_checkbox:    true
+      clickable_checkbox: true
+  - toc:
+      permalink: true
+plugins:
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            paths: [ stubs ]
+#            backlinks: tree
+            docstring_options:
+              ignore_init_summary: false
+
+            docstring_section_style: list
+            heading_level: 2
+            inherited_members: false
+            merge_init_into_class: false
+            parameter_headings: false
+            separate_signature: true
+            show_bases: true
+            show_if_no_docstring: true
+#            show_inheritance_diagram: true
+            show_root_heading: true
+            show_root_full_path: false
+            show_source: false
+            show_signature_annotations: true
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            signature_crossrefs: true
+            summary: false
+  - search:
+      lang: en
+      separator: '[\s\-\.\_]+'
+
+extra:
+  python_path: stubs
+
+theme:
+  # favicon:
+  language: en
+  name: material
+  features:
+    - content.code.annotate
+    - content.code.copy
+    - navigation.expand
+    - navigation.indexes
+    # - navigation.instant
+    # - navigation.sections
+    - navigation.tabs
+    - navigation.top
+    - navigation.tracking
+    - search.highlight
+    - search.share
+    - search.suggest
+    # - toc.integrate
+  font:
+    text: Roboto
+    code: Spline Sans Mono
+  icon:
+    logo: octicons/file-code-24
+    admonition:
+      abstract: octicons/checklist-16
+      bug:      octicons/bug-16
+      danger:   octicons/zap-16
+      example:  octicons/beaker-16
+      failure:  octicons/x-circle-16
+      info:     octicons/info-16
+      note:     octicons/tag-16
+      success:  octicons/check-16
+      tip:      octicons/squirrel-16
+      question: octicons/question-16
+      quote:    octicons/quote-16
+      warning:  octicons/alert-16
+  palette:
+    scheme:  slate
+    primary: red
+    accent:  red
+extra_javascript:
+  - https://cdn.jsdelivr.net/npm/mathjax@3.2.0/es5/tex-mml-chtml.js
+extra_css:
+  - ./css/style.css
+  - ./css/monokai-pro.css
+

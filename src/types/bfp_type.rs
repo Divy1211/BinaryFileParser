@@ -17,6 +17,7 @@ use crate::types::le::str_array::StrArray;
 use crate::types::le::array::Array;
 use crate::types::le::stacked_array::StackedArray;
 use crate::types::le::stacked_attr_array::StackedAttrArray;
+use crate::types::le::tail::Tail;
 use crate::types::parseable::Parseable;
 use crate::types::parseable_type::ParseableType;
 use crate::types::r#struct::Struct;
@@ -54,11 +55,13 @@ pub enum BfpType {
     StrArray(StrArray),
     
     Option(OptionType),
-
+    
     Array(Array),
     StackedArray(StackedArray),
     StackedAttrArray(StackedAttrArray),
 
+    Tail(Tail),
+    
     Struct(Struct),
 }
 
@@ -131,6 +134,7 @@ impl BfpType {
             BfpType::Array(type_)             => format!("list[{}]", type_.data_type.py_name()),
             BfpType::StackedArray(type_)      => format!("list[list[{}]", type_.data_type.py_name()),
             BfpType::StackedAttrArray(type_)  => format!("list[{}]", type_.data_type.py_name()),
+            BfpType::Tail(type_)              => format!("list[{}]", type_.data_type.py_name()),
             
             BfpType::Struct(struct_)          => struct_.fully_qualified_name.clone(),
         }
@@ -243,6 +247,11 @@ impl BfpType {
                 }
                 ls.into()
             }
+
+            BfpType::Tail(type_) => {
+                let ls = type_.get_bfp_ls(value)?;
+                ls.into()
+            }
             
             BfpType::Struct(struct_) => {
                 let py_type = struct_.py_type.bind(value.py());
@@ -300,6 +309,8 @@ impl Parseable for BfpType {
             BfpType::Array(val)               => val.from_stream(stream, ver)?.into(),
             BfpType::StackedArray(val)        => val.from_stream(stream, ver)?.into(),
             BfpType::StackedAttrArray(val)    => val.from_stream(stream, ver)?.into(),
+
+            BfpType::Tail(val)                => val.from_stream(stream, ver)?.into(),
             
             BfpType::Struct(struct_)          => ParseableType::Struct {
                 val: struct_.from_stream(stream, ver)?,
@@ -343,6 +354,7 @@ impl Parseable for BfpType {
             (BfpType::Array(type_),            ParseableType::Array(val))         => type_.to_bytes(val),
             (BfpType::StackedArray(type_),     ParseableType::Array(val))         => type_.to_bytes(val),
             (BfpType::StackedAttrArray(type_), ParseableType::Array(val))         => type_.to_bytes(val),
+            (BfpType::Tail(type_),             ParseableType::Array(val))         => type_.to_bytes(val),
 
             (BfpType::Struct(type_),           ParseableType::Struct { val, .. }) => type_.to_bytes(val),
 

@@ -9,7 +9,7 @@ use crate::types::manager_info::ManagerInfo;
 #[derive(Debug)]
 pub struct Manager {
     #[pyo3(get)]
-    pub struct_: Py<PyAny>,
+    pub _struct: Py<PyAny>,
 }
 
 impl Manager {
@@ -30,7 +30,7 @@ impl Manager {
 #[pymethods]
 impl Manager {
     #[new]
-    pub fn new_py(struct_: Py<PyAny>) -> Manager {
-        Self { struct_ }
+    pub fn new_py(_struct: Py<PyAny>) -> Manager {
+        Self { _struct }
     }
 }
