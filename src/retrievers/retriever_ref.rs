@@ -22,7 +22,7 @@ pub struct RetrieverRef  {
     target: Vec<Ref>,
     pub name: String,
     
-    tuple: Arc<Py<PyTuple>>,
+    tuple: Arc<Py<PyTuple>>, // todo: Option this, so it can be none-ed after __set_name__ to lose the Arc
 }
 
 #[pymethods]

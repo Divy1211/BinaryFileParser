@@ -8,6 +8,7 @@ use crate::types::bfp_list::BfpList;
 use crate::types::bfp_type::BfpType;
 use crate::types::r#struct::Struct;
 
+// todo: change to structural enum
 #[derive(Debug, Clone)]
 pub enum ParseableType {
     None,

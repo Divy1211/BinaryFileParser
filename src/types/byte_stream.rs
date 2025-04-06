@@ -9,7 +9,7 @@ use pyo3::types::{PyBytes, PyType};
 #[pyclass(module = "bfp_rs")]
 #[derive(Debug, Clone)]
 pub struct ByteStream {
-    bytes: Arc<Vec<u8>>,
+    bytes: Arc<Vec<u8>>, // todo: is there a better way to share immutable data?
     progress: usize,
 }
 

@@ -23,6 +23,7 @@ use crate::types::parseable_type::ParseableType;
 use crate::types::r#struct::Struct;
 use crate::types::version::Version;
 
+// todo: change to a structural enum
 #[pyclass]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum BfpType {

@@ -5,11 +5,15 @@ use std::io::Write;
 use crate::types::byte_stream::ByteStream;
 use crate::types::version::Version;
 
+
+
+// todo: figure out macros for fn delegations
 pub trait Parseable {
     type Type;
     
     fn from_stream(&self, stream: &mut ByteStream, ver: &Version) -> io::Result<Self::Type>;
 
+    // todo: change to a &mut Vec<u8> in parameter for allocations.
     fn to_bytes(&self, value: &Self::Type) -> io::Result<Vec<u8>>;
 
     fn from_bytes(&self, bytes: &[u8], ver: &Version) -> io::Result<Self::Type> {

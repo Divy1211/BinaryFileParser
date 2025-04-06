@@ -21,6 +21,7 @@ use crate::types::parseable_type::ParseableType;
 use crate::types::r#struct::Struct;
 use crate::types::version::Version;
 
+// todo: make an inner
 #[pyclass(module = "bfp_rs", subclass, eq)]
 #[derive(Debug, Clone)]
 pub struct BaseStruct {
@@ -63,7 +64,8 @@ impl BaseStruct {
         let retrievers = struct_.retrievers.read().expect("immutable");
         Ok(retrievers.len())
     }
-    
+
+    // todo: figure out unsafe allocations
     pub fn with_cls<'py>(val: BaseStruct, cls: &Bound<'py, PyType>) -> Bound<'py, PyAny> {
         let obj = cls.call((Version::new(vec![-1]), false), None).expect("always a BaseStruct subclass");
         *(obj.downcast::<BaseStruct>().expect("infallible").borrow_mut()) = val;

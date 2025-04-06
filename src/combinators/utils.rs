@@ -9,36 +9,11 @@ use crate::types::bfp_type::BfpType;
 use crate::types::parseable_type::ParseableType;
 use crate::types::version::Version;
 
-#[cfg_attr(feature = "inline_always", inline(always))]
-pub fn check_initialized(
-    idx: usize,
-    retrievers: &Vec<Retriever>,
-    data: &Vec<Option<ParseableType>>
-) -> PyResult<()> {
-    if idx >= data.len() {
-        return Err(PyValueError::new_err(format!(
-            "Combinator: '{}' has not been initialised yet", retrievers[idx].name
-        )))
-    }
+// todo: add an if_supported
+// todo: add grouped combinators
 
-    Ok(())
-}
 
-#[cfg_attr(feature = "inline_always", inline(always))]
-pub fn get<'a>(
-    idx: usize,
-    retrievers: &Vec<Retriever>,
-    data: &'a Vec<Option<ParseableType>>,
-    ver: &Version,
-) -> PyResult<&'a ParseableType> {
-    let Some(repeat) = &data[idx] else {
-        return Err(VersionError::new_err(format!(
-            "Combinator: '{}' is not supported in struct version {ver}", retrievers[idx].name
-        )))
-    };
-
-    Ok(repeat)
-}
+// todo: make an internal BfpError type for error data to not be lost when converting to a PyErr
 
 pub fn idxes_from_tup(target: &Bound<PyTuple>) -> PyResult<(Vec<usize>, BfpType, String)> {
     if <Bound<PyTuple> as PyTupleMethods>::len(target) == 0 {
