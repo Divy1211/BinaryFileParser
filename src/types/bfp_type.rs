@@ -2,7 +2,6 @@ use pyo3::exceptions::{PyTypeError, PyValueError};
 use pyo3::prelude::*;
 use pyo3::{pyclass, pymethods, Bound, PyAny, PyResult};
 use pyo3::types::{PyBytes, PyType};
-
 use crate::types::base_struct::BaseStruct;
 use crate::types::byte_stream::ByteStream;
 use crate::types::le::bool::{Bool128, Bool16, Bool32, Bool64, Bool8};
@@ -67,6 +66,21 @@ pub enum BfpType {
 }
 
 impl BfpType {
+    pub fn get_contained_type(&self, name: &str) -> PyResult<BfpType> {
+        Ok(match self {
+            BfpType::StrArray(arr)         => BfpType::Str(Str::from_arr(arr)),
+            BfpType::Array(arr)            => arr.data_type.as_ref().clone(),
+            BfpType::StackedArray(arr)     => arr.data_type.as_ref().clone(),
+            BfpType::StackedAttrArray(arr) => arr.data_type.as_ref().clone(),
+            BfpType::Tail(arr)             => arr.data_type.as_ref().clone(),
+            _ => {
+                return Err(PyTypeError::new_err(format!(
+                    "Cannot index a type '{}', attempting to index '{}'", self.py_name(), name
+                )))
+            }
+        })
+    }
+    
     pub fn from_py_any(value: &Bound<PyAny>) -> PyResult<BfpType> {
         Ok(match value.extract::<BfpType>() {
             Ok(type_) => type_,
@@ -270,6 +284,13 @@ impl BfpType {
             }
         })
     }
+
+    pub fn is_option(&self) -> bool {
+        match self {
+            BfpType::Option(_) => true,
+            _ => false,
+        }
+    }
 }
 
 impl Parseable for BfpType {
@@ -319,7 +340,7 @@ impl Parseable for BfpType {
             },
         })
     }
-
+    
     fn to_bytes(&self, value: &Self::Type) -> std::io::Result<Vec<u8>> {
         match (self, value) {
             (BfpType::UInt8(type_),            ParseableType::UInt8(val))         => type_.to_bytes(val),

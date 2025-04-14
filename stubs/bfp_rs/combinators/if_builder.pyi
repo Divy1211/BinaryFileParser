@@ -10,6 +10,15 @@ class IfBuilder:
     Constructs combinators that may execute conditionally during parsing, depending on the values of their retriever
     inputs
     """
+
+    def is_none(self) -> IfBuilder:
+        """
+        Checks if the previously selected value is none
+
+        Returns:
+            An ``IfBuilder`` instance to continue defining additional combinator properties
+        """
+
     def then(self, com: Combinator) -> Combinator:
         """
         Finishes the if-combinator construction by defining a nested combinator, should be called last on an

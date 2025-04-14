@@ -10,7 +10,7 @@ checksum = "ace50bade8e6234aa140d9a2f552bbee1db4d353f69b8217bc503490fc1a9f26"
 
 [[package]]
 name = "bfp-rs"
-version = "0.3.3-alpha1"
+version = "0.3.4-alpha1"
 dependencies = [
  "encoding_rs",
  "indicatif",

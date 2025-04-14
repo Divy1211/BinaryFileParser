@@ -15,11 +15,26 @@ use crate::retrievers::retriever::Retriever;
 pub struct SetRepeatBuilder {
     target: usize,
     target_name: String,
+    target_repeat: isize
+}
+
+impl SetRepeatBuilder {
+    fn check_target_repeat(&self) -> PyResult<()> {
+        if self.target_repeat != 1 {
+            return Ok(())
+        }
+        Err(PyValueError::new_err(format!(
+            "Creating a set repeat combinator on '{}' which has default repeat set to 1 is not allowed",
+            self.target_name
+        )))
+    }
 }
 
 #[pymethods]
 impl SetRepeatBuilder {
     pub fn by(&self, mut from: Get) -> PyResult<CombinatorType> {
+        self.check_target_repeat()?;
+        
         from.make_contiguous();
         Ok(SetRepeatBy::new(
             self.target,
@@ -29,6 +44,8 @@ impl SetRepeatBuilder {
     
     #[pyo3(signature = (*source), text_signature = "(*source: Retriever | int)")]
     pub fn from_(&self, source: &Bound<PyTuple>) -> PyResult<CombinatorType> {
+        self.check_target_repeat()?;
+        
         let (source, _source_data_type, _source_name) = idxes_from_tup(source)?;
         
         Ok(SetRepeatFrom::new(self.target, source).into())
@@ -36,6 +53,8 @@ impl SetRepeatBuilder {
 
     #[pyo3(signature = (*source), text_signature = "(*source: Retriever | int)")]
     pub fn from_len(&self, source: &Bound<PyTuple>) -> PyResult<CombinatorType> {
+        self.check_target_repeat()?;
+        
         let (source, _source_data_type, _source_name) = idxes_from_tup(source)?;
 
         Ok(SetRepeatFromLen::new(self.target, source).into())
@@ -49,11 +68,18 @@ impl SetRepeatBuilder {
                 self.target_name, target
             )));
         }
+        if target != -1 {
+            self.check_target_repeat()?;
+        }
         Ok(SetRepeatTo::new(self.target, target).into())
     }
 }
 
 #[pyfunction]
-pub fn set_repeat(target: PyRef<Retriever>) -> SetRepeatBuilder {
-    SetRepeatBuilder { target: target.idx, target_name: target.name.clone() }
+pub fn set_repeat(target: PyRef<Retriever>) -> PyResult<SetRepeatBuilder> {
+    Ok(SetRepeatBuilder {
+        target: target.idx,
+        target_name: target.name.clone(),
+        target_repeat: target.repeat
+    })
 }

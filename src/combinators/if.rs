@@ -7,3 +7,4 @@ pub mod if_cmp_len_to;
 pub mod if_cmp_by;
 pub mod if_cmp_len_by;
 pub mod if_ver;
+pub mod if_is_none;
