@@ -13,6 +13,7 @@ use crate::combinators::r#if::if_cmp_len_by::IfCmpLenBy;
 use crate::combinators::r#if::if_cmp_len_from::IfCmpLenFrom;
 use crate::combinators::r#if::if_cmp_len_to::IfCmpLenTo;
 use crate::combinators::r#if::if_cmp_to::IfCmpTo;
+use crate::combinators::r#if::if_is_none::IfIsNone;
 use crate::combinators::r#if::if_ver::IfVer;
 use crate::combinators::utils::idxes_from_tup;
 use crate::retrievers::retriever::Retriever;
@@ -46,6 +47,8 @@ pub struct IfBuilder {
     
     state: State,
     
+    none_check: bool,
+    
     not: bool,
     len: bool,
 }
@@ -64,6 +67,7 @@ impl Default for IfBuilder {
             state: State::HasTarget,
             not: false,
             len: false,
+            none_check: false,
         }
     }
 }
@@ -128,6 +132,11 @@ impl IfBuilder {
 
 #[pymethods]
 impl IfBuilder {
+    fn is_none<'py>(slf: Bound<'py, Self>) -> Bound<'py, Self> {
+        slf.borrow_mut().none_check = true;
+        slf
+    }
+
     fn then(&self, com: CombinatorType) -> PyResult<CombinatorType> {
         Ok(match self.state {
             State::VerCheck => {
@@ -135,6 +144,13 @@ impl IfBuilder {
                     self.min_ver.as_ref().expect("infallible"),
                     self.max_ver.as_ref().expect("infallible"),
                     com,
+                ).into()
+            }
+            State::HasTarget if self.none_check => {
+                IfIsNone::new(
+                    &self.target,
+                    com,
+                    self.not,
                 ).into()
             }
             State::HasTarget => {

@@ -35,7 +35,7 @@ pub struct Retriever {
     default: Arc<PyObject>,
     default_factory: Arc<PyObject>,
     
-    repeat: isize,
+    pub repeat: isize,
     
     pub remaining_compressed: bool,
     
@@ -162,6 +162,7 @@ impl Retriever {
                 ParseableType::None
             }
             RetState::Value | RetState::NoneValue => {
+                repeats[slf.idx] = None;
                 slf.data_type.to_parseable(&value)?
             }
             RetState::List | RetState::NoneList if value.is_none() => {
@@ -198,7 +199,7 @@ impl Retriever {
 }
 
 impl Retriever {
-    pub fn from_default(&self, ver: &Version, repeats: &Vec<Option<isize>>, py: Python) -> PyResult<ParseableType> {
+    pub fn from_default(&self, ver: &Version, repeats: &mut Vec<Option<isize>>, py: Python) -> PyResult<ParseableType> {
         let state = self.state(repeats);
         if state == RetState::NoneValue || state == RetState::NoneList {
             return Ok(ParseableType::None);
@@ -220,12 +221,32 @@ impl Retriever {
 
         if !self.default_factory.is_none(py) {
             if state == RetState::Value {
-                return self.default_factory
-                    .call_bound(py, (ver.clone(),), None) // default_factory(ver)
-                    .and_then(|obj| self.data_type.to_parseable(obj.bind(py)));
+                let value = self.default_factory.call_bound(py, (ver.clone(),), None)?; // default_factory(ver)
+                
+                let value = value.bind(py);
+                
+                if value.is_none() {
+                    if let Ok(value) = self.data_type.to_parseable(value) {
+                        return Ok(value);
+                    }
+                    repeats[self.idx] = Some(-1);
+                    return Ok(ParseableType::None);
+                }
+                return self.data_type.to_parseable(value);
             }
+            let value = self.default_factory.call_bound(py, (ver.clone(),), None)?; // default_factory(ver)
+            if value.is_none(py) {
+                repeats[self.idx] = Some(-2);
+                return Ok(ParseableType::None);
+            }
+            
             let mut ls = Vec::with_capacity(repeat);
-            for _ in 0..repeat {
+            
+            if repeat > 0 {
+                ls.push(self.data_type.to_parseable(value.bind(py))?);
+            }
+            
+            for _ in 1..repeat {
                 ls.push(
                     self.default_factory
                         .call_bound(py, (ver.clone(),), None) // default_factory(ver)
@@ -300,9 +321,6 @@ impl Retriever {
 
     #[cfg_attr(feature = "inline_always", inline(always))]
     pub fn to_bytes(&self, value: &ParseableType) -> std::io::Result<Vec<u8>> {
-        if *value == ParseableType::None {
-            return Ok(vec![]);
-        }
         self.data_type.to_bytes(value)
     }
 

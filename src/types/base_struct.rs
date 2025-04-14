@@ -172,7 +172,7 @@ impl BaseStruct {
     fn new_py(cls: &Bound<PyType>, ver: Version, init_defaults: bool, retriever_inits: Option<&Bound<'_, PyDict>>) -> PyResult<Self> {
         let len = BaseStruct::len(cls)?;
         let mut data = vec![None; len];
-        let repeats = vec![None; len];
+        let mut repeats = vec![None; len];
 
         if !init_defaults {
             return Ok(BaseStruct::new(ver, data, repeats));
@@ -191,7 +191,7 @@ impl BaseStruct {
                 .transpose()?;
 
             if init.is_none() {
-                init = match ret.from_default(&ver, &repeats, cls.py()) {
+                init = match ret.from_default(&ver, &mut repeats, cls.py()) {
                     Ok(val) => Some(val),
                     Err(e) => {
                         let err = DefaultAttributeError::new_err(format!(

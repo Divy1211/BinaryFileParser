@@ -26,17 +26,21 @@ pub fn idxes_from_tup(target: &Bound<PyTuple>) -> PyResult<(Vec<usize>, BfpType,
 
     let mut data_type = fst.data_type;
     let mut name = fst.name;
+    let mut repeat = fst.repeat;
     let target = target.into_iter().map(|val| {
-        val.extract::<Retriever>()
-            .map(|ret| {
-                data_type = ret.data_type;
-                name = ret.name;
-                Ok(ret.idx)
-            })
-            .unwrap_or_else(|_| val.extract::<usize>())
-            .map_err(|_| {
-                PyValueError::new_err("Only Retrievers or indexes may be specified in a path target. Use a single get[_len]() for arithmetic operations on int/list Retrievers")
-            })
+        if let Ok(ret) = val.extract::<Retriever>() {
+            data_type = ret.data_type;
+            name = ret.name;
+            repeat = ret.repeat;
+            return Ok(ret.idx);
+        }
+        if let Ok(idx) = val.extract::<usize>() {
+            if repeat == 1 {
+                data_type = data_type.get_contained_type(&name)?;
+            }
+            return Ok(idx);
+        }
+        Err(PyValueError::new_err("Only Retrievers or indexes may be specified in a path target. Use a single get[_len]() for arithmetic operations on int/list Retrievers"))
     }).collect::<PyResult<_>>()?;
     
     Ok((target, data_type, name))
