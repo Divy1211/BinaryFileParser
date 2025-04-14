@@ -20,7 +20,7 @@ class FileHeader(BaseStruct):
     individual_victories_used: bool = Retriever(bool32,     max_ver = Version(5), default = False)
     num_players: int                = Retriever(u32,                              default = 2)
     dlc_options: DLCOptions         = Retriever(DLCOptions, min_ver = Version(3), default_factory = lambda _ver: DLCOptions())
-    creator: str                    = Retriever(nt_str32,   min_ver = Version(5), default = "AoE2SP")
+    creator: str                    = Retriever(nt_str32,   min_ver = Version(4), default = "AoE2SP")
     num_triggers: int               = Retriever(u32,        min_ver = Version(5), default = 0)
     # @formatter:on
 

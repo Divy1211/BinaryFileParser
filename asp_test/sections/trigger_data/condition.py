@@ -10,7 +10,7 @@ class Condition(BaseStruct):
     # @formatter:off
     type: int                              = Retriever(i32,          default = 0)
     _properties: list[int]                 = Retriever(Array32[i32], default_factory = lambda _: [-1]*27)
-    xs_function: str                       = Retriever(str32,        default = "", min_ver = Version(2, 4))
+    xs_function: str                       = Retriever(str32,        default = "", min_ver = Version(2, 3))
 
     # todo: subclassing?
     num_properties: int                    = RetrieverRef(_properties, 0)

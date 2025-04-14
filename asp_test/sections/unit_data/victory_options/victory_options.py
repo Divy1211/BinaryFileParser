@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from bfp_rs import BaseStruct, ByteStream, Retriever, Version
+from bfp_rs import BaseStruct, ByteStream, Retriever, Version, ret
 from bfp_rs.types.le import f32, i32, u8
 from bfp_rs.combinators import set_repeat, set_
 
@@ -8,10 +8,31 @@ from asp_test.sections.unit_data.victory_options.victory_condition import Victor
 from asp_test.sections.unit_data.victory_options.victory_point import VictoryPoint
 
 
+def victory_conditions_repeat():
+    return [
+        set_repeat(ret(VictoryOptions.victory_conditions)).from_(ret(VictoryOptions._num_conditions))
+    ]
+
+def sync_num_victory_conditions():
+    return [
+        set_(ret(VictoryOptions._num_conditions)).from_len(ret(VictoryOptions.victory_conditions))
+    ]
+
+def victory_points_repeat():
+    return [
+        set_repeat(ret(VictoryOptions.victory_points)).from_(ret(VictoryOptions._num_points))
+    ]
+
+def sync_num_victory_points():
+    return [
+        set_(ret(VictoryOptions._num_points)).from_len(ret(VictoryOptions.victory_points))
+    ]
+
+
 class VictoryOptions(BaseStruct):
     # @formatter:off
     version: float       = Retriever(f32, min_ver = Version(1, 0), default = 2.1)
-    _num_conditions: int = Retriever(i32,                          default = 0, on_read = lambda: [set_repeat(VictoryOptions.victory_conditions).from_(VictoryOptions._num_conditions)], on_write = lambda: [set_(VictoryOptions._num_conditions).from_len(VictoryOptions.victory_conditions)])
+    _num_conditions: int = Retriever(i32,                          default = 0, on_read = victory_conditions_repeat, on_write = sync_num_victory_conditions)
     victory_state: int   = Retriever(u8,                           default = 0)
     """
     - 0: Not achieved
@@ -21,7 +42,7 @@ class VictoryOptions(BaseStruct):
     """
     victory_conditions: list[VictoryCondition] = Retriever(VictoryCondition,                          default_factory = VictoryCondition, repeat = 0)
     total_points: int                          = Retriever(i32,              min_ver = Version(1, 0), default = 0)
-    _num_points: int                           = Retriever(i32,              min_ver = Version(1, 0), default = 0, on_read = lambda: [set_repeat(VictoryOptions.victory_points).from_(VictoryOptions._num_points)], on_write = lambda: [set_(VictoryOptions._num_points).from_len(VictoryOptions.victory_points)])
+    _num_points: int                           = Retriever(i32,              min_ver = Version(1, 0), default = 0, on_read = victory_points_repeat, on_write = sync_num_victory_points)
     starting_points: int                       = Retriever(i32,              min_ver = Version(2, 0), default = 0)
     starting_group: int                        = Retriever(i32,              min_ver = Version(2, 0), default = 0)
     victory_points: list[VictoryPoint]         = Retriever(VictoryPoint,     min_ver = Version(1, 0), default_factory = VictoryPoint,     repeat = 0)

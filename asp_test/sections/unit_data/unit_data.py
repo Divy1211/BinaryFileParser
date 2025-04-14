@@ -38,7 +38,7 @@ class UnitData(BaseStruct):
     _num_world_players: int                        = Retriever(u32,                                          default = 9, on_read = world_player_data_repeat, on_write = sync_num_world_players)
     world_player_data: list[WorldPlayerData]       = Retriever(WorldPlayerData,    min_ver = Version(1,  7), default_factory = WorldPlayerData,                   repeat = 8)
 
-    _units_aoc: list[list[Unit]]                   = Retriever(Array32[Unit],      max_ver = Version(1, 35), default_factory = lambda _: [],                      repeat = 9)
+    _units_aoc: list[list[Unit]]                   = Retriever(Array32[Unit],      max_ver = Version(1, 33), default_factory = lambda _: [],                      repeat = 9)
     _num_scenario_players: int                     = Retriever(u32,                                          default = 9, on_read = scx_player_data_repeat,   on_write = sync_num_scx_players)
     scenario_player_data: list[ScenarioPlayerData] = Retriever(ScenarioPlayerData,                           default_factory = ScenarioPlayerData,                repeat = 8)
     _units_de: list[list[Unit]]                    = Retriever(Array32[Unit],      min_ver = Version(1, 36), default_factory = lambda _: [],                      repeat = 9)

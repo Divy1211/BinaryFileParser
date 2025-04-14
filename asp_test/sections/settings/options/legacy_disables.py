@@ -32,7 +32,7 @@ def sync_num_disabled_buildings():
 
 class LegacyDisables(BaseStruct):
     # @formatter:off
-    _disabled_tech_ids_old: list[list[int]]     = Retriever(Array[20][i32],                           max_ver = Version(1, 17), default_factory = lambda _: [-1]*20, repeat = 16)
+    _disabled_tech_ids_old: list[list[int]]     = Retriever(Array[20][i32], min_ver = Version(1,  4), max_ver = Version(1, 17), default_factory = lambda _: [-1]*20, repeat = 16)
     _num_disabled_techs: list[int]              = Retriever(i32,            min_ver = Version(1, 18),                           default = 0,                         repeat = 16, on_write = sync_num_techs)
     _disabled_tech_ids: list[list[int]]         = Retriever(Array[30][i32], min_ver = Version(1, 18),                           default_factory = lambda _: [-1]*30, repeat = 16)
 

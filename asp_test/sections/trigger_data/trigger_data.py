@@ -22,7 +22,7 @@ class TriggerData(BaseStruct):
     objectives_state: int              = Retriever(i8,                        min_ver = Version(1, 5), default = 0)
     triggers: list[Trigger]            = Retriever(Array32[Trigger],                                   default_factory = lambda _: [],             on_read = trigger_display_orders_repeat)
     trigger_display_orders: list[int]  = Retriever(u32,                       min_ver = Version(1, 4), default = 0,                    repeat = 0)
-    variable_data: VariableData        = Retriever(VariableData,              min_ver = Version(2, 2), default_factory = VariableData)
+    variable_data: VariableData        = Retriever(VariableData,              min_ver = Version(1, 9), default_factory = VariableData)
     unused1: int                       = Retriever(u32,                       min_ver = Version(2, 4), default = 0)
     unused2: int                       = Retriever(u32,                       min_ver = Version(2, 7), default = 0)
     unused3: int                       = Retriever(bool8,                     min_ver = Version(2, 7), default = False)

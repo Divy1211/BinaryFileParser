@@ -16,16 +16,15 @@ class PlayerBaseOptions(BaseStruct):
     architecture: int        = Retriever(u32,       min_ver = Version(1, 40), default = 65537)
     posture: int             = Retriever(u32,                                 default = 4)
 
-    # todo: add correct defaults for different versions, or there will be crashes in DE
-    # _civilization_1_36: int = Retriever(uint32, default = 36,                             max_ver = Version((1, 40)))
-    # _civilization_1_41: int = Retriever(uint32, default = 38, min_ver = Version((1, 41)), max_ver = Version((1, 42)))
-    # _civilization_1_43: int = Retriever(uint32, default = 40, min_ver = Version((1, 43)), max_ver = Version((1, 45)))
-    # _civilization_1_46: int = Retriever(uint32, default = 43, min_ver = Version((1, 46)))
+    # _civilization_1_36: int = Retriever(u32, default = 36,                           max_ver = Version(1, 40))
+    # _civilization_1_41: int = Retriever(u32, default = 38, min_ver = Version(1, 41), max_ver = Version(1, 42))
+    # _civilization_1_43: int = Retriever(u32, default = 40, min_ver = Version(1, 43), max_ver = Version(1, 45))
+    # _civilization_1_46: int = Retriever(u32, default = 43, min_ver = Version(1, 46))
     #
-    # _architecture_1_40: int = Retriever(uint32, default = 36, min_ver = Version((1, 40)), max_ver = Version((1, 40)))
-    # _architecture_1_41: int = Retriever(uint32, default = 38, min_ver = Version((1, 41)), max_ver = Version((1, 42)))
-    # _architecture_1_43: int = Retriever(uint32, default = 40, min_ver = Version((1, 43)), max_ver = Version((1, 45)))
-    # _architecture_1_46: int = Retriever(uint32, default = 43, min_ver = Version((1, 46)))
+    # _architecture_1_40: int = Retriever(u32, default = 36, min_ver = Version(1, 40), max_ver = Version(1, 40))
+    # _architecture_1_41: int = Retriever(u32, default = 38, min_ver = Version(1, 41), max_ver = Version(1, 42))
+    # _architecture_1_43: int = Retriever(u32, default = 40, min_ver = Version(1, 43), max_ver = Version(1, 45))
+    # _architecture_1_46: int = Retriever(u32, default = 43, min_ver = Version(1, 46))
 
     # civilization = RetrieverCombiner(_civilization_1_36, _civilization_1_41, _civilization_1_43, _civilization_1_46)
     # architecture = RetrieverCombiner(_architecture_1_40, _architecture_1_41, _architecture_1_43, _architecture_1_46)

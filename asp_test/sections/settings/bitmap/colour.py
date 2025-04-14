@@ -5,10 +5,10 @@ from asp_test.sections.scx_versions import DE_LATEST
 
 
 class Colour(BaseStruct):
-    red: int   = Retriever(u8, default = 0)
-    green: int = Retriever(u8, default = 0)
-    blue: int  = Retriever(u8, default = 0)
-    alpha: int = Retriever(u8, default = 0)
+    blue: int     = Retriever(u8, default = 0)
+    green: int    = Retriever(u8, default = 0)
+    red: int      = Retriever(u8, default = 0)
+    reversed: int = Retriever(u8, default = 0)
     """unused"""
 
     def __new__(

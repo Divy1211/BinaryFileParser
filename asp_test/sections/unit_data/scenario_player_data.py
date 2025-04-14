@@ -13,16 +13,16 @@ from asp_test.sections.unit_data.view import ViewF, ViewI
 
 class ScenarioPlayerData(BaseStruct):
     # @formatter:off
-    name: str                                = Retriever(nt_str16,       default = "Scenario Editor Phantom")
-    editor_view: ViewF                       = Retriever(ViewF,          default_factory = ViewF)
-    initial_view: ViewI                      = Retriever(ViewI,          default_factory = ViewI)
-    aok_allied_victory: bool                 = Retriever(bool8,          default = False)
-    diplomacy_stances_interaction: list[int] = Retriever(Array16[u8],    default_factory = lambda _: [3, 0, 3, 3, 3, 3, 3, 3, 3])
+    name: str                                = Retriever(nt_str16,                                 default = "Scenario Editor Phantom")
+    editor_view: ViewF                       = Retriever(ViewF,                                    default_factory = ViewF)
+    initial_view: ViewI                      = Retriever(ViewI,                                    default_factory = ViewI)
+    aok_allied_victory: bool                 = Retriever(bool8,                                    default = False)
+    diplomacy_stances_interaction: list[int] = Retriever(Array16[u8],                              default_factory = lambda _: [3, 0, 3, 3, 3, 3, 3, 3, 3])
     """aka relations"""
     diplomacy_stances_ai_system: list[int]   = Retriever(Array[9][u32],  min_ver = Version(1,  9), default_factory = lambda _: [0, 1, 4, 4, 4, 4, 4, 4, 4])
     """aka unit_diplomacy"""
-    colour: int                              = Retriever(u32,            min_ver = Version(1, 18), default = 0)
-    victory_options: VictoryOptions          = Retriever(VictoryOptions, default_factory = lambda _ver: VictoryOptions())
+    colour: int                              = Retriever(u32,            min_ver = Version(1, 17), default = 0)
+    victory_options: VictoryOptions          = Retriever(VictoryOptions,                           default_factory = lambda _ver: VictoryOptions())
     # @formatter:on
 
     def __new__(cls, ver: Version = DE_LATEST, init_defaults = True, **retriever_inits):

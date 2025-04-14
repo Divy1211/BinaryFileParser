@@ -4,16 +4,16 @@ import zlib
 from contextlib import suppress
 
 from bfp_rs import BaseStruct, Retriever, ByteStream, Version
-from bfp_rs.combinators import set_, if_ver
 
 from asp_test.sections.scx_versions import DE_LATEST
 from asp_test.sections.file_header import FileHeader
-from asp_test.sections.settings import Settings, PlayerOptions, Resources
+from asp_test.sections.settings import Settings
 from asp_test.sections.map_data import MapData
-from asp_test.sections.unit_data import UnitData, WorldPlayerData
+from asp_test.sections.unit_data import UnitData
 from asp_test.sections.trigger_data import TriggerData
 from asp_test.sections.file_data import FileData
 from bfp_rs.errors import VersionError
+
 
 
 def sync_script_file_path(scx: ScenarioSections):
