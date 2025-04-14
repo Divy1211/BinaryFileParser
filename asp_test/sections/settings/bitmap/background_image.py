@@ -31,14 +31,14 @@ def pixel_repeat():
 
 class BackgroundImage(BaseStruct):
     # @formatter:off
-    filename: str                  = Retriever(str16,            min_ver = Version(1,  9), default = "")
-    version: int                   = Retriever(u32,              min_ver = Version(1, 10), default = 0)
-    width: int                     = Retriever(i32,              min_ver = Version(1, 10), default = 0,                        on_read = info_header_repeat_w, on_write = info_header_repeat_w)
-    height: int                    = Retriever(i32,              min_ver = Version(1, 10), default = 0,                        on_read = info_header_repeat_h, on_write = info_header_repeat_h)
+    filename: str                        = Retriever(str16,            min_ver = Version(1,  9), default = "")
+    version: int                         = Retriever(u32,              min_ver = Version(1, 10), default = 0)
+    width: int                           = Retriever(i32,              min_ver = Version(1, 10), default = 0,                        on_read = info_header_repeat_w)
+    height: int                          = Retriever(i32,              min_ver = Version(1, 10), default = 0,                        on_read = info_header_repeat_h)
     # """https://en.wikipedia.org/wiki/BMP_file_format#Pixel_storage"""
-    orientation: int               = Retriever(i16,              min_ver = Version(1, 10), default = 1,                        on_read = pixel_repeat)
-    info_header: BitmapInfoHeader  = Retriever(BitmapInfoHeader, min_ver = Version(1, 10), default_factory = BitmapInfoHeader)
-    pixels: list[bytes]            = Retriever(Bytes[1],         min_ver = Version(1, 10), default = b"\x00", repeat = -1)
+    orientation: int                     = Retriever(i16,              min_ver = Version(1, 10), default = 1,                        on_read = pixel_repeat)
+    info_header: BitmapInfoHeader | None = Retriever(BitmapInfoHeader, min_ver = Version(1, 10), default_factory = lambda _ver: None)
+    pixels: list[bytes] | None           = Retriever(Bytes[1],         min_ver = Version(1, 10), default_factory = lambda _ver: None, repeat = -2)
     # @formatter:on
 
     def __new__(cls, ver: Version = DE_LATEST, init_defaults = True, **retriever_inits):

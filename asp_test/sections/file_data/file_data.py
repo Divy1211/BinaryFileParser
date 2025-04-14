@@ -11,21 +11,21 @@ from asp_test.sections.scx_versions import DE_LATEST
 
 def ai_files_repeat():
     return [
-        if_not(ret(FileData.has_ai_files)).then(set_repeat(ret(FileData.ai_files)).to(0))
+        if_not(ret(FileData.has_ai_files)).then(set_repeat(ret(FileData.ai_files)).to(-1))
     ]
 
 def sync_has_ai_files():
     return [
-        if_len(ret(FileData.ai_files)).gt(0).then(set_(ret(FileData.has_ai_files)).to(True))
+        if_not(ret(FileData.ai_files)).is_none().then(set_(ret(FileData.has_ai_files)).to(True))
     ]
 
 class FileData(BaseStruct):
     # @formatter:off
-    script_file_path: str     = Retriever(str16,            min_ver = Version(1, 40),                           default = "")
-    script: str               = Retriever(str32,            min_ver = Version(1, 40),                           default = "")
-    has_ai_files: bool        = Retriever(bool32,                                                               default = False, on_read = ai_files_repeat, on_write = sync_has_ai_files)
-    ai_errors: AiError | None = Retriever(Option32[AiError],                                                    default_factory = lambda _ver: [])
-    ai_files: list[AiFile]    = Retriever(Array32[AiFile],                                                      default_factory = lambda _ver: [])
+    script_file_path: str         = Retriever(str16,            min_ver = Version(1, 40),                           default = "")
+    script: str                   = Retriever(str32,            min_ver = Version(1, 40),                           default = "")
+    has_ai_files: bool            = Retriever(bool32,                                                               default = False, on_read = ai_files_repeat, on_write = sync_has_ai_files)
+    ai_error: AiError | None      = Retriever(Option32[AiError],                                                    default_factory = lambda _ver: None)
+    ai_files: list[AiFile] | None = Retriever(Array32[AiFile],                                                      default_factory = lambda _ver: None)
     # @formatter:on
 
     def __new__(cls, ver: Version = DE_LATEST, init_defaults = True, **retriever_inits):
