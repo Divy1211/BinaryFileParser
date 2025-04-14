@@ -14,7 +14,7 @@ def selected_unit_ids():
 class Effect(BaseStruct):
     # @formatter:off
     type: int                       = Retriever(i32,          default = -1)
-    _properties: list[int]          = Retriever(Array32[i32], default_factory = lambda v: [-1]*58, on_read = selected_unit_ids)
+    _properties: list[int]          = Retriever(Array32[i32], default_factory = lambda _ver: [-1]*58, on_read = selected_unit_ids)
     message: str                    = Retriever(nt_str32,     default = "")
     sound_name: str                 = Retriever(nt_str32,     default = "")
     # this list starts in 1.20, previous versions use the _properties[4] as the singular selected unit ID

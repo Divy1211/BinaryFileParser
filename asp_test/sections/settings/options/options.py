@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from bfp_rs import BaseStruct, Retriever, Version, RetrieverRef, RetrieverCombiner, ret
-from bfp_rs.types.le import bool32, bool8, i32, StackedArray32, str16, u16, u32, u8
+from bfp_rs.types.le import bool32, bool8, i32, StackedArray32, str16, u16, u32, u8, Array
 
 from asp_test.sections.settings.options.view import View
 from asp_test.sections.settings.options.legacy_disables import LegacyDisables
@@ -18,11 +18,11 @@ class Options(BaseStruct):
     combat_mode: bool                       = Retriever(bool32,                  min_ver = Version(1,  5),                           default = False)
     naval_mode: bool                        = Retriever(bool32,                  min_ver = Version(1, 12),                           default = False)
     all_techs: bool                         = Retriever(bool32,                  min_ver = Version(1, 12),                           default = False)
-    starting_ages: list[int]                = Retriever(u32,                     min_ver = Version(1,  6),                           default = 2,            repeat = 16)
+    starting_ages: list[int]                = Retriever(Array[16][u32],          min_ver = Version(1,  6),                           default_factory = lambda _ver: [2]*16)
     separator: int                          = Retriever(i32,                     min_ver = Version(1,  3),                           default = -99)
     editor_camera_position: View            = Retriever(View,                    min_ver = Version(1, 19),                           default_factory = View)
     ai_map_type1: int                       = Retriever(i32,                     min_ver = Version(1, 21),                           default = 2)
-    base_priorities: list[int]              = Retriever(u8,                      min_ver = Version(1, 24),                           default = 0,            repeat = 16)
+    base_priorities: list[int]              = Retriever(Array[16][u8],           min_ver = Version(1, 24),                           default_factory = lambda _ver: [0]*16)
     num_triggers: int                       = Retriever(u32,                     min_ver = Version(1, 35),                           default = 0)
 
     str_sign1: int                          = Retriever(u16,                     min_ver = Version(1, 30),                           default = 2656)
@@ -33,10 +33,10 @@ class Options(BaseStruct):
     script_name: str                        = Retriever(str16,                   min_ver = Version(1, 38),                           default = "")
     collide_and_correct: bool               = Retriever(bool8,                   min_ver = Version(1, 36),                           default = False)
     villager_force_drop: bool               = Retriever(bool8,                   min_ver = Version(1, 37),                           default = False)
-    player_views: list[View]                = Retriever(View,                    min_ver = Version(1, 39),                           default_factory = View, repeat = 16)
+    player_views: list[View]                = Retriever(Array[16][View],         min_ver = Version(1, 39),                           default_factory = lambda ver: [View(ver) for _ in range(16)])
     lock_coop_alliances: bool               = Retriever(bool8,                   min_ver = Version(1, 41),                           default = False)
     ai_map_type2: int                       = Retriever(u32,                     min_ver = Version(1, 42), max_ver = Version(1, 46), default = 0)
-    population_caps: list[int]              = Retriever(u32,                     min_ver = Version(1, 44),                           default = 200,          repeat = 16)
+    population_caps: list[int]              = Retriever(Array[16][u32],          min_ver = Version(1, 44),                           default_factory = lambda _ver: [0]*16)
     # todo: figure this out
     secondary_game_mode                     = Retriever(u32,                     min_ver = Version(1, 45),                           default = 0)
 

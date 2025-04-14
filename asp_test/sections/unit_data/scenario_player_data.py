@@ -19,6 +19,7 @@ class ScenarioPlayerData(BaseStruct):
     aok_allied_victory: bool                 = Retriever(bool8,                                    default = False)
     diplomacy_stances_interaction: list[int] = Retriever(Array16[u8],                              default_factory = lambda _: [3, 0, 3, 3, 3, 3, 3, 3, 3])
     """aka relations"""
+    # :prayge:
     diplomacy_stances_ai_system: list[int]   = Retriever(Array[9][u32],  min_ver = Version(1,  9), default_factory = lambda _: [0, 1, 4, 4, 4, 4, 4, 4, 4])
     """aka unit_diplomacy"""
     colour: int                              = Retriever(u32,            min_ver = Version(1, 17), default = 0)
