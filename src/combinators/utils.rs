@@ -88,14 +88,13 @@ fn get_from_parseable_type(
 ) -> PyResult<(String, ParseableType)> {
     match val {
         ParseableType::Struct { val, struct_ } => {
-            let sub_data = val.data.read().expect("GIL bound read");
-            let sub_rets = struct_.retrievers();
+            let inner = val.inner();
 
             get_rec(
                 idxes,
-                &sub_rets,
-                &sub_data,
-                &val.ver
+                struct_.retrievers(),
+                &inner.data,
+                &inner.ver
             )
         },
         ParseableType::Array(ls) => {
@@ -164,16 +163,15 @@ fn set_from_parseable_type(
 ) -> PyResult<()> {
     match val {
         ParseableType::Struct { val, struct_ } => {
-            let mut sub_data = val.data.write().expect("GIL bound write");
-            let mut sub_repeats = val.repeats.write().expect("GIL bound write");
-            let sub_rets = struct_.retrievers();
+            let mut inner = val.inner_mut();
+            let (data, repeats, ver) = inner.split();
 
             set_rec(
                 idxes,
-                sub_rets,
-                &mut sub_data,
-                &mut sub_repeats,
-                &val.ver,
+                struct_.retrievers(),
+                data,
+                repeats,
+                ver,
                 val2,
             )
         },

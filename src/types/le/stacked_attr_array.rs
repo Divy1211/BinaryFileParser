@@ -155,24 +155,20 @@ impl StackedAttrArray {
         if structs.len() == 0 {
             return Ok(bytes);
         }
-        let mut ver = None;
-        let data_lss = structs.iter().map(|value| {
+
+        let inners = structs.iter().map(|value| {
             match value {
-                ParseableType::Struct { val, .. } => {
-                    ver = Some(val.ver.clone());
-                    val.data.read().expect("GIL bound read")
-                },
+                ParseableType::Struct { val, .. } => val.inner(),
                 _ => unreachable!("All code paths to this struct fn go through StackedAttrArray::get_bfp_ls")
             }
         }).collect::<Vec<_>>();
-        let ver = ver.expect("At least one item in ls");
         
         for (i, retriever) in retrievers.iter().enumerate() {
-            if !retriever.supported(&ver) {
+            if !retriever.supported(&inners[0].ver) {
                 continue;
             }
-            for data in data_lss.iter() {
-                bytes.append(&mut retriever.data_type.to_bytes(data[i].as_ref().expect("supported check done above"))?)
+            for inner in inners.iter() {
+                bytes.append(&mut retriever.data_type.to_bytes(inner.data[i].as_ref().expect("supported check done above"))?)
             }
         }
         

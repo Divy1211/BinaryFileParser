@@ -154,11 +154,8 @@ impl Struct {
     }
 
     pub fn to_bytes_(&self, value: &BaseStruct, bar: Option<MultiProgress>) -> std::io::Result<Vec<u8>> {
-        let mut data_lock = value.data.write().expect("GIL bound write");
-        let mut repeats_lock = value.repeats.write().expect("GIL bound write");
+        let mut inner = value.inner_mut();
 
-        let data = data_lock.as_mut();
-        let repeats = repeats_lock.as_mut();
         let retrievers = &self.raw.retrievers;
 
         let mut bytes = Vec::with_capacity(retrievers.len());
@@ -176,7 +173,7 @@ impl Struct {
         }
         
         for (i, retriever) in retrievers.iter().enumerate() {
-            if !retriever.supported(&value.ver) {
+            if !retriever.supported(&inner.ver) {
                 continue;
             }
             if let Some(progress) = progress.as_ref() {
@@ -187,11 +184,14 @@ impl Struct {
             if retriever.remaining_compressed {
                 compress_idx = Some(bytes.len());
             }
-            retriever.call_on_writes(&retrievers, data, repeats, &value.ver)?;
 
-            let value = data[retriever.idx].as_ref().expect("supported check done above");
+            let (data, repeats, ver) = inner.split();
+            
+            retriever.call_on_writes(&retrievers, data, repeats, ver)?;
 
-            bytes.append(&mut match retriever.state(repeats) {
+            let value = inner.data[retriever.idx].as_ref().expect("supported check done above");
+
+            bytes.append(&mut match retriever.state(&inner.repeats) {
                 RetState::NoneList | RetState::NoneValue => { vec![] }
                 RetState::Value => {
                     retriever.to_bytes(value)?

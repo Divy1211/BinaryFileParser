@@ -123,16 +123,15 @@ impl Retriever {
         }
         let slf = slf.borrow();
         let instance = instance.downcast::<BaseStruct>()?.borrow();
-        if !slf.supported(&instance.ver) {
-            let ver = &instance.ver;
+        let inner = instance.inner();
+        if !slf.supported(&inner.ver) {
             return Err(VersionError::new_err(format!(
-                "'{}' is not supported in struct version {ver}", slf.name
+                "'{}' is not supported in struct version {}", slf.name, inner.ver
             )))
         }
-        let data = instance.data.read().expect("GIL bound read");
-        
+
         Ok(
-            data[slf.idx].clone().expect("Attempting to access uninitialised data in struct")
+            inner.data[slf.idx].clone().expect("Attempting to access uninitialised data in struct")
                 .to_bound(slf.py())
         )
     }
@@ -147,34 +146,32 @@ impl Retriever {
         }
         let slf = slf.borrow();
         let instance = instance.borrow();
-        if !slf.supported(&instance.ver) {
-            let ver = &instance.ver;
+        let mut inner = instance.inner_mut();
+        if !slf.supported(&inner.ver) {
             return Err(VersionError::new_err(format!(
-                "'{}' is not supported in struct version {ver}", slf.name
+                "'{}' is not supported in struct version {}", slf.name, inner.ver
             )))
         }
-        let mut repeats = instance.repeats.write().expect("GIL bound read");
-        let mut data = instance.data.write().expect("GIL bound write");
 
-        data[slf.idx] = Some(match slf.state(&repeats) {
+        inner.data[slf.idx] = Some(match slf.state(&inner.repeats) {
             RetState::Value | RetState::NoneValue if value.is_none() => {
-                repeats[slf.idx] = Some(-1);
+                inner.repeats[slf.idx] = Some(-1);
                 ParseableType::None
             }
             RetState::Value | RetState::NoneValue => {
-                repeats[slf.idx] = None;
+                inner.repeats[slf.idx] = None;
                 slf.data_type.to_parseable(&value)?
             }
             RetState::List | RetState::NoneList if value.is_none() => {
-                repeats[slf.idx] = Some(-2);
+                inner.repeats[slf.idx] = Some(-2);
                 ParseableType::None
             }
             RetState::List | RetState::NoneList => {
-                let repeat = slf.repeat(&repeats);
+                let repeat = slf.repeat(&inner.repeats);
                 let len = value.len()? as isize;
                 if repeat == -2 {
-                    repeats[slf.idx] = Some(len);
-                } else if repeats[slf.idx].is_none() && repeat != len {
+                    inner.repeats[slf.idx] = Some(len);
+                } else if inner.repeats[slf.idx].is_none() && repeat != len {
                     return Err(PyValueError::new_err(format!(
                         "List length mismatch for '{}' which is a retriever of fixed repeat. Expected: {repeat}, Actual: {len}", slf.name
                     )))

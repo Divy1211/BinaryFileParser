@@ -51,7 +51,7 @@ impl RetrieverCombiner {
         Err(VersionError::new_err(format!(
             "{} is not supported in struct version {}",
             slf.borrow().name,
-            instance.downcast::<BaseStruct>()?.borrow().ver
+            instance.downcast::<BaseStruct>()?.borrow().inner().ver
         )))
     }
 
@@ -74,7 +74,7 @@ impl RetrieverCombiner {
         Err(VersionError::new_err(format!(
             "{} is not supported in struct version {}",
             slf.borrow().name,
-            instance.downcast::<BaseStruct>()?.borrow().ver
+            instance.downcast::<BaseStruct>()?.borrow().inner().ver
         )))
     }
 

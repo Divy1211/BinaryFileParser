@@ -1,6 +1,6 @@
 use std::fs::File;
 use std::io::Write;
-use std::sync::{Arc, RwLock};
+use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard};
 use std::time::Duration;
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 use pyo3::exceptions::{PyTypeError};
@@ -22,24 +22,35 @@ use crate::types::r#struct::Struct;
 use crate::types::struct_builder::StructBuilder;
 use crate::types::version::Version;
 
-// todo: make an inner
+#[derive(Debug)]
+pub struct BaseStructRaw {
+    pub ver: Version,
+    pub data: Vec<Option<ParseableType>>,
+    pub repeats: Vec<Option<isize>>,
+}
+
+impl BaseStructRaw {
+    // todo: refactor usages of this function to just take a reference to raw. This is a big chore
+    pub fn split(&mut self) -> (&mut Vec<Option<ParseableType>>, &mut Vec<Option<isize>>, &Version) {
+        (&mut self.data, &mut self.repeats, &self.ver)
+    }
+}
+
 #[pyclass(module = "bfp_rs", subclass, eq)]
 #[derive(Debug, Clone)]
 pub struct BaseStruct {
-    #[pyo3(get)]
-    pub ver: Version,
-    pub data: Arc<RwLock<Vec<Option<ParseableType>>>>,
-    pub repeats: Arc<RwLock<Vec<Option<isize>>>>,
+    raw: Arc<RwLock<BaseStructRaw>>,
 }
 
 impl PartialEq for BaseStruct {
     fn eq(&self, other: &Self) -> bool {
-        let data1 = self.data.read().expect("GIL bound read");
-        let data2 = other.data.read().expect("GIL bound read");
+        let data1 = &self.raw.read().expect("GIL bound read").data;
+        let data2 = &other.raw.read().expect("GIL bound read").data;
+
         if data1.len() != data2.len() {
             return false
         }
-
+        
         data1.iter().zip(data2.iter())
             .map(|(a, b)| a == b)
             .all(|x| x)
@@ -49,12 +60,20 @@ impl PartialEq for BaseStruct {
 impl Eq for BaseStruct {}
 
 impl BaseStruct {
+    pub fn inner(&self) -> RwLockReadGuard<BaseStructRaw> {
+        self.raw.read().expect("GIL bound read")
+    }
+
+    pub fn inner_mut(&self) -> RwLockWriteGuard<BaseStructRaw> {
+        self.raw.write().expect("GIL bound write")
+    }
+    
     pub fn new(ver: Version, data: Vec<Option<ParseableType>>, repeats: Vec<Option<isize>>) -> Self {
-        BaseStruct {
+        BaseStruct { raw: Arc::new(RwLock::new(BaseStructRaw {
             ver,
-            data: Arc::new(RwLock::new(data)),
-            repeats: Arc::new(RwLock::new(repeats))
-        }
+            data,
+            repeats
+        }))}
     }
 
     pub fn len(cls: &Bound<PyType>) -> PyResult<usize> {
@@ -167,6 +186,12 @@ impl BaseStruct {
 
 #[pymethods]
 impl BaseStruct {
+    #[getter]
+    #[pyo3(name = "ver")]
+    fn ver_py(slf: PyRef<Self>) -> Version {
+        slf.raw.read().expect("GIL bound read").ver.clone()
+    }
+    
     #[new]
     #[classmethod]
     #[pyo3(signature = (ver = Version::new(vec![-1]), init_defaults = true, **retriever_inits))]
