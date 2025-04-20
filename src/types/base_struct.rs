@@ -19,6 +19,7 @@ use crate::types::byte_stream::ByteStream;
 use crate::types::parseable::Parseable;
 use crate::types::parseable_type::ParseableType;
 use crate::types::r#struct::Struct;
+use crate::types::struct_builder::StructBuilder;
 use crate::types::version::Version;
 
 // todo: make an inner
@@ -58,10 +59,10 @@ impl BaseStruct {
 
     pub fn len(cls: &Bound<PyType>) -> PyResult<usize> {
         let struct_ = cls
-            .getattr(intern!(cls.py(), "struct")).expect("always a BaseStruct subclass")
+            .getattr(intern!(cls.py(), "__struct__")).expect("always a BaseStruct subclass")
             .extract::<Struct>().expect("infallible");
 
-        let retrievers = struct_.retrievers.read().expect("immutable");
+        let retrievers = struct_.retrievers();
         Ok(retrievers.len())
     }
 
@@ -78,45 +79,45 @@ impl BaseStruct {
                 "Cannot create retrievers in classes that do not subclass BaseStruct"
             ))
         }
-        let struct_ = match cls.getattr(intern!(cls.py(), "struct")) {
-            Ok(struct_) => struct_.downcast_into::<Struct>()?,
+        let mut struct_ = match cls.getattr(intern!(cls.py(), "__struct_builder__")) {
+            Ok(struct_) => struct_.downcast_into::<StructBuilder>()?,
             Err(_) => {
-                let struct_ = Bound::new(cls.py(), Struct::new(cls.extract()?, cls.fully_qualified_name()?.to_string()))?;
-                cls.setattr("struct", &struct_)?;
+                let struct_ = Bound::new(cls.py(), StructBuilder::new())?;
+                cls.setattr("__struct_builder__", &struct_)?;
                 struct_
             },
-        }.borrow();
+        }.borrow_mut();
         let idx = struct_.add_ret(retriever)?;
         retriever.borrow_mut().idx = idx;
         Ok(())
     }
     
     pub fn add_comb(cls: &Bound<PyType>, retriever: &Bound<RetrieverCombiner>) -> PyResult<()> {
-        let struct_ = match cls.getattr(intern!(cls.py(), "struct")) {
-            Ok(struct_) => struct_.downcast_into::<Struct>()?,
+        let mut struct_ = match cls.getattr(intern!(cls.py(), "__struct_builder__")) {
+            Ok(struct_) => struct_.downcast_into::<StructBuilder>()?,
             Err(_) => {
                 return Err(PyTypeError::new_err(
                     "Cannot create combiners in classes that do not subclass BaseStruct. Note that the first retriever in a BaseStruct cannot be a ref or a combiner"
                 ))
             },
-        }.borrow();
+        }.borrow_mut();
         struct_.add_comb(retriever)
     }
     
     pub fn add_ref(cls: &Bound<PyType>, retriever: &Bound<RetrieverRef>) -> PyResult<()> {
-        let struct_ = match cls.getattr(intern!(cls.py(), "struct")) {
-            Ok(struct_) => struct_.downcast_into::<Struct>()?,
+        let mut struct_ = match cls.getattr(intern!(cls.py(), "__struct_builder__")) {
+            Ok(struct_) => struct_.downcast_into::<StructBuilder>()?,
             Err(_) => {
                 return Err(PyTypeError::new_err(
                     "Cannot create refs in classes that do not subclass BaseStruct or Manager. Note that the first retriever in a BaseStruct cannot be a ref or a combiner"
                 ))
             },
-        }.borrow();
+        }.borrow_mut();
         struct_.add_ref(retriever)
     }
 
     fn to_bytes<'py>(cls: &Bound<'py, PyType>, value: &BaseStruct, filepath: &str) -> PyResult<Vec<u8>> {
-        let struct_ = Struct::from_cls(cls)?;
+        let struct_ = StructBuilder::get_struct(cls)?;
         let bar = MultiProgress::new();
         
         let spinner = bar.add(ProgressBar::new_spinner());
@@ -137,7 +138,7 @@ impl BaseStruct {
     }
 
     fn from_stream_<'py>(cls: &Bound<'py, PyType>, stream: &mut ByteStream, ver: Version, filepath: Option<&str>) -> PyResult<Bound<'py, PyAny>> {
-        let struct_ = Struct::from_cls(cls)?;
+        let struct_ = StructBuilder::get_struct(cls)?;
 
         let Some(filepath) = filepath else {
             let base = struct_.from_stream_(stream, &ver, None)?;
@@ -178,8 +179,8 @@ impl BaseStruct {
             return Ok(BaseStruct::new(ver, data, repeats));
         }
 
-        let struct_ = Struct::from_cls(cls)?;
-        let retrievers = struct_.retrievers.read().expect("GIL bound read");
+        let struct_ = StructBuilder::get_struct(cls)?;
+        let retrievers = struct_.retrievers();
 
         for ret in retrievers.iter() {
             if !ret.supported(&ver) {
@@ -217,7 +218,7 @@ impl BaseStruct {
     #[classmethod]
     #[pyo3(name = "to_bytes")]
     fn to_bytes_py<'py>(cls: &Bound<'py, PyType>, value: &BaseStruct) -> PyResult<Bound<'py, PyAny>> {
-        let struct_ = Struct::from_cls(cls)?;
+        let struct_ = StructBuilder::get_struct(cls)?;
         Ok(PyBytes::new_bound(cls.py(), &struct_.to_bytes(value)?).into_any())
     }
 

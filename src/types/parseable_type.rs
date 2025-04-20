@@ -82,7 +82,7 @@ impl ParseableType {
                 }
             },
 
-            ParseableType::Struct { val, struct_ }      => BaseStruct::with_cls(val, struct_.py_type.bind(py)),
+            ParseableType::Struct { val, struct_ }      => BaseStruct::with_cls(val, struct_.py_type(py)),
         }
     }
     

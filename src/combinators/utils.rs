@@ -48,7 +48,7 @@ pub fn idxes_from_tup(target: &Bound<PyTuple>) -> PyResult<(Vec<usize>, BfpType,
 
 pub fn get_rec(
     idxes: &[usize],
-    retrievers: &Vec<Retriever>,
+    retrievers: &[Retriever],
     data: &Vec<Option<ParseableType>>,
     ver: &Version,
 ) -> PyResult<(String, ParseableType)> {
@@ -89,7 +89,7 @@ fn get_from_parseable_type(
     match val {
         ParseableType::Struct { val, struct_ } => {
             let sub_data = val.data.read().expect("GIL bound read");
-            let sub_rets = struct_.retrievers.read().expect("GIL bound read");
+            let sub_rets = struct_.retrievers();
 
             get_rec(
                 idxes,
@@ -121,7 +121,7 @@ fn get_from_parseable_type(
 
 pub fn set_rec(
     idxes: &[usize],
-    retrievers: &Vec<Retriever>,
+    retrievers: &[Retriever],
     data: &mut Vec<Option<ParseableType>>,
     repeats: &mut Vec<Option<isize>>,
     ver: &Version,
@@ -166,11 +166,11 @@ fn set_from_parseable_type(
         ParseableType::Struct { val, struct_ } => {
             let mut sub_data = val.data.write().expect("GIL bound write");
             let mut sub_repeats = val.repeats.write().expect("GIL bound write");
-            let sub_rets = struct_.retrievers.read().expect("GIL bound read");
+            let sub_rets = struct_.retrievers();
 
             set_rec(
                 idxes,
-                &sub_rets,
+                sub_rets,
                 &mut sub_data,
                 &mut sub_repeats,
                 &val.ver,
@@ -205,7 +205,7 @@ fn set_from_parseable_type(
 }
 
 pub fn set_data(
-    retrievers: &Vec<Retriever>,
+    retrievers: &[Retriever],
     data: &mut Vec<Option<ParseableType>>,
     repeats: &mut Vec<Option<isize>>,
     ver: &Version,

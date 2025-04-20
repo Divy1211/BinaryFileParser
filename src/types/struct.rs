@@ -1,11 +1,9 @@
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
-use pyo3::intern;
 use pyo3::prelude::*;
-use pyo3::types::{PyBytes, PyString, PyType};
+use pyo3::types::{PyBytes, PyType};
 
 use crate::errors::compression_error::CompressionError;
-use crate::errors::version_error::VersionError;
 use crate::retrievers::retriever::{RetState, Retriever};
 use crate::retrievers::retriever_combiner::RetrieverCombiner;
 use crate::retrievers::retriever_ref::RetrieverRef;
@@ -16,87 +14,55 @@ use crate::types::parseable::Parseable;
 use crate::types::parseable_type::ParseableType;
 use crate::types::version::Version;
 
-// todo: make an inner
+#[derive(Debug)]
+pub struct StructRaw {
+    pub retrievers: Vec<Retriever>,
+    #[allow(unused)]
+    pub combiners: Vec<RetrieverCombiner>,
+    #[allow(unused)]
+    pub refs: Vec<RetrieverRef>,
+    
+    pub py_type: Py<PyType>,
+    pub fully_qualified_name: String,
+    
+    pub get_ver: Option<PyObject>,
+    pub compress: Option<PyObject>,
+    pub decompress: Option<PyObject>,
+}
+
 #[pyclass(module = "bfp_rs", eq)]
 #[derive(Debug, Clone)]
 pub struct Struct {
-    pub retrievers: Arc<RwLock<Vec<Retriever>>>,
-    pub combiners: Arc<RwLock<Vec<RetrieverCombiner>>>,
-    pub refs: Arc<RwLock<Vec<RetrieverRef>>>,
-    
-    pub py_type: Arc<Py<PyType>>,
-    pub fully_qualified_name: String,
-    
-    pub get_ver: Option<Arc<PyObject>>,
-    pub compress: Option<Arc<PyObject>>,
-    pub decompress: Option<Arc<PyObject>>,
+    raw: Arc<StructRaw>
 }
 
 impl PartialEq for Struct {
     fn eq(&self, other: &Self) -> bool {
-        self.fully_qualified_name == other.fully_qualified_name
+        self.raw.fully_qualified_name == other.raw.fully_qualified_name
     }
 }
 
 impl Eq for Struct {}
 
 impl Struct {
-    pub fn new(py_type: Py<PyType>, fully_qualified_name: String) -> Self {
-        Struct {
-            retrievers: Arc::new(RwLock::new(Vec::new())),
-            combiners: Arc::new(RwLock::new(Vec::new())),
-            refs: Arc::new(RwLock::new(Vec::new())),
-            
-            py_type: Arc::new(py_type),
-            fully_qualified_name,
-            
-            get_ver: None,
-            compress: None,
-            decompress: None,
-        }
+    pub fn from_raw(raw: StructRaw) -> Self {
+        Self { raw: Arc::new(raw) }
+    }
+    
+    pub fn retrievers(&self) -> &[Retriever] {
+        &self.raw.retrievers
+    }
+    
+    pub fn fully_qualified_name(&self) -> String {
+        self.raw.fully_qualified_name.clone()
     }
 
-    pub fn add_ret(&self, retriever: &Bound<Retriever>) -> PyResult<usize> {
-        let mut retriever = retriever.extract::<Retriever>()?;
-        let mut retrievers = self.retrievers.write().expect("GIL bound write");
-        let idx = retrievers.len();
-        retriever.idx = idx;
-        retrievers.push(retriever);
-        Ok(idx)
-    }
-
-    pub fn add_comb(&self, combiner: &Bound<RetrieverCombiner>) -> PyResult<()> {
-        let combiner = combiner.extract::<RetrieverCombiner>()?;
-        let mut combiners = self.combiners.write().expect("GIL bound write");
-        combiners.push(combiner);
-        Ok(())
-    }
-
-    pub fn add_ref(&self, ref_: &Bound<RetrieverRef>) -> PyResult<()> {
-        let ref_ = ref_.extract::<RetrieverRef>()?;
-        let mut refs = self.refs.write().expect("GIL bound write");
-        refs.push(ref_);
-        Ok(())
-    }
-
-    pub fn from_cls(cls: &Bound<PyType>) -> PyResult<Self> {
-        let mut struct_ = cls
-            .getattr(intern!(cls.py(), "struct")).expect("always a BaseStruct subclass")
-            .extract::<Struct>().expect("infallible");
-
-        struct_.get_ver = get_if_impl(cls, intern!(cls.py(), "_get_version"));
-        struct_.compress = get_if_impl(cls, intern!(cls.py(), "_compress"));
-        struct_.decompress = get_if_impl(cls, intern!(cls.py(), "_decompress"));
-
-        for retriever in struct_.retrievers.write().expect("GIL bound write").iter_mut() {
-            retriever.construct_fns(cls.py())?
-        }
-        
-        Ok(struct_)
+    pub fn py_type<'py>(&self, py: Python<'py>) -> &Bound<'py, PyType> {
+        self.raw.py_type.bind(py)
     }
     
     pub fn get_ver<'a>(&self, stream: &mut ByteStream, ver: &'a Version) -> PyResult<Version> {
-        let Some(fn_) = &self.get_ver else {
+        let Some(fn_) = &self.raw.get_ver else {
             return Ok(ver.clone())
         };
         
@@ -107,7 +73,7 @@ impl Struct {
     }
 
     pub fn decompress(&self, bytes: &[u8]) -> PyResult<ByteStream> {
-        let Some(fn_) = &self.decompress else {
+        let Some(fn_) = &self.raw.decompress else {
             return Err(CompressionError::new_err(
                 "Unable to read object from file. A Structure with a compressed section needs to implement '_decompress' classmethod."
             ))
@@ -120,7 +86,7 @@ impl Struct {
     }
 
     pub fn compress(&self, bytes: &mut Vec<u8>, idx: usize) -> PyResult<()> {
-        let Some(fn_) = &self.compress else {
+        let Some(fn_) = &self.raw.compress else {
             return Err(CompressionError::new_err(
                 "Unable to write object to file. A Structure with a compressed section needs to implement '_compress' classmethod."
             ))
@@ -135,7 +101,7 @@ impl Struct {
     }
 
     pub fn from_stream_(&self, stream: &mut ByteStream, ver: &Version, bar: Option<MultiProgress>) -> std::io::Result<BaseStruct> {
-        let retrievers = self.retrievers.read().expect("immutable"); // todo: change to Arc<Vec<>> with builder pattern?
+        let retrievers = &self.raw.retrievers;
         let mut data = Vec::with_capacity(retrievers.len());
         let mut repeats = vec![None; retrievers.len()];
 
@@ -193,7 +159,7 @@ impl Struct {
 
         let data = data_lock.as_mut();
         let repeats = repeats_lock.as_mut();
-        let retrievers = self.retrievers.read().expect("immutable");
+        let retrievers = &self.raw.retrievers;
 
         let mut bytes = Vec::with_capacity(retrievers.len());
         let mut compress_idx = None;
@@ -265,22 +231,5 @@ impl Parseable for Struct {
 
     fn to_bytes(&self, value: &BaseStruct) -> std::io::Result<Vec<u8>> {
         self.to_bytes_(value, None)
-    }
-}
-
-
-fn get_if_impl(cls: &Bound<PyType>, attr: &Bound<PyString>) -> Option<Arc<PyObject>> {
-    let py = cls.py();
-    let obj = cls.getattr(attr).expect("always a BaseStruct subclass");
-    if attr == "_get_version" {
-        match obj.call1((ByteStream::empty(),)) {
-            Err(err) if err.is_instance_of::<VersionError>(py) => None,
-            _ => Some(Arc::new(obj.unbind()))
-        }
-    } else {
-        match obj.call1((PyBytes::new_bound(py, &[]),)) {
-            Err(err) if err.is_instance_of::<CompressionError>(py) => None,
-            _ => Some(Arc::new(obj.unbind()))
-        }
     }
 }

@@ -20,6 +20,7 @@ use crate::types::le::tail::Tail;
 use crate::types::parseable::Parseable;
 use crate::types::parseable_type::ParseableType;
 use crate::types::r#struct::Struct;
+use crate::types::struct_builder::StructBuilder;
 use crate::types::version::Version;
 
 // todo: change to a structural enum
@@ -91,7 +92,7 @@ impl BfpType {
                         "Cannot create a BfpType from a class that does not subclass BaseStruct"
                     ))
                 }
-                BfpType::Struct(Struct::from_cls(cls)?)
+                BfpType::Struct(StructBuilder::get_struct(cls)?)
             },
         })
     }
@@ -151,7 +152,7 @@ impl BfpType {
             BfpType::StackedAttrArray(type_)  => format!("list[{}]", type_.data_type.py_name()),
             BfpType::Tail(type_)              => format!("list[{}]", type_.data_type.py_name()),
             
-            BfpType::Struct(struct_)          => struct_.fully_qualified_name.clone(),
+            BfpType::Struct(struct_)          => struct_.fully_qualified_name(),
         }
     }
 
@@ -269,7 +270,7 @@ impl BfpType {
             }
             
             BfpType::Struct(struct_) => {
-                let py_type = struct_.py_type.bind(value.py());
+                let py_type = struct_.py_type(value.py());
                 if !value.is_exact_instance(py_type) {
                     return Err(PyTypeError::new_err(
                         format!(

@@ -116,7 +116,7 @@ impl StackedAttrArray {
 
     #[cfg_attr(feature = "inline_always", inline(always))]
     fn from_stream_struct(&self, stream: &mut ByteStream, ver: &Version, type_: &Struct) -> std::io::Result<<Self as Parseable>::Type> {
-        let retrievers = type_.retrievers.read().expect("GIL bound read");
+        let retrievers = type_.retrievers();
         
         let len = self.len_type.from_stream(stream, ver)?;
         let mut data_lss = Vec::with_capacity(len);
@@ -148,7 +148,7 @@ impl StackedAttrArray {
 
     #[cfg_attr(feature = "inline_always", inline(always))]
     fn to_bytes_struct(&self, value: &<Self as Parseable>::Type, type_: &Struct) -> std::io::Result<Vec<u8>> {
-        let retrievers = type_.retrievers.read().expect("GIL bound read");
+        let retrievers = type_.retrievers();
         let structs = value.ls.read().expect("GIL bound read");
         
         let mut bytes = self.len_type.to_bytes(&structs.len())?;
