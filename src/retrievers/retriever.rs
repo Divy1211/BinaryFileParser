@@ -27,26 +27,26 @@ pub enum RetState {
 #[pyclass(module = "bfp_rs")]
 #[derive(Debug, Clone)]
 pub struct Retriever {
+    pub idx: usize,
+    
     pub data_type: BfpType,
 
     min_ver: Version,
     max_ver: Version,
-    
-    default: Arc<PyObject>,
-    default_factory: Arc<PyObject>,
-    
+
     pub repeat: isize,
-    
     pub remaining_compressed: bool,
+
+    pub name: String,
     
-    pub on_read: Arc<Vec<CombinatorType>>,
-    pub on_write: Arc<Vec<CombinatorType>>,
+    on_read: Option<Arc<Vec<CombinatorType>>>,
+    on_write: Option<Arc<Vec<CombinatorType>>>,
+    
+    default: Option<Arc<PyObject>>,
+    default_factory: Option<Arc<PyObject>>,
 
     tmp_on_read: Option<Arc<PyObject>>,
     tmp_on_write: Option<Arc<PyObject>>,
-    
-    pub name: String,
-    pub idx: usize,
 }
 
 #[pymethods]
@@ -62,7 +62,6 @@ impl Retriever {
         on_read = None, on_write = None
     ))]
     fn new(
-        py: Python,
         data_type: &Bound<PyAny>,
 
         min_ver: Version,
@@ -88,19 +87,26 @@ impl Retriever {
         };
         
         if repeat < -2 {
-            return Err(PyValueError::new_err("Repeat values cannot be less than -1"));
+            return Err(PyValueError::new_err("Repeat values cannot be less than -2"));
+        }
+
+        if repeat == -1 {
+            return Err(PyValueError::new_err(
+                "Repeat values should never be set to -1, as there is no way to dynamically indicate a single value with a set_repeat.\n\
+                Note: If you're trying to make a value be parsed conditionally, use set_repeat to -1 instead"
+            ));
         }
         
         Ok(Retriever {
             data_type: BfpType::from_py_any(data_type)?,
             min_ver,
             max_ver,
-            default: Arc::new(default.unwrap_or(py.None())),
-            default_factory: Arc::new(default_factory.unwrap_or(py.None())),
+            default: default.map(Arc::new),
+            default_factory: default_factory.map(Arc::new),
             repeat,
             remaining_compressed,
-            on_read: Arc::new(Vec::new()),
-            on_write: Arc::new(Vec::new()),
+            on_read: None,
+            on_write: None,
             tmp_on_read,
             tmp_on_write,
             idx: 0,
@@ -203,12 +209,11 @@ impl Retriever {
         }
         let repeat = self.repeat(repeats) as usize;
 
-        if !self.default.is_none(py) {
-            let default = self.data_type.to_parseable(self.default.bind(py));
+        if let Some(default) = self.default.as_ref() {
+            let default = self.data_type.to_parseable(default.bind(py))?;
             if state == RetState::Value {
-                return default;
+                return Ok(default);
             }
-            let default = default?;
             let mut ls = Vec::with_capacity(repeat);
             for _ in 0..repeat {
                 ls.push(default.clone());
@@ -216,39 +221,37 @@ impl Retriever {
             return Ok(ParseableType::Array(BfpList::new(ls, self.data_type.clone())));
         }
 
-        if !self.default_factory.is_none(py) {
+        if let Some(default_factory) = self.default_factory.as_ref() {
+            let first_default = default_factory
+                .call_bound(py, (ver.clone(),), None)?
+                .into_bound(py);
             if state == RetState::Value {
-                let value = self.default_factory.call_bound(py, (ver.clone(),), None)?; // default_factory(ver)
-                
-                let value = value.bind(py);
-                
-                if value.is_none() {
-                    if let Ok(value) = self.data_type.to_parseable(value) {
-                        return Ok(value);
+                if first_default.is_none() {
+                    // let OptionX[T] consume the None first
+                    if let Ok(default) = self.data_type.to_parseable(&first_default) {
+                        return Ok(default);
                     }
                     repeats[self.idx] = Some(-1);
                     return Ok(ParseableType::None);
                 }
-                return self.data_type.to_parseable(value);
+                return self.data_type.to_parseable(&first_default);
             }
-            let value = self.default_factory.call_bound(py, (ver.clone(),), None)?; // default_factory(ver)
-            if value.is_none(py) {
+            if first_default.is_none() {
                 repeats[self.idx] = Some(-2);
                 return Ok(ParseableType::None);
             }
-            
+
             let mut ls = Vec::with_capacity(repeat);
-            
+
             if repeat > 0 {
-                ls.push(self.data_type.to_parseable(value.bind(py))?);
+                ls.push(self.data_type.to_parseable(&first_default)?);
             }
-            
+
             for _ in 1..repeat {
-                ls.push(
-                    self.default_factory
-                        .call_bound(py, (ver.clone(),), None) // default_factory(ver)
-                        .and_then(|obj| self.data_type.to_parseable(obj.bind(py)))?
-                );
+                let default = default_factory
+                    .call_bound(py, (ver.clone(),), None)?
+                    .into_bound(py);
+                ls.push(self.data_type.to_parseable(&default)?);
             }
             return Ok(ParseableType::Array(BfpList::new(ls, self.data_type.clone())));
         }
@@ -261,7 +264,7 @@ impl Retriever {
     pub fn construct_fns(&mut self, py: Python) -> PyResult<()> {
         match &self.tmp_on_read {
             Some(obj) => {
-                self.on_read = Arc::new(obj.call0(py)?.extract::<Vec<CombinatorType>>(py)?);
+                self.on_read = Some(Arc::new(obj.call0(py)?.extract::<Vec<CombinatorType>>(py)?));
                 self.tmp_on_read = None;
             }
             _ => {}
@@ -269,7 +272,7 @@ impl Retriever {
 
         match &self.tmp_on_write {
             Some(obj) => {
-                self.on_write = Arc::new(obj.call0(py)?.extract::<Vec<CombinatorType>>(py)?);
+                self.on_write = Some(Arc::new(obj.call0(py)?.extract::<Vec<CombinatorType>>(py)?));
                 self.tmp_on_write = None;
             }
             _ => {}
@@ -286,7 +289,10 @@ impl Retriever {
         repeats: &mut Vec<Option<isize>>,
         ver: &Version
     ) -> PyResult<()> {
-        for combinator in self.on_read.iter() {
+        let Some(on_read) = self.on_read.as_ref() else {
+            return Ok(());
+        };
+        for combinator in on_read.iter() {
             combinator.run(retrievers, data, repeats, ver)?;
         }
         Ok(())
@@ -300,7 +306,10 @@ impl Retriever {
         repeats: &mut Vec<Option<isize>>,
         ver: &Version
     ) -> PyResult<()> {
-        for combinator in self.on_write.iter() {
+        let Some(on_write) = self.on_write.as_ref() else {
+            return Ok(());
+        };
+        for combinator in on_write.iter() {
             combinator.run(retrievers, data, repeats, ver)?;
         }
         Ok(())
