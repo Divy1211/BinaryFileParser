@@ -99,16 +99,16 @@ fn get_from_parseable_type(
         },
         ParseableType::Array(ls) => {
             let idx = idxes[0];
-            let val = ls.ls.read().expect("GIL bound read");
-            if idx > val.len() {
+            let inner = ls.inner();
+            if idx > inner.data.len() {
                 return Err(PyIndexError::new_err(format!(
                     "GetRec: List index out of bounds '{}'", name
                 )));
             }
             if idxes.len() == 1 {
-                return Ok((name.clone(), val[idx].clone()));
+                return Ok((name.clone(), inner.data[idx].clone()));
             }
-            get_from_parseable_type(&val[idx], &idxes[1..], ver, name)
+            get_from_parseable_type(&inner.data[idx], &idxes[1..], ver, name)
         },
         _ => {
             Err(VersionError::new_err(format!(
@@ -177,22 +177,22 @@ fn set_from_parseable_type(
         },
         ParseableType::Array(ls) => {
             let idx = idxes[0];
-            let mut val3 = ls.ls.write().expect("GIL bound write");
-            if idx > val3.len() {
+            let mut inner = ls.inner_mut();
+            if idx > inner.data.len() {
                 return Err(PyIndexError::new_err(format!(
                     "SetRec: List index out of bounds '{}'", name
                 )));
             }
             if idxes.len() == 1 {
-                if !val.is_ls_of(&ls.data_type) {
+                let Some(val2) = inner.data_type.try_cast(val2) else {
                     return Err(PyTypeError::new_err(format!(
                         "Set: Unable to set '{}' from value of incorrect type", name
                     )))
-                }
-                val3[idx] = val2.clone();
+                };
+                inner.data[idx] = val2;
                 return Ok(())
             }
-            set_from_parseable_type(&val3[idx], &idxes[1..], ver, name, val2)
+            set_from_parseable_type(&inner.data[idx], &idxes[1..], ver, name, val2)
         },
         _ => {
             Err(VersionError::new_err(format!(

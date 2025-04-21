@@ -44,11 +44,13 @@ impl StrArray {
     pub fn get_bfp_ls(&self, ls: &Bound<PyAny>) -> PyResult<BfpList> {
         Ok(match ls.extract::<BfpList>() {
             Ok(ls) => {
-                let BfpType::Str(_) = ls.data_type else {
+                let inner = ls.inner();
+                let BfpType::Str(_) = inner.data_type else {
                     return Err(PyTypeError::new_err(format!(
-                        "List type mismatch, assigning list[{}] to list[str]", ls.data_type.py_name()
+                        "List type mismatch, assigning list[{}] to list[str]", inner.data_type.py_name()
                     )))
                 };
+                drop(inner);
                 ls
             },
             Err(_) => {
@@ -82,12 +84,16 @@ impl Parseable for StrArray {
 
     #[cfg_attr(feature = "inline_always", inline(always))]
     fn to_bytes(&self, value: &Self::Type) -> std::io::Result<Vec<u8>> {
-        let ls = value.ls.read().expect("GIL bound read");
-        let ls = ls.iter().map(String::try_from).collect::<Result<Vec<_>, _>>().expect("All code paths to this fn go through StrArray::get_bfp_ls");
-        let mut all_bytes = self.len_type.to_bytes(&ls.len())?;
-        let mut len_bytes = Vec::with_capacity(ls.len());
-        let mut str_bytes = Vec::with_capacity(ls.len());
-        for string in ls {
+        let inner = value.inner();
+        let data = inner.data.iter()
+            .map(String::try_from)
+            .collect::<Result<Vec<_>, _>>()
+            .expect("All code paths to this fn go through StrArray::get_bfp_ls");
+
+        let mut all_bytes = self.len_type.to_bytes(&data.len())?;
+        let mut len_bytes = Vec::with_capacity(data.len());
+        let mut str_bytes = Vec::with_capacity(data.len());
+        for string in data {
             let mut bytes = str_to_bytes(&string, &self.enc1, &self.enc2)?;
             len_bytes.append(&mut self.str_len_type.to_bytes(&bytes.len())?);
             str_bytes.append(&mut bytes);

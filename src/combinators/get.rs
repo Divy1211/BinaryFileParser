@@ -233,10 +233,6 @@ impl Get {
         slf.rpn.push_back(Item::BitNeg);
         Ok(slf)
     }
-
-    pub fn print(slf: PyRef<Self>) {
-        println!("{:?}", slf.rpn)
-    }
 }
 
 #[pyfunction]

@@ -200,9 +200,9 @@ impl Struct {
                     let ParseableType::Array(ls) = value else {
                         unreachable!("Retriever state guarantee broken while reading '{}'", retriever.name)
                     };
-                    let ls = ls.ls.read().expect("GIL bound read");
-                    let mut bytes = Vec::with_capacity(ls.len());
-                    for item in ls.iter() {
+                    let inner = ls.inner();
+                    let mut bytes = Vec::with_capacity(inner.data.len());
+                    for item in inner.data.iter() {
                         bytes.append(&mut retriever.to_bytes(item)?);
                     }
                     bytes

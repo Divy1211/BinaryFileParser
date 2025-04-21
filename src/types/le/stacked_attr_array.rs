@@ -54,11 +54,13 @@ impl StackedAttrArray {
     pub fn get_bfp_ls(&self, ls: &Bound<PyAny>) -> PyResult<BfpList> {
         Ok(match ls.extract::<BfpList>() {
             Ok(ls) => {
-                if *self.data_type != ls.data_type {
+                let inner = ls.inner();
+                if *self.data_type != inner.data_type {
                     return Err(PyTypeError::new_err(format!(
-                        "List type mismatch, assigning list[{}] to list[{}]", ls.data_type.py_name(), self.data_type.py_name()
+                        "List type mismatch, assigning list[{}] to list[{}]", inner.data_type.py_name(), self.data_type.py_name()
                     )))
                 };
+                drop(inner);
                 ls
             },
             Err(_) => {
@@ -93,13 +95,13 @@ impl StackedAttrArray {
 
     #[cfg_attr(feature = "inline_always", inline(always))]
     fn to_bytes_option(&self, value: &<Self as Parseable>::Type, type_: &OptionType) -> std::io::Result<Vec<u8>> {
-        let ls = value.ls.read().expect("GIL bound read");
+        let inner = value.inner();
         
-        let mut bytes = self.len_type.to_bytes(&ls.len())?;
+        let mut bytes = self.len_type.to_bytes(&inner.data.len())?;
         
-        let mut exist_bytes = Vec::with_capacity(ls.len());
-        let mut ls_bytes = Vec::with_capacity(ls.len());
-        for item in ls.iter() {
+        let mut exist_bytes = Vec::with_capacity(inner.data.len());
+        let mut ls_bytes = Vec::with_capacity(inner.data.len());
+        for item in inner.data.iter() {
             let ParseableType::Option(item) = item else { unreachable!("All code paths to this option fn go through StackedAttrArray::get_bfp_ls") };
             match item.as_ref() {
                 None => { exist_bytes.append(&mut type_.len_type.to_bytes(&0)?) }
@@ -149,14 +151,14 @@ impl StackedAttrArray {
     #[cfg_attr(feature = "inline_always", inline(always))]
     fn to_bytes_struct(&self, value: &<Self as Parseable>::Type, type_: &Struct) -> std::io::Result<Vec<u8>> {
         let retrievers = type_.retrievers();
-        let structs = value.ls.read().expect("GIL bound read");
+        let inner = value.inner();
         
-        let mut bytes = self.len_type.to_bytes(&structs.len())?;
-        if structs.len() == 0 {
+        let mut bytes = self.len_type.to_bytes(&inner.data.len())?;
+        if inner.data.len() == 0 {
             return Ok(bytes);
         }
 
-        let inners = structs.iter().map(|value| {
+        let inners = inner.data.iter().map(|value| {
             match value {
                 ParseableType::Struct { val, .. } => val.inner(),
                 _ => unreachable!("All code paths to this struct fn go through StackedAttrArray::get_bfp_ls")

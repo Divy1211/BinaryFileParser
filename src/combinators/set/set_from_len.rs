@@ -53,6 +53,7 @@ impl Combinator for SetFromLen {
             )))
         };
 
-        set_rec(&self.target, retrievers, data, repeats, ver, source)
+        let a = set_rec(&self.target, retrievers, data, repeats, ver, source);
+        a
     }
 }

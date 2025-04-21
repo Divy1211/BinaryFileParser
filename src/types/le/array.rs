@@ -53,11 +53,13 @@ impl Array {
     pub fn get_bfp_ls(&self, ls: &Bound<PyAny>) -> PyResult<BfpList> {
         Ok(match ls.extract::<BfpList>() {
             Ok(ls) => {
-                if *self.data_type != ls.data_type {
+                let inner = ls.inner();
+                if *self.data_type != inner.data_type {
                     return Err(PyTypeError::new_err(format!(
-                        "List type mismatch, assigning list[{}] to list[{}]", ls.data_type.py_name(), self.data_type.py_name()
+                        "List type mismatch, assigning list[{}] to list[{}]", inner.data_type.py_name(), self.data_type.py_name()
                     )))
                 };
+                drop(inner);
                 ls
             },
             Err(_) => {
@@ -87,10 +89,11 @@ impl Parseable for Array {
 
     #[cfg_attr(feature = "inline_always", inline(always))]
     fn to_bytes(&self, value: &Self::Type) -> std::io::Result<Vec<u8>> {
-        let ls = value.ls.read().expect("GIL bound read");
-        let mut bytes = self.len_type.to_bytes(&ls.len())?;
+        let inner = value.inner();
+        
+        let mut bytes = self.len_type.to_bytes(&inner.data.len())?;
 
-        for item in ls.iter() {
+        for item in inner.data.iter() {
             bytes.append(&mut self.data_type.to_bytes(item)?);
         }
 

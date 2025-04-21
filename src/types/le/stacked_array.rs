@@ -65,9 +65,10 @@ impl StackedArray {
     pub fn get_bfp_ls(&self, ls: &Bound<PyAny>) -> PyResult<BfpList> {
         Ok(match ls.extract::<BfpList>() {
             Ok(ls) => {
-                let BfpType::Array(type_) = &ls.data_type else {
+                let inner = ls.inner();
+                let BfpType::Array(type_) = &inner.data_type else {
                     return Err(PyTypeError::new_err(format!(
-                        "List type mismatch, assigning list[{}] to list[list[{}]]", ls.data_type.py_name(), self.data_type.py_name()
+                        "List type mismatch, assigning list[{}] to list[list[{}]]", inner.data_type.py_name(), self.data_type.py_name()
                     )));
                 };
                 if self.data_type != type_.data_type {
@@ -75,6 +76,7 @@ impl StackedArray {
                         "List type mismatch, assigning list[list[{}]] to list[list[{}]]", type_.data_type.py_name(), self.data_type.py_name()
                     )))
                 };
+                drop(inner);
                 ls
             },
             Err(_) => {
@@ -111,18 +113,20 @@ impl Parseable for StackedArray {
 
     #[cfg_attr(feature = "inline_always", inline(always))]
     fn to_bytes(&self, value: &Self::Type) -> std::io::Result<Vec<u8>> {
-        let lss = value.ls.read().expect("GIL bound read");
-        let mut bytes = self.len_type.to_bytes(&lss.len())?;
+        let inner = value.inner();
+        let mut bytes = self.len_type.to_bytes(&inner.data.len())?;
 
-        let mut len_bytes = Vec::with_capacity(lss.len());
-        let mut ls_bytes = Vec::with_capacity(lss.len());
+        let mut len_bytes = Vec::with_capacity(inner.data.len());
+        let mut ls_bytes = Vec::with_capacity(inner.data.len());
 
-        for ls in lss.iter() {
-            let ParseableType::Array(ls) = ls else { unreachable!("All code paths to this fn go through StackedArray::get_bfp_ls") };
-            let ls = ls.ls.read().expect("GIL bound read");
+        for ls in inner.data.iter() {
+            let ParseableType::Array(ls) = ls else {
+                unreachable!("All code paths to this fn go through StackedArray::get_bfp_ls")
+            };
+            let inner = ls.inner();
             
-            len_bytes.append(&mut self.ls_len_type.to_bytes(&ls.len())?);
-            for item in ls.iter() {
+            len_bytes.append(&mut self.ls_len_type.to_bytes(&inner.data.len())?);
+            for item in inner.data.iter() {
                 ls_bytes.append(&mut self.data_type.to_bytes(item)?);
             }
         }

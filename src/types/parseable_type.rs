@@ -43,7 +43,10 @@ pub enum ParseableType {
 impl ParseableType {
     pub fn is_ls_of(&self, bfp_type: &BfpType) -> bool {
         match self {
-            ParseableType::Array(val) => val.data_type == *bfp_type,
+            ParseableType::Array(val) => {
+                let inner = val.inner();
+                inner.data_type == *bfp_type
+            },
             _ => false,
         }
     }
