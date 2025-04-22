@@ -297,7 +297,7 @@ impl BfpType {
 impl Parseable for BfpType {
     type Type = ParseableType;
 
-    fn from_stream(&self, stream: &mut ByteStream, ver: &Version) -> std::io::Result<Self::Type> {
+    fn from_stream(&self, stream: &mut ByteStream, ver: &Version) -> PyResult<Self::Type> {
         Ok(match self {
             BfpType::UInt8(val)               => val.from_stream(stream, ver)?.into(),
             BfpType::UInt16(val)              => val.from_stream(stream, ver)?.into(),
@@ -342,7 +342,7 @@ impl Parseable for BfpType {
         })
     }
     
-    fn to_bytes(&self, value: &Self::Type) -> std::io::Result<Vec<u8>> {
+    fn to_bytes(&self, value: &Self::Type) -> PyResult<Vec<u8>> {
         match (self, value) {
             (BfpType::UInt8(type_),            ParseableType::UInt8(val))         => type_.to_bytes(val),
             (BfpType::UInt16(type_),           ParseableType::UInt16(val))        => type_.to_bytes(val),

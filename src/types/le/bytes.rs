@@ -16,14 +16,14 @@ impl Parseable for Bytes {
     type Type = Vec<u8>;
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn from_stream(&self, stream: &mut ByteStream, _ver: &Version) -> std::io::Result<Self::Type> {
+    fn from_stream(&self, stream: &mut ByteStream, _ver: &Version) -> PyResult<Self::Type> {
         let mut bytes = stream.get(self.len)?.to_vec();
         bytes[..].reverse();
         Ok(bytes)
     }
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn to_bytes(&self, value: &Self::Type) -> std::io::Result<Vec<u8>> {
+    fn to_bytes(&self, value: &Self::Type) -> PyResult<Vec<u8>> {
         let mut bytes = value.clone();
         bytes[..].reverse();
         Ok(bytes)

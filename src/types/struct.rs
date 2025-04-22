@@ -100,7 +100,7 @@ impl Struct {
         })
     }
 
-    pub fn from_stream_(&self, stream: &mut ByteStream, ver: &Version, bar: Option<MultiProgress>) -> std::io::Result<BaseStruct> {
+    pub fn from_stream_(&self, stream: &mut ByteStream, ver: &Version, bar: Option<MultiProgress>) -> PyResult<BaseStruct> {
         let retrievers = &self.raw.retrievers;
         let mut data = Vec::with_capacity(retrievers.len());
         let mut repeats = vec![None; retrievers.len()];
@@ -153,7 +153,7 @@ impl Struct {
         Ok(BaseStruct::new(ver.clone(), data, repeats))
     }
 
-    pub fn to_bytes_(&self, value: &BaseStruct, bar: Option<MultiProgress>) -> std::io::Result<Vec<u8>> {
+    pub fn to_bytes_(&self, value: &BaseStruct, bar: Option<MultiProgress>) -> PyResult<Vec<u8>> {
         let mut inner = value.inner_mut();
 
         let retrievers = &self.raw.retrievers;
@@ -225,11 +225,11 @@ impl Struct {
 impl Parseable for Struct {
     type Type = BaseStruct;
     
-    fn from_stream(&self, stream: &mut ByteStream, ver: &Version) -> std::io::Result<BaseStruct> {
+    fn from_stream(&self, stream: &mut ByteStream, ver: &Version) -> PyResult<BaseStruct> {
         self.from_stream_(stream, ver, None)
     }
 
-    fn to_bytes(&self, value: &BaseStruct) -> std::io::Result<Vec<u8>> {
+    fn to_bytes(&self, value: &BaseStruct) -> PyResult<Vec<u8>> {
         self.to_bytes_(value, None)
     }
 }

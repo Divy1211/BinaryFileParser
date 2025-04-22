@@ -39,7 +39,7 @@ impl Parseable for NtStr {
     type Type = String;
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn from_stream(&self, stream: &mut ByteStream, _ver: &Version) -> std::io::Result<Self::Type> {
+    fn from_stream(&self, stream: &mut ByteStream, _ver: &Version) -> PyResult<Self::Type> {
         let Some(len_size) = &self.len_type else {
             let mut bytes = Vec::new();
             for byte in stream {
@@ -62,7 +62,7 @@ impl Parseable for NtStr {
     }
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn to_bytes(&self, value: &Self::Type) -> std::io::Result<Vec<u8>> {
+    fn to_bytes(&self, value: &Self::Type) -> PyResult<Vec<u8>> {
         let mut bytes = str_to_bytes(value, &self.enc1, &self.enc2)?;
         bytes.push(0);
         let Some(len_size) = &self.len_type else {

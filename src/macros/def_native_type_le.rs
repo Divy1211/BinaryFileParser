@@ -9,13 +9,13 @@ macro_rules! def_num_type_le {
             type Type = $native_type;
 
             #[cfg_attr(feature = "inline_always", inline(always))]
-            fn from_stream(&self, stream: &mut ByteStream, _ver: &Version) -> io::Result<Self::Type> {
+            fn from_stream(&self, stream: &mut ByteStream, _ver: &Version) -> PyResult<Self::Type> {
                 let bytes = stream.get($size)?.try_into().expect("infallible");
                 Ok(Self::Type::from_le_bytes(bytes))
             }
 
             #[cfg_attr(feature = "inline_always", inline(always))]
-            fn to_bytes(&self, value: &Self::Type) -> io::Result<Vec<u8>> {
+            fn to_bytes(&self, value: &Self::Type) -> PyResult<Vec<u8>> {
                 Ok(value.to_le_bytes().to_vec())
             }
         }
@@ -35,13 +35,13 @@ macro_rules! def_bool_type_le {
             type Type = bool;
         
             #[cfg_attr(feature = "inline_always", inline(always))]
-            fn from_stream(&self, stream: &mut ByteStream, _ver: &Version) -> io::Result<Self::Type> {
+            fn from_stream(&self, stream: &mut ByteStream, _ver: &Version) -> PyResult<Self::Type> {
                 let bytes = stream.get($size)?.try_into().expect("infallible");
                 Ok(<$native_type>::from_le_bytes(bytes) != 0)
             }
         
             #[cfg_attr(feature = "inline_always", inline(always))]
-            fn to_bytes(&self, value: &Self::Type) -> io::Result<Vec<u8>> {
+            fn to_bytes(&self, value: &Self::Type) -> PyResult<Vec<u8>> {
                 Ok(<$native_type>::to_le_bytes(if *value { 1 } else { 0 }).to_vec())
             }
         }

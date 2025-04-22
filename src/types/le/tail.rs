@@ -47,7 +47,7 @@ impl Parseable for Tail {
     type Type = BfpList;
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn from_stream(&self, stream: &mut ByteStream, ver: &Version) -> std::io::Result<Self::Type> {
+    fn from_stream(&self, stream: &mut ByteStream, ver: &Version) -> PyResult<Self::Type> {
         let mut ls = Vec::new();
 
         while !stream.is_empty() {
@@ -58,7 +58,7 @@ impl Parseable for Tail {
     }
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn to_bytes(&self, value: &Self::Type) -> std::io::Result<Vec<u8>> {
+    fn to_bytes(&self, value: &Self::Type) -> PyResult<Vec<u8>> {
         let inner = value.inner();
         let mut bytes = Vec::new();
 

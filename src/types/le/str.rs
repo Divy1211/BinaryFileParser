@@ -40,14 +40,14 @@ impl Parseable for Str {
     type Type = String;
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn from_stream(&self, stream: &mut ByteStream, _ver: &Version) -> std::io::Result<Self::Type> {
+    fn from_stream(&self, stream: &mut ByteStream, _ver: &Version) -> PyResult<Self::Type> {
         let len = self.len_type.from_stream(stream, _ver)?;
         let bytes = stream.get(len)?;
         str_from_bytes(bytes, &self.enc1, &self.enc2)
     }
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn to_bytes(&self, value: &Self::Type) -> std::io::Result<Vec<u8>> {
+    fn to_bytes(&self, value: &Self::Type) -> PyResult<Vec<u8>> {
         let mut bytes = str_to_bytes(value, &self.enc1, &self.enc2)?;
         let mut len_bytes = self.len_type.to_bytes(&bytes.len())?;
         len_bytes.append(&mut bytes);

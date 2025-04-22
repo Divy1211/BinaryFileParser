@@ -54,7 +54,7 @@ impl Parseable for OptionType {
     type Type = Option<Box<ParseableType>>;
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn from_stream(&self, stream: &mut ByteStream, ver: &Version) -> std::io::Result<Self::Type> {
+    fn from_stream(&self, stream: &mut ByteStream, ver: &Version) -> PyResult<Self::Type> {
         let exists = self.len_type.from_stream(stream, ver)?;
         if exists == 0 {
             return Ok(None);
@@ -63,7 +63,7 @@ impl Parseable for OptionType {
     }
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn to_bytes(&self, value: &Self::Type) -> std::io::Result<Vec<u8>> {
+    fn to_bytes(&self, value: &Self::Type) -> PyResult<Vec<u8>> {
         let Some(value) = value else {
             return self.len_type.to_bytes(&0)
         };

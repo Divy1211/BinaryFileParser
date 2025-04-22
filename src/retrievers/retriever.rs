@@ -321,12 +321,12 @@ impl Retriever {
     }
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    pub fn from_stream(&self, stream: &mut ByteStream, ver: &Version) -> std::io::Result<ParseableType> {
+    pub fn from_stream(&self, stream: &mut ByteStream, ver: &Version) -> PyResult<ParseableType> {
         self.data_type.from_stream(stream, ver)
     }
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    pub fn to_bytes(&self, value: &ParseableType) -> std::io::Result<Vec<u8>> {
+    pub fn to_bytes(&self, value: &ParseableType) -> PyResult<Vec<u8>> {
         self.data_type.to_bytes(value)
     }
 

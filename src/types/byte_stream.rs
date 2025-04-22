@@ -1,10 +1,9 @@
 use std::fs::File;
-use std::io;
 use std::io::prelude::*;
-use std::io::{Error, ErrorKind};
 use std::sync::Arc;
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyType};
+use crate::errors::parsing_error::ParsingError;
 
 #[pyclass(module = "bfp_rs")]
 #[derive(Debug, Clone)]
@@ -21,7 +20,7 @@ impl ByteStream {
         }
     }
     
-    pub fn from_file(filepath: &str) -> io::Result<Self> {
+    pub fn from_file(filepath: &str) -> PyResult<Self> {
         let mut file = File::open(filepath)?;
         let mut bytes = Vec::new();
 
@@ -40,16 +39,15 @@ impl ByteStream {
         }
     }
 
-    pub fn get(&mut self, n: usize) -> io::Result<&[u8]> {
+    pub fn get(&mut self, n: usize) -> PyResult<&[u8]> {
         if n <= 0 {
             return Ok(&[]);
         }
         let len = self.bytes.len();
         if len < self.progress + n {
-            return Err(Error::new(
-                ErrorKind::UnexpectedEof,
-                format!("End of file reached (Requested {n} bytes, only {} left.)", len - self.progress)
-            ));
+            return Err(ParsingError::new_err(format!(
+                "End of file reached (Requested {n} bytes, only {} left.)", len - self.progress
+            )));
         }
 
         let bytes = &self.bytes[self.progress..self.progress+n];
@@ -57,16 +55,15 @@ impl ByteStream {
         Ok(bytes)
     }
 
-    pub fn peek(&self, n: usize) -> io::Result<&[u8]> {
+    pub fn peek(&self, n: usize) -> PyResult<&[u8]> {
         if n <= 0 {
             return Ok(&[]);
         }
         let len = self.bytes.len();
         if len < self.progress + n {
-            return Err(Error::new(
-                ErrorKind::UnexpectedEof,
-                format!("End of file reached (Requested {n} bytes, only {} left.)", len - self.progress)
-            ));
+            return Err(ParsingError::new_err(format!(
+                "End of file reached (Requested {n} bytes, only {} left.)", len - self.progress
+            )));
         }
 
         let bytes = &self.bytes[self.progress..self.progress+n];
@@ -129,7 +126,7 @@ impl ByteStream {
 }
 
 impl Iterator for ByteStream {
-    type Item = io::Result<u8>;
+    type Item = PyResult<u8>;
 
     fn next(&mut self) -> Option<Self::Item> {
         Some(self.get(1).map(|c| c[0]))

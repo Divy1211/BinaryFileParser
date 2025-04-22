@@ -75,7 +75,7 @@ impl StackedAttrArray {
 
 impl StackedAttrArray {
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn from_stream_option(&self, stream: &mut ByteStream, ver: &Version, type_: &OptionType) -> std::io::Result<<Self as Parseable>::Type> {
+    fn from_stream_option(&self, stream: &mut ByteStream, ver: &Version, type_: &OptionType) -> PyResult<<Self as Parseable>::Type> {
         let len = self.len_type.from_stream(stream, ver)?;
         let mut exist_flags = Vec::with_capacity(len);
         let mut items = Vec::with_capacity(len);
@@ -94,7 +94,7 @@ impl StackedAttrArray {
     }
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn to_bytes_option(&self, value: &<Self as Parseable>::Type, type_: &OptionType) -> std::io::Result<Vec<u8>> {
+    fn to_bytes_option(&self, value: &<Self as Parseable>::Type, type_: &OptionType) -> PyResult<Vec<u8>> {
         let inner = value.inner();
         
         let mut bytes = self.len_type.to_bytes(&inner.data.len())?;
@@ -117,7 +117,7 @@ impl StackedAttrArray {
     }
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn from_stream_struct(&self, stream: &mut ByteStream, ver: &Version, type_: &Struct) -> std::io::Result<<Self as Parseable>::Type> {
+    fn from_stream_struct(&self, stream: &mut ByteStream, ver: &Version, type_: &Struct) -> PyResult<<Self as Parseable>::Type> {
         let retrievers = type_.retrievers();
         
         let len = self.len_type.from_stream(stream, ver)?;
@@ -149,7 +149,7 @@ impl StackedAttrArray {
     }
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn to_bytes_struct(&self, value: &<Self as Parseable>::Type, type_: &Struct) -> std::io::Result<Vec<u8>> {
+    fn to_bytes_struct(&self, value: &<Self as Parseable>::Type, type_: &Struct) -> PyResult<Vec<u8>> {
         let retrievers = type_.retrievers();
         let inner = value.inner();
         
@@ -182,7 +182,7 @@ impl Parseable for StackedAttrArray {
     type Type = BfpList;
     
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn from_stream(&self, stream: &mut ByteStream, ver: &Version) -> std::io::Result<Self::Type> {
+    fn from_stream(&self, stream: &mut ByteStream, ver: &Version) -> PyResult<Self::Type> {
         match self.data_type.as_ref() {
             BfpType::Option(type_) => { self.from_stream_option(stream, ver, type_) }
             BfpType::Struct(type_) => { self.from_stream_struct(stream, ver, type_) }
@@ -191,7 +191,7 @@ impl Parseable for StackedAttrArray {
     }
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn to_bytes(&self, value: &Self::Type) -> std::io::Result<Vec<u8>> {
+    fn to_bytes(&self, value: &Self::Type) -> PyResult<Vec<u8>> {
         match self.data_type.as_ref() {
             BfpType::Option(type_) => { self.to_bytes_option(value, type_) }
             BfpType::Struct(type_) => { self.to_bytes_struct(value, type_) }

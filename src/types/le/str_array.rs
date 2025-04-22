@@ -66,7 +66,7 @@ impl Parseable for StrArray {
     type Type = BfpList;
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn from_stream(&self, stream: &mut ByteStream, _ver: &Version) -> std::io::Result<Self::Type> {
+    fn from_stream(&self, stream: &mut ByteStream, _ver: &Version) -> PyResult<Self::Type> {
         let len = self.len_type.from_stream(stream, _ver)?;
         
         let mut lens = Vec::with_capacity(len);
@@ -83,7 +83,7 @@ impl Parseable for StrArray {
     }
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn to_bytes(&self, value: &Self::Type) -> std::io::Result<Vec<u8>> {
+    fn to_bytes(&self, value: &Self::Type) -> PyResult<Vec<u8>> {
         let inner = value.inner();
         let data = inner.data.iter()
             .map(String::try_from)
