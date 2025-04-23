@@ -100,8 +100,10 @@ impl StackedAttrArray {
         
         let num_exist_bytes = type_.len_type.num_bytes();
         
-        let mut start = buffer.len();
+        let start = buffer.len();
         buffer.resize(buffer.len() + inner.data.len() * num_exist_bytes, 0);
+        
+        let mut exist_bytes = Vec::with_capacity(inner.data.len() * num_exist_bytes);
         
         for item in inner.data.iter() {
             let ParseableType::Option(item) = item else {
@@ -114,10 +116,9 @@ impl StackedAttrArray {
                 type_.data_type.to_bytes_in(item.as_ref(), buffer)?;
             }
             
-            let exist_bytes = type_.len_type.to_bytes_array(exists)?;
-            buffer[start..start+ num_exist_bytes].copy_from_slice(&exist_bytes[..num_exist_bytes]);
-            start += num_exist_bytes;
+            type_.len_type.to_bytes_in(&exists, &mut exist_bytes)?;
         }
+        buffer[start..start+exist_bytes.len()].copy_from_slice(exist_bytes.as_slice());
         Ok(())
     }
 

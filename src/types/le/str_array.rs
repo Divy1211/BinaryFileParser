@@ -93,18 +93,20 @@ impl Parseable for StrArray {
         
         let num_len_bytes = self.str_len_type.num_bytes();
         
-        let mut start = buffer.len();
+        let start = buffer.len();
         buffer.resize(buffer.len() + inner.data.len() * num_len_bytes, 0);
+        
+        let mut len_bytes = Vec::with_capacity(inner.data.len() * num_len_bytes);
         
         for string in data {
             let content_start = buffer.len();
             str_to_bytes(&string, &self.enc1, &self.enc2, buffer)?;
             
-            let len_bytes = self.str_len_type.to_bytes_array(buffer.len() - content_start)?;
-            
-            buffer[start..start+num_len_bytes].copy_from_slice(&len_bytes[..num_len_bytes]);
-            start += num_len_bytes;
+            self.str_len_type.to_bytes_in(&(buffer.len() - content_start), &mut len_bytes)?;
         }
+
+        buffer[start..start+len_bytes.len()].copy_from_slice(len_bytes.as_slice());
+        
         Ok(())
     }
 }

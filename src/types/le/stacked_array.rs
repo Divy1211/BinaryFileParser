@@ -118,23 +118,25 @@ impl Parseable for StackedArray {
 
         let num_len_bytes = self.ls_len_type.num_bytes();
 
-        let mut start = buffer.len();
+        let start = buffer.len();
         buffer.resize(buffer.len() + inner.data.len() * num_len_bytes, 0);
 
+        let mut len_bytes = Vec::with_capacity(inner.data.len() * num_len_bytes);
+        
         for ls in inner.data.iter() {
             let ParseableType::Array(ls) = ls else {
                 unreachable!("All code paths to this fn go through StackedArray::get_bfp_ls")
             };
             let inner = ls.inner();
-            let len_bytes = self.ls_len_type.to_bytes_array(inner.data.len())?;
-            buffer[start..start+num_len_bytes].copy_from_slice(&len_bytes[..num_len_bytes]);
-            start += num_len_bytes;
+            self.ls_len_type.to_bytes_in(&inner.data.len(), &mut len_bytes)?;
 
             for item in inner.data.iter() {
                 self.data_type.to_bytes_in(item, buffer)?;
             }
         }
 
+        buffer[start..start+len_bytes.len()].copy_from_slice(len_bytes.as_slice());
+        
         Ok(())
     }
 }
