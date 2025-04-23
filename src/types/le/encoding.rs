@@ -67,25 +67,27 @@ impl Encoding {
         }
     }
 
-    pub fn encode(&self, text: &String) -> PyResult<Vec<u8>> {
+    pub fn encode(&self, text: &String, buffer: &mut Vec<u8>) -> PyResult<()> {
         match self {
             Encoding::ASCII => {
                 if text.chars().all(|c| c.is_ascii()) {
-                    Ok(text.as_bytes().to_vec())
+                    Ok(buffer.extend_from_slice(text.as_bytes()))
                 } else {
                     Err(PyValueError::new_err("String contains chars out of ASCII range"))
                 }
             }
-            Encoding::UTF8 => Ok(text.as_bytes().to_vec()),
-            Encoding::UTF16 => Ok(text.encode_utf16().flat_map(|c| c.to_le_bytes()).collect()),
-            Encoding::UTF32 => Ok(
+            Encoding::UTF8 => Ok(buffer.extend_from_slice(text.as_bytes())),
+            Encoding::UTF16 => Ok(buffer.extend(
+                text.encode_utf16()
+                    .flat_map(|c| c.to_le_bytes())
+            )),
+            Encoding::UTF32 => Ok(buffer.extend(
                 text.chars()
                     .flat_map(|c| (c as u32).to_le_bytes())
-                    .collect()
-            ),
+            )),
             Encoding::LATIN1 => {
                 if text.chars().all(|c| (c as u32) <= 0xFF) {
-                    Ok(text.chars().map(|c| c as u8).collect())
+                    Ok(buffer.extend(text.chars().map(|c| c as u8)))
                 } else {
                     Err(PyValueError::new_err("String contains chars out of Latin-1 range"))
                 }
@@ -95,7 +97,7 @@ impl Encoding {
                 if had_errors {
                     Err(PyValueError::new_err("Windows-1252 Encoding Error"))
                 } else {
-                    Ok(bytes.into_owned())
+                    Ok(buffer.extend_from_slice(&bytes))
                 }
             }
         }

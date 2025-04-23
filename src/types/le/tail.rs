@@ -58,15 +58,12 @@ impl Parseable for Tail {
     }
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn to_bytes(&self, value: &Self::Type) -> PyResult<Vec<u8>> {
+    fn to_bytes_in(&self, value: &Self::Type, buffer: &mut Vec<u8>) -> PyResult<()> {
         let inner = value.inner();
-        let mut bytes = Vec::new();
-
         for item in inner.data.iter() {
-            bytes.append(&mut self.data_type.to_bytes(item)?);
+            self.data_type.to_bytes_in(item, buffer)?;
         }
-
-        Ok(bytes)
+        Ok(())
     }
 }
 

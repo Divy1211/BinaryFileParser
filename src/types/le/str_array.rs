@@ -83,24 +83,29 @@ impl Parseable for StrArray {
     }
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn to_bytes(&self, value: &Self::Type) -> PyResult<Vec<u8>> {
+    fn to_bytes_in(&self, value: &Self::Type, buffer: &mut Vec<u8>) -> PyResult<()> {
         let inner = value.inner();
         let data = inner.data.iter()
             .map(String::try_from)
-            .collect::<Result<Vec<_>, _>>()
-            .expect("All code paths to this fn go through StrArray::get_bfp_ls");
+            .map(|result| result.expect("All code paths to this fn go through StrArray::get_bfp_ls"));
 
-        let mut all_bytes = self.len_type.to_bytes(&data.len())?;
-        let mut len_bytes = Vec::with_capacity(data.len());
-        let mut str_bytes = Vec::with_capacity(data.len());
+        self.len_type.to_bytes_in(&inner.data.len(), buffer)?;
+        
+        let num_len_bytes = self.str_len_type.num_bytes();
+        
+        let mut start = buffer.len();
+        buffer.resize(buffer.len() + inner.data.len() * num_len_bytes, 0);
+        
         for string in data {
-            let mut bytes = str_to_bytes(&string, &self.enc1, &self.enc2)?;
-            len_bytes.append(&mut self.str_len_type.to_bytes(&bytes.len())?);
-            str_bytes.append(&mut bytes);
+            let content_start = buffer.len();
+            str_to_bytes(&string, &self.enc1, &self.enc2, buffer)?;
+            
+            let len_bytes = self.str_len_type.to_bytes_array(buffer.len() - content_start)?;
+            
+            buffer[start..start+num_len_bytes].copy_from_slice(&len_bytes[..num_len_bytes]);
+            start += num_len_bytes;
         }
-        all_bytes.append(&mut len_bytes);
-        all_bytes.append(&mut str_bytes);
-        Ok(all_bytes)
+        Ok(())
     }
 }
 

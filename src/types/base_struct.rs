@@ -148,7 +148,9 @@ impl BaseStruct {
         spinner.set_message(format!("⬅ Writing File '{}'", filepath));
         spinner.enable_steady_tick(Duration::from_millis(100));
         
-        let bytes_ = struct_.to_bytes_(value, Some(bar))?;
+        let mut bytes_ = Vec::new();
+        
+        struct_.to_bytes_(value, Some(bar), &mut bytes_)?;
 
         spinner.set_message(format!("✔ Finished Writing File '{}'", filepath));
         spinner.finish();

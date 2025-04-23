@@ -342,44 +342,44 @@ impl Parseable for BfpType {
         })
     }
     
-    fn to_bytes(&self, value: &Self::Type) -> PyResult<Vec<u8>> {
+    fn to_bytes_in(&self, value: &Self::Type, buffer: &mut Vec<u8>) -> PyResult<()> {
         match (self, value) {
-            (BfpType::UInt8(type_),            ParseableType::UInt8(val))         => type_.to_bytes(val),
-            (BfpType::UInt16(type_),           ParseableType::UInt16(val))        => type_.to_bytes(val),
-            (BfpType::UInt32(type_),           ParseableType::UInt32(val))        => type_.to_bytes(val),
-            (BfpType::UInt64(type_),           ParseableType::UInt64(val))        => type_.to_bytes(val),
-            (BfpType::UInt128(type_),          ParseableType::UInt128(val))       => type_.to_bytes(val),
+            (BfpType::UInt8(type_),            ParseableType::UInt8(val))         => type_.to_bytes_in(val, buffer),
+            (BfpType::UInt16(type_),           ParseableType::UInt16(val))        => type_.to_bytes_in(val, buffer),
+            (BfpType::UInt32(type_),           ParseableType::UInt32(val))        => type_.to_bytes_in(val, buffer),
+            (BfpType::UInt64(type_),           ParseableType::UInt64(val))        => type_.to_bytes_in(val, buffer),
+            (BfpType::UInt128(type_),          ParseableType::UInt128(val))       => type_.to_bytes_in(val, buffer),
 
-            (BfpType::Int8(type_),             ParseableType::Int8(val))          => type_.to_bytes(val),
-            (BfpType::Int16(type_),            ParseableType::Int16(val))         => type_.to_bytes(val),
-            (BfpType::Int32(type_),            ParseableType::Int32(val))         => type_.to_bytes(val),
-            (BfpType::Int64(type_),            ParseableType::Int64(val))         => type_.to_bytes(val),
-            (BfpType::Int128(type_),           ParseableType::Int128(val))        => type_.to_bytes(val),
+            (BfpType::Int8(type_),             ParseableType::Int8(val))          => type_.to_bytes_in(val, buffer),
+            (BfpType::Int16(type_),            ParseableType::Int16(val))         => type_.to_bytes_in(val, buffer),
+            (BfpType::Int32(type_),            ParseableType::Int32(val))         => type_.to_bytes_in(val, buffer),
+            (BfpType::Int64(type_),            ParseableType::Int64(val))         => type_.to_bytes_in(val, buffer),
+            (BfpType::Int128(type_),           ParseableType::Int128(val))        => type_.to_bytes_in(val, buffer),
 
-            (BfpType::Float32(type_),          ParseableType::Float32(val))       => type_.to_bytes(val),
-            (BfpType::Float64(type_),          ParseableType::Float64(val))       => type_.to_bytes(val),
+            (BfpType::Float32(type_),          ParseableType::Float32(val))       => type_.to_bytes_in(val, buffer),
+            (BfpType::Float64(type_),          ParseableType::Float64(val))       => type_.to_bytes_in(val, buffer),
 
-            (BfpType::Bool8(type_),            ParseableType::Bool(val))          => type_.to_bytes(val),
-            (BfpType::Bool16(type_),           ParseableType::Bool(val))          => type_.to_bytes(val),
-            (BfpType::Bool32(type_),           ParseableType::Bool(val))          => type_.to_bytes(val),
-            (BfpType::Bool64(type_),           ParseableType::Bool(val))          => type_.to_bytes(val),
-            (BfpType::Bool128(type_),          ParseableType::Bool(val))          => type_.to_bytes(val),
+            (BfpType::Bool8(type_),            ParseableType::Bool(val))          => type_.to_bytes_in(val, buffer),
+            (BfpType::Bool16(type_),           ParseableType::Bool(val))          => type_.to_bytes_in(val, buffer),
+            (BfpType::Bool32(type_),           ParseableType::Bool(val))          => type_.to_bytes_in(val, buffer),
+            (BfpType::Bool64(type_),           ParseableType::Bool(val))          => type_.to_bytes_in(val, buffer),
+            (BfpType::Bool128(type_),          ParseableType::Bool(val))          => type_.to_bytes_in(val, buffer),
 
-            (BfpType::Bytes(type_),            ParseableType::Bytes(val))         => type_.to_bytes(val),
+            (BfpType::Bytes(type_),            ParseableType::Bytes(val))         => type_.to_bytes_in(val, buffer),
 
-            (BfpType::Str(type_),              ParseableType::Str(val))           => type_.to_bytes(val),
-            (BfpType::NTStr(type_),            ParseableType::Str(val))           => type_.to_bytes(val),
+            (BfpType::Str(type_),              ParseableType::Str(val))           => type_.to_bytes_in(val, buffer),
+            (BfpType::NTStr(type_),            ParseableType::Str(val))           => type_.to_bytes_in(val, buffer),
 
-            (BfpType::StrArray(type_),         ParseableType::Array(val))         => type_.to_bytes(val),
+            (BfpType::StrArray(type_),         ParseableType::Array(val))         => type_.to_bytes_in(val, buffer),
 
-            (BfpType::Option(type_),           ParseableType::Option(val))        => type_.to_bytes(val),
+            (BfpType::Option(type_),           ParseableType::Option(val))        => type_.to_bytes_in(val, buffer),
 
-            (BfpType::Array(type_),            ParseableType::Array(val))         => type_.to_bytes(val),
-            (BfpType::StackedArray(type_),     ParseableType::Array(val))         => type_.to_bytes(val),
-            (BfpType::StackedAttrArray(type_), ParseableType::Array(val))         => type_.to_bytes(val),
-            (BfpType::Tail(type_),             ParseableType::Array(val))         => type_.to_bytes(val),
+            (BfpType::Array(type_),            ParseableType::Array(val))         => type_.to_bytes_in(val, buffer),
+            (BfpType::StackedArray(type_),     ParseableType::Array(val))         => type_.to_bytes_in(val, buffer),
+            (BfpType::StackedAttrArray(type_), ParseableType::Array(val))         => type_.to_bytes_in(val, buffer),
+            (BfpType::Tail(type_),             ParseableType::Array(val))         => type_.to_bytes_in(val, buffer),
 
-            (BfpType::Struct(type_),           ParseableType::Struct { val, .. }) => type_.to_bytes(val),
+            (BfpType::Struct(type_),           ParseableType::Struct { val, .. }) => type_.to_bytes_in(val, buffer),
 
             (type_, val) => {
                 unreachable!("BFP Internal Error: Unhandled types {:?} {:?}", type_.py_name(), val)

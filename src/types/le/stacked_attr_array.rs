@@ -94,26 +94,31 @@ impl StackedAttrArray {
     }
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn to_bytes_option(&self, value: &<Self as Parseable>::Type, type_: &OptionType) -> PyResult<Vec<u8>> {
+    fn to_bytes_option(&self, value: &<Self as Parseable>::Type, type_: &OptionType, buffer: &mut Vec<u8>) -> PyResult<()> {
         let inner = value.inner();
+        self.len_type.to_bytes_in(&inner.data.len(), buffer)?;
         
-        let mut bytes = self.len_type.to_bytes(&inner.data.len())?;
+        let num_exist_bytes = type_.len_type.num_bytes();
         
-        let mut exist_bytes = Vec::with_capacity(inner.data.len());
-        let mut ls_bytes = Vec::with_capacity(inner.data.len());
+        let mut start = buffer.len();
+        buffer.resize(buffer.len() + inner.data.len() * num_exist_bytes, 0);
+        
         for item in inner.data.iter() {
-            let ParseableType::Option(item) = item else { unreachable!("All code paths to this option fn go through StackedAttrArray::get_bfp_ls") };
-            match item.as_ref() {
-                None => { exist_bytes.append(&mut type_.len_type.to_bytes(&0)?) }
-                Some(item) => {
-                    exist_bytes.append(&mut type_.len_type.to_bytes(&1)?);
-                    ls_bytes.append(&mut type_.data_type.to_bytes(item.as_ref())?);
-                }
+            let ParseableType::Option(item) = item else {
+                unreachable!("All code paths to this option fn go through StackedAttrArray::get_bfp_ls")
+            };
+
+            let mut exists = 0;
+            if let Some(item) = item {
+                exists = 1;
+                type_.data_type.to_bytes_in(item.as_ref(), buffer)?;
             }
+            
+            let exist_bytes = type_.len_type.to_bytes_array(exists)?;
+            buffer[start..start+ num_exist_bytes].copy_from_slice(&exist_bytes[..num_exist_bytes]);
+            start += num_exist_bytes;
         }
-        bytes.append(&mut exist_bytes);
-        bytes.append(&mut ls_bytes);
-        Ok(bytes)
+        Ok(())
     }
 
     #[cfg_attr(feature = "inline_always", inline(always))]
@@ -149,32 +154,33 @@ impl StackedAttrArray {
     }
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn to_bytes_struct(&self, value: &<Self as Parseable>::Type, type_: &Struct) -> PyResult<Vec<u8>> {
+    fn to_bytes_struct(&self, value: &<Self as Parseable>::Type, type_: &Struct, buffer: &mut Vec<u8>) -> PyResult<()> {
         let retrievers = type_.retrievers();
         let inner = value.inner();
         
-        let mut bytes = self.len_type.to_bytes(&inner.data.len())?;
+        self.len_type.to_bytes_in(&inner.data.len(), buffer)?;
         if inner.data.len() == 0 {
-            return Ok(bytes);
+            return Ok(());
         }
 
-        let inners = inner.data.iter().map(|value| {
+        let mut inners = inner.data.iter().map(|value| {
             match value {
                 ParseableType::Struct { val, .. } => val.inner(),
                 _ => unreachable!("All code paths to this struct fn go through StackedAttrArray::get_bfp_ls")
             }
-        }).collect::<Vec<_>>();
+        }).peekable();
+        let ver = inners.peek().expect("len check done above").ver.clone();
         
         for (i, retriever) in retrievers.iter().enumerate() {
-            if !retriever.supported(&inners[0].ver) {
+            if !retriever.supported(&ver) {
                 continue;
             }
-            for inner in inners.iter() {
-                bytes.append(&mut retriever.data_type.to_bytes(inner.data[i].as_ref().expect("supported check done above"))?)
+            for inner in inners.by_ref() {
+                retriever.data_type.to_bytes_in(inner.data[i].as_ref().expect("supported check done above"), buffer)?
             }
         }
         
-        Ok(bytes)
+        Ok(())
     }
 }
 
@@ -191,10 +197,10 @@ impl Parseable for StackedAttrArray {
     }
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn to_bytes(&self, value: &Self::Type) -> PyResult<Vec<u8>> {
+    fn to_bytes_in(&self, value: &Self::Type, buffer: &mut Vec<u8>) -> PyResult<()> {
         match self.data_type.as_ref() {
-            BfpType::Option(type_) => { self.to_bytes_option(value, type_) }
-            BfpType::Struct(type_) => { self.to_bytes_struct(value, type_) }
+            BfpType::Option(type_) => { self.to_bytes_option(value, type_, buffer) }
+            BfpType::Struct(type_) => { self.to_bytes_struct(value, type_, buffer) }
             _ => unreachable!("User instances of StackedAttrArray type can only be made via builder's __getitem__")
         }
     }

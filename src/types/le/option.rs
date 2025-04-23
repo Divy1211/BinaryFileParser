@@ -63,13 +63,13 @@ impl Parseable for OptionType {
     }
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn to_bytes(&self, value: &Self::Type) -> PyResult<Vec<u8>> {
+    fn to_bytes_in(&self, value: &Self::Type, buffer: &mut Vec<u8>) -> PyResult<()> {
         let Some(value) = value else {
-            return self.len_type.to_bytes(&0)
+            return self.len_type.to_bytes_in(&0, buffer);
         };
-        let mut bytes = self.len_type.to_bytes(&1)?;
-        bytes.append(&mut self.data_type.to_bytes(&value)?);
-        Ok(bytes)
+        self.len_type.to_bytes_in(&1, buffer)?;
+        self.data_type.to_bytes_in(&value, buffer)?;
+        Ok(())
     }
 }
 

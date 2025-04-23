@@ -15,8 +15,9 @@ macro_rules! def_num_type_le {
             }
 
             #[cfg_attr(feature = "inline_always", inline(always))]
-            fn to_bytes(&self, value: &Self::Type) -> PyResult<Vec<u8>> {
-                Ok(value.to_le_bytes().to_vec())
+            fn to_bytes_in(&self, value: &Self::Type, buffer: &mut Vec<u8>) -> PyResult<()> {
+                buffer.extend_from_slice(&value.to_le_bytes());
+                Ok(())
             }
         }
 
@@ -41,8 +42,9 @@ macro_rules! def_bool_type_le {
             }
         
             #[cfg_attr(feature = "inline_always", inline(always))]
-            fn to_bytes(&self, value: &Self::Type) -> PyResult<Vec<u8>> {
-                Ok(<$native_type>::to_le_bytes(if *value { 1 } else { 0 }).to_vec())
+            fn to_bytes_in(&self, value: &Self::Type, buffer: &mut Vec<u8>) -> PyResult<()> {
+                buffer.extend_from_slice(&<$native_type>::to_le_bytes(if *value { 1 } else { 0 }));
+                Ok(())
             }
         }
         

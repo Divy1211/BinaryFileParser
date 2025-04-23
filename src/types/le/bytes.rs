@@ -23,10 +23,9 @@ impl Parseable for Bytes {
     }
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn to_bytes(&self, value: &Self::Type) -> PyResult<Vec<u8>> {
-        let mut bytes = value.clone();
-        bytes[..].reverse();
-        Ok(bytes)
+    fn to_bytes_in(&self, value: &Self::Type, buffer: &mut Vec<u8>) -> PyResult<()> {
+        buffer.extend(value.iter().rev());
+        Ok(())
     }
 }
 

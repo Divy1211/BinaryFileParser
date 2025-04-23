@@ -112,28 +112,30 @@ impl Parseable for StackedArray {
     }
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn to_bytes(&self, value: &Self::Type) -> PyResult<Vec<u8>> {
+    fn to_bytes_in(&self, value: &Self::Type, buffer: &mut Vec<u8>) -> PyResult<()> {
         let inner = value.inner();
-        let mut bytes = self.len_type.to_bytes(&inner.data.len())?;
+        self.len_type.to_bytes_in(&inner.data.len(), buffer)?;
 
-        let mut len_bytes = Vec::with_capacity(inner.data.len());
-        let mut ls_bytes = Vec::with_capacity(inner.data.len());
+        let num_len_bytes = self.ls_len_type.num_bytes();
+
+        let mut start = buffer.len();
+        buffer.resize(buffer.len() + inner.data.len() * num_len_bytes, 0);
 
         for ls in inner.data.iter() {
             let ParseableType::Array(ls) = ls else {
                 unreachable!("All code paths to this fn go through StackedArray::get_bfp_ls")
             };
             let inner = ls.inner();
-            
-            len_bytes.append(&mut self.ls_len_type.to_bytes(&inner.data.len())?);
+            let len_bytes = self.ls_len_type.to_bytes_array(inner.data.len())?;
+            buffer[start..start+num_len_bytes].copy_from_slice(&len_bytes[..num_len_bytes]);
+            start += num_len_bytes;
+
             for item in inner.data.iter() {
-                ls_bytes.append(&mut self.data_type.to_bytes(item)?);
+                self.data_type.to_bytes_in(item, buffer)?;
             }
         }
 
-        bytes.append(&mut len_bytes);
-        bytes.append(&mut ls_bytes);
-        Ok(bytes)
+        Ok(())
     }
 }
 

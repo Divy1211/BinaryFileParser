@@ -326,8 +326,8 @@ impl Retriever {
     }
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    pub fn to_bytes(&self, value: &ParseableType) -> PyResult<Vec<u8>> {
-        self.data_type.to_bytes(value)
+    pub fn to_bytes_in(&self, value: &ParseableType, buffer: &mut Vec<u8>) -> PyResult<()> {
+        self.data_type.to_bytes_in(value, buffer)
     }
 
     #[cfg_attr(feature = "inline_always", inline(always))]

@@ -11,9 +11,15 @@ pub trait Parseable {
     type Type;
     
     fn from_stream(&self, stream: &mut ByteStream, ver: &Version) -> PyResult<Self::Type>;
-    
-    fn to_bytes(&self, value: &Self::Type) -> PyResult<Vec<u8>>;
 
+    fn to_bytes_in(&self, value: &Self::Type, buffer: &mut Vec<u8>) -> PyResult<()>;
+
+    fn to_bytes(&self, value: &Self::Type) -> PyResult<Vec<u8>> {
+        let mut buffer = Vec::new();
+        self.to_bytes_in(value, &mut buffer)?;
+        Ok(buffer)
+    }
+    
     fn from_bytes(&self, bytes: &[u8], ver: &Version) -> PyResult<Self::Type> {
         let mut stream = ByteStream::from_bytes(bytes);
         self.from_stream(&mut stream, ver)

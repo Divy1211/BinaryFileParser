@@ -122,13 +122,14 @@ impl Struct {
             if retriever.remaining_compressed {
                 *stream = self.decompress(stream.remaining())?
             }
-            if let Some(progress) = progress.as_ref() {
-                progress.set_message(format!("\n    ➡ Reading '{}'", retriever.name));
-                progress.set_position((i+1) as u64);
-            }
             if !retriever.supported(&ver) {
                 data.push(None);
                 continue;
+            }
+
+            if let Some(progress) = progress.as_ref() {
+                progress.set_message(format!("\n    ➡ Reading '{}'", retriever.name));
+                progress.set_position((i+1) as u64);
             }
 
             data.push(Some(match retriever.state(&repeats) {
@@ -153,12 +154,12 @@ impl Struct {
         Ok(BaseStruct::new(ver.clone(), data, repeats))
     }
 
-    pub fn to_bytes_(&self, value: &BaseStruct, bar: Option<MultiProgress>) -> PyResult<Vec<u8>> {
+    pub fn to_bytes_(&self, value: &BaseStruct, bar: Option<MultiProgress>, buffer: &mut Vec<u8>) -> PyResult<()> {
         let mut inner = value.inner_mut();
 
         let retrievers = &self.raw.retrievers;
 
-        let mut bytes = Vec::with_capacity(retrievers.len());
+        buffer.reserve(retrievers.len());
         let mut compress_idx = None;
 
         let mut progress = None;
@@ -182,7 +183,7 @@ impl Struct {
             }
 
             if retriever.remaining_compressed {
-                compress_idx = Some(bytes.len());
+                compress_idx = Some(buffer.len());
             }
 
             let (data, repeats, ver) = inner.split();
@@ -191,23 +192,21 @@ impl Struct {
 
             let value = inner.data[retriever.idx].as_ref().expect("supported check done above");
 
-            bytes.append(&mut match retriever.state(&inner.repeats) {
-                RetState::NoneList | RetState::NoneValue => { vec![] }
+            match retriever.state(&inner.repeats) {
+                RetState::NoneList | RetState::NoneValue => {},
                 RetState::Value => {
-                    retriever.to_bytes(value)?
+                    retriever.to_bytes_in(value, buffer)?;
                 }
                 RetState::List => {
                     let ParseableType::Array(ls) = value else {
                         unreachable!("Retriever state guarantee broken while reading '{}'", retriever.name)
                     };
                     let inner = ls.inner();
-                    let mut bytes = Vec::with_capacity(inner.data.len());
                     for item in inner.data.iter() {
-                        bytes.append(&mut retriever.to_bytes(item)?);
+                        retriever.to_bytes_in(item, buffer)?;
                     }
-                    bytes
                 }
-            });
+            }
         }
         
         if let Some(progress) = progress.as_ref() {
@@ -216,9 +215,9 @@ impl Struct {
         }
         
         if let Some(idx) = compress_idx {
-            self.compress(&mut bytes, idx)?;
+            self.compress(buffer, idx)?;
         }
-        Ok(bytes)
+        Ok(())
     }
 }
 
@@ -229,7 +228,7 @@ impl Parseable for Struct {
         self.from_stream_(stream, ver, None)
     }
 
-    fn to_bytes(&self, value: &BaseStruct) -> PyResult<Vec<u8>> {
-        self.to_bytes_(value, None)
+    fn to_bytes_in(&self, value: &Self::Type, buffer: &mut Vec<u8>) -> PyResult<()> {
+        self.to_bytes_(value, None, buffer)
     }
 }
