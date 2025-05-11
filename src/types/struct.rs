@@ -25,6 +25,8 @@ pub struct StructRaw {
     pub py_type: Py<PyType>,
     pub fully_qualified_name: String,
     
+    pub is_compressed: bool,
+    
     pub get_ver: Option<PyObject>,
     pub compress: Option<PyObject>,
     pub decompress: Option<PyObject>,
@@ -45,6 +47,10 @@ impl PartialEq for Struct {
 impl Eq for Struct {}
 
 impl Struct {
+    pub fn is_compressed(&self) -> bool {
+        self.raw.is_compressed
+    }
+    
     pub fn from_raw(raw: StructRaw) -> Self {
         Self { raw: Arc::new(raw) }
     }

@@ -61,7 +61,12 @@ impl StructBuilder {
         let compress = get_if_impl(cls, intern!(cls.py(), "_compress"));
         let decompress = get_if_impl(cls, intern!(cls.py(), "_decompress"));
         
-        for retriever in builder.retrievers.iter_mut() {
+        let mut is_compressed = true;
+        for (i, retriever) in builder.retrievers.iter_mut().enumerate() {
+            if i == 0 {
+                is_compressed = retriever.remaining_compressed;
+                retriever.remaining_compressed = false;
+            }
             retriever.construct_fns(cls.py())?
         }
 
@@ -75,6 +80,8 @@ impl StructBuilder {
             py_type: cls.extract()?,
             fully_qualified_name: cls.fully_qualified_name()?.to_string(),
 
+            is_compressed,
+            
             get_ver,
             compress,
             decompress,

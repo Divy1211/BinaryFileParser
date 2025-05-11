@@ -8,9 +8,23 @@ from bfp_rs import Retriever, BaseStruct, ByteStream, Version, RetrieverRef, Ret
 from utils import timed
 
 class SubTest(BaseStruct):
-    a = Retriever(Tail[u8])
+    a = Retriever(Tail[u8], remaining_compressed = True)
 
+    @classmethod
+    def _decompress(cls, bytes):
+        return bytes[1:]
 
-test = SubTest.from_bytes(b"\x01\x01\x02\x03\x04")
+    @classmethod
+    def _compress(cls, bytes):
+        return b"\x00" + bytes
+
+    @classmethod
+    def _get_version(cls, stream, ver):
+        print(stream.peek(4))
+        return ver
+
+test = SubTest.from_bytes(b"\x00\x01\x02\x03\x04")
 
 print(test.a)
+
+print(SubTest.to_bytes(test))

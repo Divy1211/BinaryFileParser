@@ -152,6 +152,10 @@ impl BaseStruct {
         
         struct_.to_bytes_(value, Some(bar), &mut bytes_)?;
 
+        if struct_.is_compressed() {
+            struct_.compress(&mut bytes_, 0)?
+        }
+        
         spinner.set_message(format!("✔ Finished Writing File '{}'", filepath));
         spinner.finish();
         
@@ -162,6 +166,9 @@ impl BaseStruct {
         let struct_ = StructBuilder::get_struct(cls)?;
 
         let Some(filepath) = filepath else {
+            if struct_.is_compressed() {
+                *stream = struct_.decompress(stream.remaining())?
+            }
             let base = struct_.from_stream_(stream, &ver, None)?;
             return Ok(BaseStruct::with_cls(base, cls));
         };
@@ -246,7 +253,11 @@ impl BaseStruct {
     #[pyo3(name = "to_bytes")]
     fn to_bytes_py<'py>(cls: &Bound<'py, PyType>, value: &BaseStruct) -> PyResult<Bound<'py, PyAny>> {
         let struct_ = StructBuilder::get_struct(cls)?;
-        Ok(PyBytes::new_bound(cls.py(), &struct_.to_bytes(value)?).into_any())
+        let mut bytes = struct_.to_bytes(value)?;
+        if struct_.is_compressed() {
+            struct_.compress(&mut bytes, 0)?;
+        }
+        Ok(PyBytes::new_bound(cls.py(), &bytes).into_any())
     }
 
     #[classmethod]
