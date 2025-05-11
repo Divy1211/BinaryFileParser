@@ -165,10 +165,11 @@ impl BaseStruct {
     fn from_stream_<'py>(cls: &Bound<'py, PyType>, stream: &mut ByteStream, ver: Version, filepath: Option<&str>) -> PyResult<Bound<'py, PyAny>> {
         let struct_ = StructBuilder::get_struct(cls)?;
 
+        if struct_.is_compressed() {
+            *stream = struct_.decompress(stream.remaining())?;
+        }
+        
         let Some(filepath) = filepath else {
-            if struct_.is_compressed() {
-                *stream = struct_.decompress(stream.remaining())?
-            }
             let base = struct_.from_stream_(stream, &ver, None)?;
             return Ok(BaseStruct::with_cls(base, cls));
         };
