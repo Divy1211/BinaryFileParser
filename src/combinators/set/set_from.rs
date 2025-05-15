@@ -3,6 +3,7 @@ use pyo3::prelude::*;
 use crate::combinators::combinator::Combinator;
 use crate::combinators::utils::{get_rec, set_rec};
 use crate::retrievers::retriever::{Retriever};
+use crate::types::context::Context;
 use crate::types::parseable_type::ParseableType;
 use crate::types::version::Version;
 
@@ -28,7 +29,8 @@ impl Combinator for SetFrom {
         retrievers: &Vec<Retriever>,
         data: &mut Vec<Option<ParseableType>>,
         repeats: &mut Vec<Option<isize>>,
-        ver: &Version
+        ver: &Version,
+        _ctx: &mut Context,
     ) -> PyResult<()> {
         let (_name, source) = get_rec(&self.source, retrievers, data, ver)?;
         set_rec(&self.target, retrievers, data, repeats, ver, source)

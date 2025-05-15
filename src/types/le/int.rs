@@ -6,6 +6,7 @@ use crate::{def_num_type_le, wrap_py};
 use crate::types::byte_stream::ByteStream;
 use crate::types::parseable::Parseable;
 use crate::types::version::Version;
+use crate::types::context::Context;
 
 
 def_num_type_le!(UInt8, "uint8", u8, 1);

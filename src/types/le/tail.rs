@@ -5,6 +5,7 @@ use pyo3::types::{PyBytes, PyList, PyType};
 use crate::types::bfp_list::BfpList;
 use crate::types::bfp_type::BfpType;
 use crate::types::byte_stream::ByteStream;
+use crate::types::context::Context;
 use crate::types::parseable::Parseable;
 use crate::types::parseable_type::ParseableType;
 use crate::types::version::Version;
@@ -47,11 +48,11 @@ impl Parseable for Tail {
     type Type = BfpList;
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn from_stream(&self, stream: &mut ByteStream, ver: &Version) -> PyResult<Self::Type> {
+    fn from_stream_ctx(&self, stream: &mut ByteStream, ver: &Version, ctx: &mut Context) -> PyResult<Self::Type> {
         let mut ls = Vec::new();
 
         while !stream.is_empty() {
-            ls.push(self.data_type.from_stream(stream, ver)?);
+            ls.push(self.data_type.from_stream_ctx(stream, ver, ctx)?);
         }
 
         Ok(BfpList::new(ls, *self.data_type.clone()))

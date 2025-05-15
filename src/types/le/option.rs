@@ -3,6 +3,7 @@ use pyo3::types::{PyBytes};
 
 use crate::types::bfp_type::BfpType;
 use crate::types::byte_stream::ByteStream;
+use crate::types::context::Context;
 use crate::types::le::size::Size;
 use crate::types::parseable::Parseable;
 use crate::types::parseable_type::ParseableType;
@@ -54,12 +55,12 @@ impl Parseable for OptionType {
     type Type = Option<Box<ParseableType>>;
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn from_stream(&self, stream: &mut ByteStream, ver: &Version) -> PyResult<Self::Type> {
+    fn from_stream_ctx(&self, stream: &mut ByteStream, ver: &Version, ctx: &mut Context) -> PyResult<Self::Type> {
         let exists = self.len_type.from_stream(stream, ver)?;
         if exists == 0 {
             return Ok(None);
         }
-        Ok(Some(Box::new(self.data_type.from_stream(stream, ver)?)))
+        Ok(Some(Box::new(self.data_type.from_stream_ctx(stream, ver, ctx)?)))
     }
 
     #[cfg_attr(feature = "inline_always", inline(always))]

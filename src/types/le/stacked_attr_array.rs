@@ -5,6 +5,7 @@ use crate::types::base_struct::BaseStruct;
 use crate::types::bfp_list::BfpList;
 use crate::types::bfp_type::BfpType;
 use crate::types::byte_stream::ByteStream;
+use crate::types::context::Context;
 use crate::types::le::option::OptionType;
 use crate::types::le::size::Size;
 use crate::types::parseable::Parseable;
@@ -75,16 +76,16 @@ impl StackedAttrArray {
 
 impl StackedAttrArray {
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn from_stream_option(&self, stream: &mut ByteStream, ver: &Version, type_: &OptionType) -> PyResult<<Self as Parseable>::Type> {
-        let len = self.len_type.from_stream(stream, ver)?;
+    fn from_stream_option(&self, stream: &mut ByteStream, ver: &Version, type_: &OptionType, ctx: &mut Context) -> PyResult<<Self as Parseable>::Type> {
+        let len = self.len_type.from_stream_ctx(stream, ver, ctx)?;
         let mut exist_flags = Vec::with_capacity(len);
         let mut items = Vec::with_capacity(len);
         for _ in 0..len {
-            exist_flags.push(type_.len_type.from_stream(stream, ver)?);
+            exist_flags.push(type_.len_type.from_stream_ctx(stream, ver, ctx)?);
         }
         for exists in exist_flags {
             if exists != 0 {
-                items.push(Some(Box::new(type_.data_type.from_stream(stream, ver)?)).into());
+                items.push(Some(Box::new(type_.data_type.from_stream_ctx(stream, ver, ctx)?)).into());
             } else {
                 items.push(None.into());
             }
@@ -122,10 +123,10 @@ impl StackedAttrArray {
     }
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn from_stream_struct(&self, stream: &mut ByteStream, ver: &Version, type_: &Struct) -> PyResult<<Self as Parseable>::Type> {
+    fn from_stream_struct(&self, stream: &mut ByteStream, ver: &Version, type_: &Struct, ctx: &mut Context) -> PyResult<<Self as Parseable>::Type> {
         let retrievers = type_.retrievers();
         
-        let len = self.len_type.from_stream(stream, ver)?;
+        let len = self.len_type.from_stream_ctx(stream, ver, ctx)?;
         let mut data_lss = Vec::with_capacity(len);
         for _ in 0..len {
             data_lss.push(Vec::with_capacity(retrievers.len()));
@@ -139,7 +140,7 @@ impl StackedAttrArray {
                 continue;
             }
             for i in 0..len {
-                data_lss[i].push(Some(retriever.from_stream(stream, ver)?));
+                data_lss[i].push(Some(retriever.from_stream_ctx(stream, ver, ctx)?));
             }
         }
         
@@ -188,10 +189,10 @@ impl Parseable for StackedAttrArray {
     type Type = BfpList;
     
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn from_stream(&self, stream: &mut ByteStream, ver: &Version) -> PyResult<Self::Type> {
+    fn from_stream_ctx(&self, stream: &mut ByteStream, ver: &Version, ctx: &mut Context) -> PyResult<Self::Type> {
         match self.data_type.as_ref() {
-            BfpType::Option(type_) => { self.from_stream_option(stream, ver, type_) }
-            BfpType::Struct(type_) => { self.from_stream_struct(stream, ver, type_) }
+            BfpType::Option(type_) => { self.from_stream_option(stream, ver, type_, ctx) }
+            BfpType::Struct(type_) => { self.from_stream_struct(stream, ver, type_, ctx) }
             _ => unreachable!("User instances of StackedAttrArray type can only be made via builder's __getitem__")
         }
     }

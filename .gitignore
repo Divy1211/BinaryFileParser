@@ -77,3 +77,8 @@ asp_test/*
 flamegraph*
 perf*
 profile.*.gz
+tmp.bin
+
+imgs/bfp.kra
+imgs/file-1453.png
+imgs/settings-25-xxl.png

@@ -5,6 +5,7 @@ use pyo3::types::{PyBytes, PyList};
 use crate::types::bfp_list::BfpList;
 use crate::types::bfp_type::BfpType;
 use crate::types::byte_stream::ByteStream;
+use crate::types::context::Context;
 use crate::types::le::array::Array;
 use crate::types::le::size::Size;
 use crate::types::parseable::Parseable;
@@ -94,17 +95,17 @@ impl Parseable for StackedArray {
     type Type = BfpList;
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn from_stream(&self, stream: &mut ByteStream, ver: &Version) -> PyResult<Self::Type> {
-        let len = self.len_type.from_stream(stream, ver)?;
+    fn from_stream_ctx(&self, stream: &mut ByteStream, ver: &Version, ctx: &mut Context) -> PyResult<Self::Type> {
+        let len = self.len_type.from_stream_ctx(stream, ver, ctx)?;
         let mut lens = Vec::with_capacity(len);
         for _ in 0..len {
-            lens.push(self.ls_len_type.from_stream(stream, ver)?);
+            lens.push(self.ls_len_type.from_stream_ctx(stream, ver, ctx)?);
         }
         let mut lss: Vec<ParseableType> = Vec::with_capacity(len);
         for len in lens {
             let mut items = Vec::with_capacity(len);
             for _ in 0..len {
-                items.push(self.data_type.from_stream(stream, ver)?);
+                items.push(self.data_type.from_stream_ctx(stream, ver, ctx)?);
             }
             lss.push(BfpList::new(items, *self.data_type.clone()).into());
         }

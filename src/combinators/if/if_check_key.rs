@@ -1,8 +1,8 @@
+use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
 
 use crate::combinators::combinator::Combinator;
 use crate::combinators::combinator_type::CombinatorType;
-use crate::combinators::utils::{get_rec};
 use crate::retrievers::retriever::Retriever;
 use crate::types::context::Context;
 use crate::types::parseable_type::ParseableType;
@@ -10,23 +10,23 @@ use crate::types::version::Version;
 
 #[pyclass(module = "bfp_rs.combinators")]
 #[derive(Debug, Clone)]
-pub struct IfIsNone {
-    source: Vec<usize>,
+pub struct IfCheckKey {
+    key: String,
     com: Box<CombinatorType>,
     not: bool,
 }
 
-impl IfIsNone {
-    pub fn new(source: &Vec<usize>, com: CombinatorType, not: bool) -> Self {
-        IfIsNone {
-            source: source.clone(),
+impl IfCheckKey {
+    pub fn new(key: &String, com: CombinatorType, not: bool) -> Self {
+        IfCheckKey {
+            key: key.clone(),
             com: Box::new(com),
             not,
         }
     }
 }
 
-impl Combinator for IfIsNone {
+impl Combinator for IfCheckKey {
     fn run(
         &self,
         retrievers: &Vec<Retriever>,
@@ -35,9 +35,15 @@ impl Combinator for IfIsNone {
         ver: &Version,
         ctx: &mut Context,
     ) -> PyResult<()> {
-        let (_name, source) = get_rec(&self.source, retrievers, data, ver)?;
+        let source = ctx.get(&self.key)?;
         
-        if (source == ParseableType::None) ^ self.not {
+        let Ok(source_val): Result<bool, _> = (&source).try_into() else {
+            return Err(PyTypeError::new_err(format!(
+                "IfCheckKey: Context key '{}' cannot be interpreted as a boolean", self.key
+            )))
+        };
+        
+        if source_val ^ self.not {
             self.com.run(retrievers, data, repeats, ver, ctx)?;
         }
         Ok(())

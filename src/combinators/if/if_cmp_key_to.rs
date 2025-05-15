@@ -4,7 +4,6 @@ use pyo3::prelude::*;
 
 use crate::combinators::combinator::Combinator;
 use crate::combinators::combinator_type::CombinatorType;
-use crate::combinators::utils::{get_rec};
 use crate::retrievers::retriever::Retriever;
 use crate::types::context::Context;
 use crate::types::parseable_type::ParseableType;
@@ -12,17 +11,17 @@ use crate::types::version::Version;
 
 #[pyclass(module = "bfp_rs.combinators")]
 #[derive(Debug, Clone)]
-pub struct IfCmpLenFrom {
-    target: Vec<usize>,
-    source: Vec<usize>,
+pub struct IfCmpKeyTo {
+    key: String,
+    source: ParseableType,
     ord: Vec<Ordering>,
     com: Box<CombinatorType>,
 }
 
-impl IfCmpLenFrom {
-    pub fn new(target: &Vec<usize>, source: &Vec<usize>, ord: &Vec<Ordering>, com: CombinatorType) -> Self {
-        IfCmpLenFrom {
-            target: target.clone(),
+impl IfCmpKeyTo {
+    pub fn new(key: &String, source: &ParseableType, ord: &Vec<Ordering>, com: CombinatorType) -> Self {
+        IfCmpKeyTo {
+            key: key.clone(),
             source: source.clone(),
             ord: ord.clone(),
             com: Box::new(com),
@@ -30,7 +29,7 @@ impl IfCmpLenFrom {
     }
 }
 
-impl Combinator for IfCmpLenFrom {
+impl Combinator for IfCmpKeyTo {
     fn run(
         &self,
         retrievers: &Vec<Retriever>,
@@ -39,21 +38,14 @@ impl Combinator for IfCmpLenFrom {
         ver: &Version,
         ctx: &mut Context,
     ) -> PyResult<()> {
-        let (target_name, target) = get_rec(&self.target, retrievers, data, ver)?;
-        let (source_name, source) = get_rec(&self.source, retrievers, data, ver)?;
+        let target = ctx.get(&self.key)?;
 
-        let Some(target) = target.try_len() else {
+        let Some(ord) = target.partial_cmp(&self.source) else {
             return Err(PyTypeError::new_err(format!(
-                "IfCmpLenFrom: '{}' cannot be interpreted as a list", target_name
-            )))
+                "IfCmpKeyTo: Context key '{}' is not a number",
+                self.key,
+            )));
         };
-        let Ok(source) = (&source).try_into() else {
-            return Err(PyTypeError::new_err(format!(
-                "IfCmpLenFrom: '{}' cannot be interpreted as an integer", source_name
-            )))
-        };
-        
-        let ord = target.cmp(&source);
         
         if self.ord.contains(&ord) {
             self.com.run(retrievers, data, repeats, ver, ctx)?;

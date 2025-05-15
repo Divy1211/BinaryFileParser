@@ -46,6 +46,22 @@ def get(*source: Retriever | int) -> Get:
     """
 
 
+def get_key(key: str) -> Get:
+    """
+    Fetches the value of a context key. If the resulting value is an ``int``, it's result can be manipulated with ``int``
+    operations. For example, ``get_key("some_prop")+1`` is like doing ``ctx["some_prop"]+1``
+
+    Args:
+        key: The context key to get
+
+    Returns:
+        An instance encoding the retriever path and manipulations to perform during parsing
+
+    Raises:
+        ValueError: If the value at the source path is not an ``int``, and ``int`` operations are attempted
+    """
+
+
 def get_len(*source: Retriever | int) -> Get:
     """
     Fetches the length of a list-valued retriever. It's result can be manipulated with operations. For example,

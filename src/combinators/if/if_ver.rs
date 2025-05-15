@@ -3,6 +3,7 @@ use pyo3::prelude::*;
 use crate::combinators::combinator::Combinator;
 use crate::combinators::combinator_type::CombinatorType;
 use crate::retrievers::retriever::Retriever;
+use crate::types::context::Context;
 use crate::types::parseable_type::ParseableType;
 use crate::types::version::Version;
 
@@ -30,10 +31,11 @@ impl Combinator for IfVer {
         retrievers: &Vec<Retriever>,
         data: &mut Vec<Option<ParseableType>>,
         repeats: &mut Vec<Option<isize>>,
-        ver: &Version
+        ver: &Version,
+        ctx: &mut Context,
     ) -> PyResult<()> {
         if self.min_ver <= *ver && *ver <= self.max_ver {
-            self.com.run(retrievers, data, repeats, ver)?;
+            self.com.run(retrievers, data, repeats, ver, ctx)?;
         }
         Ok(())
     }

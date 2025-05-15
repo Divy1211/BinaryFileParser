@@ -5,6 +5,7 @@ use pyo3::types::{PyBytes, PyList, PyType};
 use crate::types::bfp_list::BfpList;
 use crate::types::bfp_type::BfpType;
 use crate::types::byte_stream::ByteStream;
+use crate::types::context::Context;
 use crate::types::le::size::Size;
 use crate::types::le::stacked_array::StackedArray;
 use crate::types::parseable::Parseable;
@@ -76,12 +77,12 @@ impl Parseable for Array {
     type Type = BfpList;
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn from_stream(&self, stream: &mut ByteStream, ver: &Version) -> PyResult<Self::Type> {
+    fn from_stream_ctx(&self, stream: &mut ByteStream, ver: &Version, ctx: &mut Context) -> PyResult<Self::Type> {
         let len = self.len_type.from_stream(stream, ver)?;
         let mut ls = Vec::with_capacity(len);
         
         for _ in 0..len {
-            ls.push(self.data_type.from_stream(stream, ver)?);
+            ls.push(self.data_type.from_stream_ctx(stream, ver, ctx)?);
         }
         
         Ok(BfpList::new(ls, *self.data_type.clone()))

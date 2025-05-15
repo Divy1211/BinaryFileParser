@@ -5,6 +5,7 @@ use crate::combinators::combinator::Combinator;
 use crate::combinators::combinator_type::CombinatorType;
 use crate::combinators::utils::{get_rec};
 use crate::retrievers::retriever::Retriever;
+use crate::types::context::Context;
 use crate::types::parseable_type::ParseableType;
 use crate::types::version::Version;
 
@@ -32,7 +33,8 @@ impl Combinator for IfCheck {
         retrievers: &Vec<Retriever>,
         data: &mut Vec<Option<ParseableType>>,
         repeats: &mut Vec<Option<isize>>,
-        ver: &Version
+        ver: &Version,
+        ctx: &mut Context,
     ) -> PyResult<()> {
         let (name, source) = get_rec(&self.source, retrievers, data, ver)?;
         
@@ -43,7 +45,7 @@ impl Combinator for IfCheck {
         };
         
         if source_val ^ self.not {
-            self.com.run(retrievers, data, repeats, ver)?;
+            self.com.run(retrievers, data, repeats, ver, ctx)?;
         }
         Ok(())
     }

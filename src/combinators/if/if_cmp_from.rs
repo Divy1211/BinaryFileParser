@@ -7,6 +7,7 @@ use crate::combinators::combinator::Combinator;
 use crate::combinators::combinator_type::CombinatorType;
 use crate::combinators::utils::{get_rec};
 use crate::retrievers::retriever::Retriever;
+use crate::types::context::Context;
 use crate::types::parseable_type::ParseableType;
 use crate::types::version::Version;
 
@@ -36,7 +37,8 @@ impl Combinator for IfCmpFrom {
         retrievers: &Vec<Retriever>,
         data: &mut Vec<Option<ParseableType>>,
         repeats: &mut Vec<Option<isize>>,
-        ver: &Version
+        ver: &Version,
+        ctx: &mut Context,
     ) -> PyResult<()> {
         let (target_name, target) = get_rec(&self.target, retrievers, data, ver)?;
         let (source_name, source) = get_rec(&self.source, retrievers, data, ver)?;
@@ -50,7 +52,7 @@ impl Combinator for IfCmpFrom {
         };
         
         if self.ord.contains(&ord) {
-            self.com.run(retrievers, data, repeats, ver)?;
+            self.com.run(retrievers, data, repeats, ver, ctx)?;
         }
         Ok(())
     }

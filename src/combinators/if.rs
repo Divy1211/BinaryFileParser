@@ -8,3 +8,7 @@ pub mod if_cmp_by;
 pub mod if_cmp_len_by;
 pub mod if_ver;
 pub mod if_is_none;
+pub mod if_cmp_key;
+pub mod if_check_key;
+pub mod if_cmp_key_to;
+pub mod if_key_is_none;

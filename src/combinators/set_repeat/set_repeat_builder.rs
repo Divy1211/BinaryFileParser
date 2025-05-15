@@ -1,11 +1,12 @@
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
-use pyo3::types::PyTuple;
+use pyo3::types::{PyString, PyTuple};
 
 use crate::combinators::combinator_type::CombinatorType;
 use crate::combinators::get::Get;
 use crate::combinators::set_repeat::set_repeat_by::SetRepeatBy;
 use crate::combinators::set_repeat::set_repeat_from::SetRepeatFrom;
+use crate::combinators::set_repeat::set_repeat_from_key::SetRepeatFromKey;
 use crate::combinators::set_repeat::set_repeat_from_len::SetRepeatFromLen;
 use crate::combinators::set_repeat::set_repeat_to::SetRepeatTo;
 use crate::combinators::utils::idxes_from_tup;
@@ -49,6 +50,12 @@ impl SetRepeatBuilder {
         let (source, _source_data_type, _source_name) = idxes_from_tup(source)?;
         
         Ok(SetRepeatFrom::new(self.target, source).into())
+    }
+
+    pub fn from_key(&self, key: &Bound<PyString>) -> PyResult<CombinatorType> {
+        self.check_target_repeat()?;
+
+        Ok(SetRepeatFromKey::new(self.target, key.to_string()).into())
     }
 
     #[pyo3(signature = (*source), text_signature = "(*source: Retriever | int)")]

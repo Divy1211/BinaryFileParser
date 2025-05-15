@@ -4,6 +4,7 @@ use pyo3::prelude::*;
 use crate::combinators::combinator::Combinator;
 use crate::combinators::get::Get;
 use crate::retrievers::retriever::Retriever;
+use crate::types::context::Context;
 use crate::types::parseable_type::ParseableType;
 use crate::types::version::Version;
 
@@ -29,9 +30,10 @@ impl Combinator for SetRepeatBy {
         retrievers: &Vec<Retriever>,
         data: &mut Vec<Option<ParseableType>>,
         repeats: &mut Vec<Option<isize>>,
-        ver: &Version
+        ver: &Version,
+        ctx: &mut Context,
     ) -> PyResult<()> {
-        let source = self.source.eval(retrievers, data, repeats, ver)? as isize;
+        let source = self.source.eval(retrievers, data, repeats, ver, ctx)? as isize;
         
         if source < -2 {
             return Err(PyValueError::new_err(format!(

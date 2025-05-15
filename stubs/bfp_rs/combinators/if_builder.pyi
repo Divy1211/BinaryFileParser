@@ -136,6 +136,30 @@ def if_not(target: Retriever | int | Get) -> IfBuilder:
     """
 
 
+def if_key(key: str) -> IfBuilder:
+    """
+    Select this context key for a comparison
+
+    Args:
+        key: The context key to compare
+
+    Returns:
+        An ``IfBuilder`` instance to continue defining additional combinator properties
+    """
+
+
+def if_not_key(key: str) -> IfBuilder:
+    """
+    Select this context key for a comparison with the result inverted
+
+    Args:
+        key: The context key to compare
+
+    Returns:
+        An ``IfBuilder`` instance to continue defining additional combinator properties
+    """
+
+
 def if_len(target: Retriever | int | Get) -> IfBuilder:
     """
     Select this value and use its length for a comparison

@@ -1,5 +1,6 @@
 use std::cmp::Ordering;
-use pyo3::exceptions::PyTypeError;
+
+use pyo3::exceptions::{PyTypeError};
 use pyo3::prelude::*;
 
 use crate::combinators::combinator::Combinator;
@@ -12,17 +13,17 @@ use crate::types::version::Version;
 
 #[pyclass(module = "bfp_rs.combinators")]
 #[derive(Debug, Clone)]
-pub struct IfCmpLenFrom {
-    target: Vec<usize>,
+pub struct IfCmpKey {
+    key: String,
     source: Vec<usize>,
     ord: Vec<Ordering>,
     com: Box<CombinatorType>,
 }
 
-impl IfCmpLenFrom {
-    pub fn new(target: &Vec<usize>, source: &Vec<usize>, ord: &Vec<Ordering>, com: CombinatorType) -> Self {
-        IfCmpLenFrom {
-            target: target.clone(),
+impl IfCmpKey {
+    pub fn new(key: &String, source: &Vec<usize>, ord: &Vec<Ordering>, com: CombinatorType) -> Self {
+        IfCmpKey {
+            key: key.clone(),
             source: source.clone(),
             ord: ord.clone(),
             com: Box::new(com),
@@ -30,7 +31,7 @@ impl IfCmpLenFrom {
     }
 }
 
-impl Combinator for IfCmpLenFrom {
+impl Combinator for IfCmpKey {
     fn run(
         &self,
         retrievers: &Vec<Retriever>,
@@ -39,21 +40,16 @@ impl Combinator for IfCmpLenFrom {
         ver: &Version,
         ctx: &mut Context,
     ) -> PyResult<()> {
-        let (target_name, target) = get_rec(&self.target, retrievers, data, ver)?;
+        let target = ctx.get(&self.key)?;
         let (source_name, source) = get_rec(&self.source, retrievers, data, ver)?;
 
-        let Some(target) = target.try_len() else {
+        let Some(ord) = target.partial_cmp(&source) else {
             return Err(PyTypeError::new_err(format!(
-                "IfCmpLenFrom: '{}' cannot be interpreted as a list", target_name
-            )))
+                "IfCmpKey: cannot compare Context key '{}' and '{}'",
+                self.key,
+                source_name,
+            )));
         };
-        let Ok(source) = (&source).try_into() else {
-            return Err(PyTypeError::new_err(format!(
-                "IfCmpLenFrom: '{}' cannot be interpreted as an integer", source_name
-            )))
-        };
-        
-        let ord = target.cmp(&source);
         
         if self.ord.contains(&ord) {
             self.com.run(retrievers, data, repeats, ver, ctx)?;

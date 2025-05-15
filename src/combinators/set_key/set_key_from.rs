@@ -1,7 +1,7 @@
 use pyo3::prelude::*;
 
 use crate::combinators::combinator::Combinator;
-use crate::combinators::utils::set_rec;
+use crate::combinators::utils::{get_rec};
 use crate::retrievers::retriever::{Retriever};
 use crate::types::context::Context;
 use crate::types::parseable_type::ParseableType;
@@ -9,29 +9,31 @@ use crate::types::version::Version;
 
 #[pyclass(module = "bfp_rs.combinators")]
 #[derive(Debug, Clone)]
-pub struct SetTo {
-    target: Vec<usize>,
-    source: ParseableType,
+pub struct SetKeyFrom {
+    key: String,
+    source: Vec<usize>,
 }
 
-impl SetTo {
-    pub fn new(target: &Vec<usize>, source: ParseableType) -> Self {
-        SetTo {
-            target: target.clone(),
-            source
+impl SetKeyFrom {
+    pub fn new(key: &String, source: Vec<usize>) -> Self {
+        SetKeyFrom {
+            key: key.clone(),
+            source,
         }
     }
 }
 
-impl Combinator for SetTo {
+impl Combinator for SetKeyFrom {
     fn run(
         &self,
         retrievers: &Vec<Retriever>,
         data: &mut Vec<Option<ParseableType>>,
-        repeats: &mut Vec<Option<isize>>,
+        _repeats: &mut Vec<Option<isize>>,
         ver: &Version,
-        _ctx: &mut Context,
+        ctx: &mut Context,
     ) -> PyResult<()> {
-        set_rec(&self.target, retrievers, data, repeats, ver, self.source.clone())
+        let (_name, source) = get_rec(&self.source, retrievers, data, ver)?;
+        ctx.set(&self.key, source);
+        Ok(())
     }
 }

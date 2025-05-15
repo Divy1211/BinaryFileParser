@@ -10,6 +10,7 @@ use crate::retrievers::retriever_ref::RetrieverRef;
 use crate::types::base_struct::BaseStruct;
 use crate::types::bfp_list::BfpList;
 use crate::types::byte_stream::ByteStream;
+use crate::types::context::Context;
 use crate::types::parseable::Parseable;
 use crate::types::parseable_type::ParseableType;
 use crate::types::version::Version;
@@ -106,7 +107,13 @@ impl Struct {
         })
     }
 
-    pub fn from_stream_(&self, stream: &mut ByteStream, ver: &Version, bar: Option<MultiProgress>) -> PyResult<BaseStruct> {
+    pub fn from_stream_(
+        &self,
+        stream: &mut ByteStream,
+        ver: &Version,
+        bar: Option<MultiProgress>,
+        ctx: &mut Context
+    ) -> PyResult<BaseStruct> {
         let retrievers = &self.raw.retrievers;
         let mut data = Vec::with_capacity(retrievers.len());
         let mut repeats = vec![None; retrievers.len()];
@@ -140,17 +147,19 @@ impl Struct {
 
             data.push(Some(match retriever.state(&repeats) {
                 RetState::NoneValue | RetState::NoneList => { ParseableType::None }
-                RetState::Value => { retriever.from_stream(stream, &ver)? }
+                RetState::Value => { retriever.from_stream_ctx(stream, &ver, ctx)? }
                 RetState::List => {
                     let mut ls = Vec::with_capacity(retriever.repeat(&repeats) as usize);
-                    for _ in 0..retriever.repeat(&repeats) {
-                        ls.push(retriever.from_stream(stream, &ver)?);
+                    for i in 0..retriever.repeat(&repeats) {
+                        ctx.idxes.push(i as usize);
+                        ls.push(retriever.from_stream_ctx(stream, &ver, ctx)?);
+                        ctx.idxes.pop();
                     }
                     BfpList::new(ls, retriever.data_type.clone()).into()
                 }
             }));
 
-            retriever.call_on_reads(&retrievers, &mut data, &mut repeats, &ver)?;
+            retriever.call_on_reads(&retrievers, &mut data, &mut repeats, &ver, ctx)?;
 
             if let Some(progress) = progress.as_ref() {
                 progress.set_message("");
@@ -229,9 +238,9 @@ impl Struct {
 
 impl Parseable for Struct {
     type Type = BaseStruct;
-    
-    fn from_stream(&self, stream: &mut ByteStream, ver: &Version) -> PyResult<BaseStruct> {
-        self.from_stream_(stream, ver, None)
+
+    fn from_stream_ctx(&self, stream: &mut ByteStream, ver: &Version, ctx: &mut Context) -> PyResult<Self::Type> {
+        self.from_stream_(stream, ver, None, ctx)
     }
 
     fn to_bytes_in(&self, value: &Self::Type, buffer: &mut Vec<u8>) -> PyResult<()> {

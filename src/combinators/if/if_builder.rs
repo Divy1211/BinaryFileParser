@@ -2,18 +2,22 @@ use std::cmp::{Ordering, PartialEq};
 
 use pyo3::exceptions::{PyTypeError, PyValueError};
 use pyo3::prelude::*;
-use pyo3::types::PyTuple;
+use pyo3::types::{PyString, PyTuple};
 
 use crate::combinators::combinator_type::CombinatorType;
 use crate::combinators::get::Get;
 use crate::combinators::r#if::if_check::IfCheck;
+use crate::combinators::r#if::if_check_key::IfCheckKey;
 use crate::combinators::r#if::if_cmp_by::IfCmpBy;
 use crate::combinators::r#if::if_cmp_from::IfCmpFrom;
+use crate::combinators::r#if::if_cmp_key::IfCmpKey;
+use crate::combinators::r#if::if_cmp_key_to::IfCmpKeyTo;
 use crate::combinators::r#if::if_cmp_len_by::IfCmpLenBy;
 use crate::combinators::r#if::if_cmp_len_from::IfCmpLenFrom;
 use crate::combinators::r#if::if_cmp_len_to::IfCmpLenTo;
 use crate::combinators::r#if::if_cmp_to::IfCmpTo;
 use crate::combinators::r#if::if_is_none::IfIsNone;
+use crate::combinators::r#if::if_key_is_none::IfKeyIsNone;
 use crate::combinators::r#if::if_ver::IfVer;
 use crate::combinators::utils::idxes_from_tup;
 use crate::retrievers::retriever::Retriever;
@@ -33,6 +37,7 @@ enum State {
 
 #[pyclass(module = "bfp_rs.combinators")]
 pub struct IfBuilder {
+    key: Option<String>,
     target: Vec<usize>,
     target_data_type: BfpType,
 
@@ -56,6 +61,7 @@ pub struct IfBuilder {
 impl Default for IfBuilder {
     fn default() -> Self {
         IfBuilder {
+            key: None,
             target: vec![],
             target_data_type: BfpType::Int8(Int8),
             source: None,
@@ -147,18 +153,40 @@ impl IfBuilder {
                 ).into()
             }
             State::HasTarget if self.none_check => {
-                IfIsNone::new(
-                    &self.target,
-                    com,
-                    self.not,
-                ).into()
+                match &self.key {
+                    None => {
+                        IfIsNone::new(
+                            &self.target,
+                            com,
+                            self.not,
+                        ).into()
+                    }
+                    Some(key) => {
+                        IfKeyIsNone::new(
+                            key,
+                            com,
+                            self.not,
+                        ).into()
+                    }
+                }
             }
             State::HasTarget => {
-                IfCheck::new(
-                    &self.target,
-                    com,
-                    self.not,
-                ).into()
+                match &self.key {
+                    None => {
+                        IfCheck::new(
+                            &self.target,
+                            com,
+                            self.not,
+                        ).into()
+                    }
+                    Some(key) => {
+                        IfCheckKey::new(
+                            key,
+                            com,
+                            self.not,
+                        ).into()
+                    }
+                }
             }
             State::HasSource if self.len => {
                 IfCmpLenFrom::new(
@@ -169,12 +197,24 @@ impl IfBuilder {
                 ).into()
             }
             State::HasSource => {
-                IfCmpFrom::new(
-                    &self.target,
-                    self.source.as_ref().expect("infallible"),
-                    self.ord.as_ref().expect("infallible"),
-                    com,
-                ).into()
+                match &self.key {
+                    None => {
+                        IfCmpFrom::new(
+                            &self.target,
+                            self.source.as_ref().expect("infallible"),
+                            self.ord.as_ref().expect("infallible"),
+                            com,
+                        ).into()
+                    }
+                    Some(key) => {
+                        IfCmpKey::new(
+                            key,
+                            self.source.as_ref().expect("infallible"),
+                            self.ord.as_ref().expect("infallible"),
+                            com,
+                        ).into()
+                    }
+                }
             }
             State::HasSourceConst if self.len => {
                 IfCmpLenTo::new(
@@ -185,12 +225,24 @@ impl IfBuilder {
                 ).into()
             }
             State::HasSourceConst => {
-                IfCmpTo::new(
-                    &self.target,
-                    self.source_const.as_ref().expect("infallible"),
-                    self.ord.as_ref().expect("infallible"),
-                    com,
-                ).into()
+                match &self.key {
+                    None => {
+                        IfCmpTo::new(
+                            &self.target,
+                            self.source_const.as_ref().expect("infallible"),
+                            self.ord.as_ref().expect("infallible"),
+                            com,
+                        ).into()
+                    }
+                    Some(key) => {
+                        IfCmpKeyTo::new(
+                            key,
+                            self.source_const.as_ref().expect("infallible"),
+                            self.ord.as_ref().expect("infallible"),
+                            com,
+                        ).into()
+                    }
+                }
             }
             State::HasSourceGet if self.len => {
                 IfCmpLenBy::new(
@@ -298,6 +350,23 @@ pub fn if_not(target: &Bound<PyTuple>) -> PyResult<IfBuilder> {
     Ok(IfBuilder {
         target,
         target_data_type,
+        not: true,
+        ..Default::default()
+    })
+}
+
+#[pyfunction]
+pub fn if_key(key: &Bound<PyString>) -> PyResult<IfBuilder> {
+    Ok(IfBuilder {
+        key: Some(key.to_string()),
+        ..Default::default()
+    })
+}
+
+#[pyfunction]
+pub fn if_not_key(key: &Bound<PyString>) -> PyResult<IfBuilder> {
+    Ok(IfBuilder {
+        key: Some(key.to_string()),
         not: true,
         ..Default::default()
     })

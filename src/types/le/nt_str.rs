@@ -3,6 +3,7 @@ use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyTuple, PyType};
 use crate::types::bfp_type::BfpType;
 use crate::types::byte_stream::ByteStream;
+use crate::types::context::Context;
 use crate::types::le::encoding::Encoding;
 use crate::types::le::size::Size;
 use crate::types::le::utils::{str_from_bytes, str_to_bytes};
@@ -38,7 +39,7 @@ impl Parseable for NtStr {
     type Type = String;
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn from_stream(&self, stream: &mut ByteStream, _ver: &Version) -> PyResult<Self::Type> {
+    fn from_stream_ctx(&self, stream: &mut ByteStream, _ver: &Version, _ctx: &mut Context) -> PyResult<Self::Type> {
         let Some(len_size) = &self.len_type else {
             let mut bytes = Vec::new();
             for byte in stream {

@@ -9,7 +9,7 @@ macro_rules! def_num_type_le {
             type Type = $native_type;
 
             #[cfg_attr(feature = "inline_always", inline(always))]
-            fn from_stream(&self, stream: &mut ByteStream, _ver: &Version) -> PyResult<Self::Type> {
+            fn from_stream_ctx(&self, stream: &mut ByteStream, _ver: &Version, _ctx: &mut Context) -> PyResult<Self::Type> {
                 let bytes = stream.get($size)?.try_into().expect("infallible");
                 Ok(Self::Type::from_le_bytes(bytes))
             }
@@ -36,7 +36,7 @@ macro_rules! def_bool_type_le {
             type Type = bool;
         
             #[cfg_attr(feature = "inline_always", inline(always))]
-            fn from_stream(&self, stream: &mut ByteStream, _ver: &Version) -> PyResult<Self::Type> {
+            fn from_stream_ctx(&self, stream: &mut ByteStream, _ver: &Version, _ctx: &mut Context) -> PyResult<Self::Type> {
                 let bytes = stream.get($size)?.try_into().expect("infallible");
                 Ok(<$native_type>::from_le_bytes(bytes) != 0)
             }

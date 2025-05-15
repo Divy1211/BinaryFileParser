@@ -2,7 +2,6 @@ use pyo3::exceptions::{PyTypeError, PyValueError};
 use pyo3::prelude::*;
 
 use crate::combinators::combinator::Combinator;
-use crate::combinators::utils::{get_rec};
 use crate::retrievers::retriever::Retriever;
 use crate::types::context::Context;
 use crate::types::parseable_type::ParseableType;
@@ -10,41 +9,41 @@ use crate::types::version::Version;
 
 #[pyclass(module = "bfp_rs.combinators")]
 #[derive(Debug, Clone)]
-pub struct SetRepeatFrom {
+pub struct SetRepeatFromKey {
     target: usize,
-    source: Vec<usize>,
+    key: String,
 }
 
-impl SetRepeatFrom {
-    pub fn new(target: usize, source: Vec<usize>) -> Self {
-        SetRepeatFrom {
+impl SetRepeatFromKey {
+    pub fn new(target: usize, key: String) -> Self {
+        SetRepeatFromKey {
             target,
-            source,
+            key,
         }
     }
 }
 
-impl Combinator for SetRepeatFrom {
+impl Combinator for SetRepeatFromKey {
     fn run(
         &self,
         retrievers: &Vec<Retriever>,
-        data: &mut Vec<Option<ParseableType>>,
+        _data: &mut Vec<Option<ParseableType>>,
         repeats: &mut Vec<Option<isize>>,
-        ver: &Version,
-        _ctx: &mut Context,
+        _ver: &Version,
+        ctx: &mut Context,
     ) -> PyResult<()> {
-        let (source_name, source) = get_rec(&self.source, retrievers, data, ver)?;
+        let source = ctx.get(&self.key)?;
 
         let Ok(source) = (&source).try_into() else {
             return Err(PyTypeError::new_err(format!(
-                "SetRepeatFrom: '{}' cannot be interpreted as an integer", source_name
+                "SetRepeatFromKey: Context key '{}' cannot be interpreted as an integer", self.key
             )))
         };
 
         if source < -2 {
             return Err(PyValueError::new_err(format!(
-                "SetRepeatFrom: Attempting to set repeat of '{}' to '{}' from '{}', which is less than -2",
-                retrievers[self.target].name, source, source_name
+                "SetRepeatFromKey: Attempting to set repeat of '{}' to '{}' from context key '{}', which is less than -2",
+                retrievers[self.target].name, source, self.key
             )));
         }
         

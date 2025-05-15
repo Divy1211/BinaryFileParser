@@ -2,6 +2,7 @@ use pyo3::exceptions::PyValueError;
 use pyo3::PyResult;
 
 use crate::types::byte_stream::ByteStream;
+use crate::types::context::Context;
 use crate::types::le::int::{UInt128, UInt16, UInt32, UInt64, UInt8};
 use crate::types::parseable::Parseable;
 use crate::types::version::Version;
@@ -62,13 +63,13 @@ impl Parseable for Size {
     type Type = usize;
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn from_stream(&self, stream: &mut ByteStream, _ver: &Version) -> PyResult<Self::Type> {
+    fn from_stream_ctx(&self, stream: &mut ByteStream, _ver: &Version, _ctx: &mut Context) -> PyResult<Self::Type> {
         Ok(match self {
-            Size::UInt8(type_)   => type_.from_stream(stream, _ver)? as usize,
-            Size::UInt16(type_)  => type_.from_stream(stream, _ver)? as usize,
-            Size::UInt32(type_)  => type_.from_stream(stream, _ver)? as usize,
-            Size::UInt64(type_)  => type_.from_stream(stream, _ver)? as usize,
-            Size::UInt128(type_) => type_.from_stream(stream, _ver)? as usize,
+            Size::UInt8(type_)   => type_.from_stream_ctx(stream, _ver, _ctx)? as usize,
+            Size::UInt16(type_)  => type_.from_stream_ctx(stream, _ver, _ctx)? as usize,
+            Size::UInt32(type_)  => type_.from_stream_ctx(stream, _ver, _ctx)? as usize,
+            Size::UInt64(type_)  => type_.from_stream_ctx(stream, _ver, _ctx)? as usize,
+            Size::UInt128(type_) => type_.from_stream_ctx(stream, _ver, _ctx)? as usize,
             Size::Fixed(size)    => *size,
         })
     }

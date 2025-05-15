@@ -16,6 +16,7 @@ use crate::retrievers::retriever::Retriever;
 use crate::retrievers::retriever_combiner::RetrieverCombiner;
 use crate::retrievers::retriever_ref::RetrieverRef;
 use crate::types::byte_stream::ByteStream;
+use crate::types::context::Context;
 use crate::types::parseable::Parseable;
 use crate::types::parseable_type::ParseableType;
 use crate::types::r#struct::Struct;
@@ -170,7 +171,7 @@ impl BaseStruct {
         }
         
         let Some(filepath) = filepath else {
-            let base = struct_.from_stream_(stream, &ver, None)?;
+            let base = struct_.from_stream_(stream, &ver, None, &mut Context::new())?;
             return Ok(BaseStruct::with_cls(base, cls));
         };
         
@@ -185,7 +186,7 @@ impl BaseStruct {
         spinner.set_message(format!("➡ Reading File '{}'", filepath));
         spinner.enable_steady_tick(Duration::from_millis(100));
         
-        let base = struct_.from_stream_(stream, &ver, Some(bar))?;
+        let base = struct_.from_stream_(stream, &ver, Some(bar), &mut Context::new())?;
         
         spinner.set_message(format!("✔ Finished Reading File '{}'", filepath));
         spinner.finish();

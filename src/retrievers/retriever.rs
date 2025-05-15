@@ -3,7 +3,7 @@ use std::sync::Arc;
 use pyo3::prelude::*;
 use pyo3::types::PyType;
 use pyo3::{pyclass, PyObject};
-use pyo3::exceptions::{PyValueError};
+use pyo3::exceptions::{PyTypeError, PyValueError};
 use crate::combinators::combinator::Combinator;
 use crate::combinators::combinator_type::CombinatorType;
 use crate::errors::default_attribute_error::DefaultAttributeError;
@@ -12,6 +12,7 @@ use crate::types::base_struct::BaseStruct;
 use crate::types::bfp_list::BfpList;
 use crate::types::bfp_type::BfpType;
 use crate::types::byte_stream::ByteStream;
+use crate::types::context::Context;
 use crate::types::parseable::Parseable;
 use crate::types::parseable_type::ParseableType;
 use crate::types::version::Version;
@@ -272,7 +273,15 @@ impl Retriever {
 
         match &self.tmp_on_write {
             Some(obj) => {
-                self.on_write = Some(Arc::new(obj.call0(py)?.extract::<Vec<CombinatorType>>(py)?));
+                let on_write = obj.call0(py)?.extract::<Vec<CombinatorType>>(py)?;
+                for combinator in on_write.iter() {
+                    if combinator.uses_ctx() {
+                        return Err(PyTypeError::new_err(
+                            "Using contexts during writing is not supported. Override"
+                        ))
+                    }
+                }
+                self.on_write = Some(Arc::new(on_write));
                 self.tmp_on_write = None;
             }
             _ => {}
@@ -287,13 +296,14 @@ impl Retriever {
         retrievers: &Vec<Retriever>,
         data: &mut Vec<Option<ParseableType>>,
         repeats: &mut Vec<Option<isize>>,
-        ver: &Version
+        ver: &Version,
+        ctx: &mut Context,
     ) -> PyResult<()> {
         let Some(on_read) = self.on_read.as_ref() else {
             return Ok(());
         };
         for combinator in on_read.iter() {
-            combinator.run(retrievers, data, repeats, ver)?;
+            combinator.run(retrievers, data, repeats, ver, ctx)?;
         }
         Ok(())
     }
@@ -309,8 +319,9 @@ impl Retriever {
         let Some(on_write) = self.on_write.as_ref() else {
             return Ok(());
         };
+        let mut ctx = Context::new();
         for combinator in on_write.iter() {
-            combinator.run(retrievers, data, repeats, ver)?;
+            combinator.run(retrievers, data, repeats, ver, &mut ctx)?;
         }
         Ok(())
     }
@@ -321,8 +332,8 @@ impl Retriever {
     }
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    pub fn from_stream(&self, stream: &mut ByteStream, ver: &Version) -> PyResult<ParseableType> {
-        self.data_type.from_stream(stream, ver)
+    pub fn from_stream_ctx(&self, stream: &mut ByteStream, ver: &Version, ctx: &mut Context) -> PyResult<ParseableType> {
+        self.data_type.from_stream_ctx(stream, ver, ctx)
     }
 
     #[cfg_attr(feature = "inline_always", inline(always))]

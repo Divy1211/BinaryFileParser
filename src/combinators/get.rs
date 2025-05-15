@@ -2,10 +2,11 @@ use std::collections::VecDeque;
 
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
-use pyo3::types::{PyTuple};
+use pyo3::types::{PyString, PyTuple};
 
 use crate::combinators::utils::{get_rec, idxes_from_tup};
 use crate::retrievers::retriever::Retriever;
+use crate::types::context::Context;
 use crate::types::parseable_type::ParseableType;
 use crate::types::version::Version;
 
@@ -14,7 +15,8 @@ pub enum Item {
     Int(i128),
     Ref(Vec<usize>),
     RefLen(Vec<usize>),
-
+    CtxKey(String),
+    
     Add,
     Sub,
     Mul,
@@ -74,7 +76,8 @@ impl Get {
         retrievers: &Vec<Retriever>,
         data: &mut Vec<Option<ParseableType>>,
         _repeats: &mut Vec<Option<isize>>,
-        ver: &Version
+        ver: &Version,
+        ctx: &Context,
     ) -> PyResult<i128> {
         let mut stack = Vec::new();
 
@@ -97,6 +100,13 @@ impl Get {
                     };
                     stack.push(val as i128);
                 },
+                Item::CtxKey(key) => {
+                    let val = ctx.get(key)?;
+                    let Some(val) = val.try_to_int() else {
+                        return Err(PyValueError::new_err(format!("Context key '{}' cannot be interpreted as an int", key)))
+                    };
+                    stack.push(val);
+                }
                 Item::Add => {
                     let op2 = stack.pop().expect("By construction");
                     let op1 = stack.pop().expect("By construction");
@@ -240,6 +250,11 @@ impl Get {
 pub fn get(source: &Bound<PyTuple>) -> PyResult<Get> {
     let (source, _source_data_type, _source_name) = idxes_from_tup(source)?;
     Ok(Get::new(Item::Ref(source)))
+}
+
+#[pyfunction]
+pub fn get_key(key: &Bound<PyString>) -> Get {
+    Get::new(Item::CtxKey(key.to_string()))
 }
 
 #[pyfunction]

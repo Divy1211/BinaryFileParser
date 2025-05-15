@@ -55,20 +55,20 @@ pub fn get_rec(
     let idx = idxes[0];
     if idx > retrievers.len() {
         return Err(PyIndexError::new_err(
-            "GetRec: Retriever index out of bounds"
+            "Get: Retriever index out of bounds"
         ));
     }
     let ret = &retrievers[idx];
     if idx >= data.len() {
         return Err(PyValueError::new_err(format!(
-            "GetRec: '{}' has not been initialised yet", ret.name
+            "Get: '{}' has not been initialised yet", ret.name
         )));
     }
     let val = &data[idx];
     match val {
         None => {
             Err(VersionError::new_err(format!(
-                "GetRec: '{}' is not supported in struct version {ver}", ret.name
+                "Get: '{}' is not supported in struct version {ver}", ret.name
             )))
         }
         Some(val) => {
@@ -102,7 +102,7 @@ fn get_from_parseable_type(
             let inner = ls.inner();
             if idx > inner.data.len() {
                 return Err(PyIndexError::new_err(format!(
-                    "GetRec: List index out of bounds '{}'", name
+                    "Get: List index out of bounds '{}'", name
                 )));
             }
             if idxes.len() == 1 {
@@ -112,7 +112,7 @@ fn get_from_parseable_type(
         },
         _ => {
             Err(VersionError::new_err(format!(
-                "GetRec: Attempting sub-property/index access on non struct/list '{}'", name
+                "Get: Attempting sub-property/index access on non struct/list '{}'", name
             )))
         }
     }
@@ -129,20 +129,20 @@ pub fn set_rec(
     let idx = idxes[0];
     if idx > retrievers.len() {
         return Err(PyIndexError::new_err(
-            "SetRec: Retriever index out of bounds"
+            "Set: Retriever index out of bounds"
         ));
     }
     let ret = &retrievers[idx];
     if idx >= data.len() {
         return Err(PyValueError::new_err(format!(
-            "SetRec: '{}' has not been initialised yet", ret.name
+            "Set: '{}' has not been initialised yet", ret.name
         )));
     }
     let val = &data[idx];
     match val {
         None => {
             Err(VersionError::new_err(format!(
-                "SetRec: '{}' is not supported in struct version {ver}", ret.name
+                "Set: '{}' is not supported in struct version {ver}", ret.name
             )))
         }
         Some(val) => {
@@ -180,7 +180,7 @@ fn set_from_parseable_type(
             let mut inner = ls.inner_mut();
             if idx > inner.data.len() {
                 return Err(PyIndexError::new_err(format!(
-                    "SetRec: List index out of bounds '{}'", name
+                    "Set: List index out of bounds '{}'", name
                 )));
             }
             if idxes.len() == 1 {
@@ -196,7 +196,7 @@ fn set_from_parseable_type(
         },
         _ => {
             Err(VersionError::new_err(format!(
-                "SetRec: Attempting sub-property/index access on non struct/list '{}'", name
+                "Set: Attempting sub-property/index access on non struct/list '{}'", name
             )))
         }
     }

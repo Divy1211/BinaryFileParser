@@ -4,6 +4,7 @@ use pyo3::{pyclass, pymethods, Bound, PyAny, PyResult};
 use pyo3::types::{PyBytes, PyType};
 use crate::types::base_struct::BaseStruct;
 use crate::types::byte_stream::ByteStream;
+use crate::types::context::Context;
 use crate::types::le::bool::{Bool128, Bool16, Bool32, Bool64, Bool8};
 use crate::types::le::bytes::Bytes;
 use crate::types::le::float::{Float32, Float64};
@@ -297,46 +298,46 @@ impl BfpType {
 impl Parseable for BfpType {
     type Type = ParseableType;
 
-    fn from_stream(&self, stream: &mut ByteStream, ver: &Version) -> PyResult<Self::Type> {
+    fn from_stream_ctx(&self, stream: &mut ByteStream, ver: &Version, ctx: &mut Context) -> PyResult<Self::Type> {
         Ok(match self {
-            BfpType::UInt8(val)               => val.from_stream(stream, ver)?.into(),
-            BfpType::UInt16(val)              => val.from_stream(stream, ver)?.into(),
-            BfpType::UInt32(val)              => val.from_stream(stream, ver)?.into(),
-            BfpType::UInt64(val)              => val.from_stream(stream, ver)?.into(),
-            BfpType::UInt128(val)             => val.from_stream(stream, ver)?.into(),
+            BfpType::UInt8(val)               => val.from_stream_ctx(stream, ver, ctx)?.into(),
+            BfpType::UInt16(val)              => val.from_stream_ctx(stream, ver, ctx)?.into(),
+            BfpType::UInt32(val)              => val.from_stream_ctx(stream, ver, ctx)?.into(),
+            BfpType::UInt64(val)              => val.from_stream_ctx(stream, ver, ctx)?.into(),
+            BfpType::UInt128(val)             => val.from_stream_ctx(stream, ver, ctx)?.into(),
             
-            BfpType::Int8(val)                => val.from_stream(stream, ver)?.into(),
-            BfpType::Int16(val)               => val.from_stream(stream, ver)?.into(),
-            BfpType::Int32(val)               => val.from_stream(stream, ver)?.into(),
-            BfpType::Int64(val)               => val.from_stream(stream, ver)?.into(),
-            BfpType::Int128(val)              => val.from_stream(stream, ver)?.into(),
+            BfpType::Int8(val)                => val.from_stream_ctx(stream, ver, ctx)?.into(),
+            BfpType::Int16(val)               => val.from_stream_ctx(stream, ver, ctx)?.into(),
+            BfpType::Int32(val)               => val.from_stream_ctx(stream, ver, ctx)?.into(),
+            BfpType::Int64(val)               => val.from_stream_ctx(stream, ver, ctx)?.into(),
+            BfpType::Int128(val)              => val.from_stream_ctx(stream, ver, ctx)?.into(),
             
-            BfpType::Float32(val)             => val.from_stream(stream, ver)?.into(),
-            BfpType::Float64(val)             => val.from_stream(stream, ver)?.into(),
+            BfpType::Float32(val)             => val.from_stream_ctx(stream, ver, ctx)?.into(),
+            BfpType::Float64(val)             => val.from_stream_ctx(stream, ver, ctx)?.into(),
             
-            BfpType::Bool8(val)               => val.from_stream(stream, ver)?.into(),
-            BfpType::Bool16(val)              => val.from_stream(stream, ver)?.into(),
-            BfpType::Bool32(val)              => val.from_stream(stream, ver)?.into(),
-            BfpType::Bool64(val)              => val.from_stream(stream, ver)?.into(),
-            BfpType::Bool128(val)             => val.from_stream(stream, ver)?.into(),
+            BfpType::Bool8(val)               => val.from_stream_ctx(stream, ver, ctx)?.into(),
+            BfpType::Bool16(val)              => val.from_stream_ctx(stream, ver, ctx)?.into(),
+            BfpType::Bool32(val)              => val.from_stream_ctx(stream, ver, ctx)?.into(),
+            BfpType::Bool64(val)              => val.from_stream_ctx(stream, ver, ctx)?.into(),
+            BfpType::Bool128(val)             => val.from_stream_ctx(stream, ver, ctx)?.into(),
 
-            BfpType::Bytes(val)               => val.from_stream(stream, ver)?.into(),
+            BfpType::Bytes(val)               => val.from_stream_ctx(stream, ver, ctx)?.into(),
 
-            BfpType::Str(val)                 => val.from_stream(stream, ver)?.into(),
-            BfpType::NTStr(val)               => val.from_stream(stream, ver)?.into(),
+            BfpType::Str(val)                 => val.from_stream_ctx(stream, ver, ctx)?.into(),
+            BfpType::NTStr(val)               => val.from_stream_ctx(stream, ver, ctx)?.into(),
             
-            BfpType::StrArray(val)            => val.from_stream(stream, ver)?.into(),
+            BfpType::StrArray(val)            => val.from_stream_ctx(stream, ver, ctx)?.into(),
 
-            BfpType::Option(val)              => val.from_stream(stream, ver)?.into(),
+            BfpType::Option(val)              => val.from_stream_ctx(stream, ver, ctx)?.into(),
 
-            BfpType::Array(val)               => val.from_stream(stream, ver)?.into(),
-            BfpType::StackedArray(val)        => val.from_stream(stream, ver)?.into(),
-            BfpType::StackedAttrArray(val)    => val.from_stream(stream, ver)?.into(),
+            BfpType::Array(val)               => val.from_stream_ctx(stream, ver, ctx)?.into(),
+            BfpType::StackedArray(val)        => val.from_stream_ctx(stream, ver, ctx)?.into(),
+            BfpType::StackedAttrArray(val)    => val.from_stream_ctx(stream, ver, ctx)?.into(),
 
-            BfpType::Tail(val)                => val.from_stream(stream, ver)?.into(),
+            BfpType::Tail(val)                => val.from_stream_ctx(stream, ver, ctx)?.into(),
             
             BfpType::Struct(struct_)          => ParseableType::Struct {
-                val: struct_.from_stream(stream, ver)?,
+                val: struct_.from_stream_ctx(stream, ver, ctx)?,
                 struct_: struct_.clone()
             },
         })
