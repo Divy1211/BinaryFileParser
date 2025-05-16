@@ -186,7 +186,7 @@ def if_ver(*, min: Version = Version(-1), max: Version = Version(10_000)) -> IfB
         An ``IfBuilder`` instance to continue defining additional combinator properties
     """
 
-def if_else(self, *coms: Combinator) -> Combinator:
+def if_else(*coms: Combinator) -> Combinator:
     """
     Creates an if-else-if like chain using the provided ``if_`` combinators, such that at most only one of them will run
     their innermost combinator. if multiple ``if_``s are nested in one combinator, it is treated as a single if block,
