@@ -6,6 +6,7 @@ use pyo3::types::{PyString, PyTuple};
 
 use crate::combinators::combinator_type::CombinatorType;
 use crate::combinators::get::Get;
+use crate::combinators::r#if::if_break::IfBreak;
 use crate::combinators::r#if::if_check::IfCheck;
 use crate::combinators::r#if::if_check_key::IfCheckKey;
 use crate::combinators::r#if::if_cmp_by::IfCmpBy;
@@ -16,6 +17,7 @@ use crate::combinators::r#if::if_cmp_len_by::IfCmpLenBy;
 use crate::combinators::r#if::if_cmp_len_from::IfCmpLenFrom;
 use crate::combinators::r#if::if_cmp_len_to::IfCmpLenTo;
 use crate::combinators::r#if::if_cmp_to::IfCmpTo;
+use crate::combinators::r#if::if_else::IfElse;
 use crate::combinators::r#if::if_is_none::IfIsNone;
 use crate::combinators::r#if::if_key_is_none::IfKeyIsNone;
 use crate::combinators::r#if::if_ver::IfVer;
@@ -143,13 +145,14 @@ impl IfBuilder {
         slf
     }
 
-    fn then(&self, com: CombinatorType) -> PyResult<CombinatorType> {
+    #[pyo3(signature = (*coms), text_signature = "(*coms: CombinatorType)")]
+    fn then(&self, coms: Vec<CombinatorType>) -> PyResult<CombinatorType> {
         Ok(match self.state {
             State::VerCheck => {
                 IfVer::new(
                     self.min_ver.as_ref().expect("infallible"),
                     self.max_ver.as_ref().expect("infallible"),
-                    com,
+                    coms,
                 ).into()
             }
             State::HasTarget if self.none_check => {
@@ -157,14 +160,14 @@ impl IfBuilder {
                     None => {
                         IfIsNone::new(
                             &self.target,
-                            com,
+                            coms,
                             self.not,
                         ).into()
                     }
                     Some(key) => {
                         IfKeyIsNone::new(
                             key,
-                            com,
+                            coms,
                             self.not,
                         ).into()
                     }
@@ -175,14 +178,14 @@ impl IfBuilder {
                     None => {
                         IfCheck::new(
                             &self.target,
-                            com,
+                            coms,
                             self.not,
                         ).into()
                     }
                     Some(key) => {
                         IfCheckKey::new(
                             key,
-                            com,
+                            coms,
                             self.not,
                         ).into()
                     }
@@ -193,7 +196,7 @@ impl IfBuilder {
                     &self.target,
                     self.source.as_ref().expect("infallible"),
                     self.ord.as_ref().expect("infallible"),
-                    com,
+                    coms,
                 ).into()
             }
             State::HasSource => {
@@ -203,7 +206,7 @@ impl IfBuilder {
                             &self.target,
                             self.source.as_ref().expect("infallible"),
                             self.ord.as_ref().expect("infallible"),
-                            com,
+                            coms,
                         ).into()
                     }
                     Some(key) => {
@@ -211,7 +214,7 @@ impl IfBuilder {
                             key,
                             self.source.as_ref().expect("infallible"),
                             self.ord.as_ref().expect("infallible"),
-                            com,
+                            coms,
                         ).into()
                     }
                 }
@@ -221,7 +224,7 @@ impl IfBuilder {
                     &self.target,
                     self.source.as_ref().expect("infallible")[0],
                     self.ord.as_ref().expect("infallible"),
-                    com,
+                    coms,
                 ).into()
             }
             State::HasSourceConst => {
@@ -231,7 +234,7 @@ impl IfBuilder {
                             &self.target,
                             self.source_const.as_ref().expect("infallible"),
                             self.ord.as_ref().expect("infallible"),
-                            com,
+                            coms,
                         ).into()
                     }
                     Some(key) => {
@@ -239,7 +242,7 @@ impl IfBuilder {
                             key,
                             self.source_const.as_ref().expect("infallible"),
                             self.ord.as_ref().expect("infallible"),
-                            com,
+                            coms,
                         ).into()
                     }
                 }
@@ -249,7 +252,7 @@ impl IfBuilder {
                     &self.target,
                     self.source_get.as_ref().expect("infallible"),
                     self.ord.as_ref().expect("infallible"),
-                    com,
+                    coms,
                 ).into()
             }
             State::HasSourceGet => {
@@ -257,7 +260,7 @@ impl IfBuilder {
                     &self.target,
                     self.source_get.as_ref().expect("infallible"),
                     self.ord.as_ref().expect("infallible"),
-                    com,
+                    coms,
                 ).into()
             }
         })
@@ -394,4 +397,15 @@ pub fn if_ver(min: Version, max: Version) -> PyResult<IfBuilder> {
         state: State::VerCheck,
         ..Default::default()
     })
+}
+
+#[pyfunction]
+#[pyo3(signature = (*coms), text_signature = "(*coms: CombinatorType)")]
+pub fn if_else(coms: Vec<CombinatorType>) -> CombinatorType {
+    IfElse::new(coms).into()
+}
+
+#[pyfunction]
+pub fn break_() -> CombinatorType {
+    IfBreak.into()
 }

@@ -11,15 +11,15 @@ use crate::types::version::Version;
 #[derive(Debug, Clone)]
 pub struct IfKeyIsNone {
     key: String,
-    com: Box<CombinatorType>,
+    coms: Vec<CombinatorType>,
     not: bool,
 }
 
 impl IfKeyIsNone {
-    pub fn new(key: &String, com: CombinatorType, not: bool) -> Self {
+    pub fn new(key: &String, coms: Vec<CombinatorType>, not: bool) -> Self {
         IfKeyIsNone {
             key: key.clone(),
-            com: Box::new(com),
+            coms,
             not,
         }
     }
@@ -36,8 +36,12 @@ impl Combinator for IfKeyIsNone {
     ) -> PyResult<()> {
         let source = ctx.get(&self.key)?;
         
+        ctx.enter_if();
         if (source == ParseableType::None) ^ self.not {
-            self.com.run(retrievers, data, repeats, ver, ctx)?;
+            for com in &self.coms {
+                com.run(retrievers, data, repeats, ver, ctx)?;
+            }
+            ctx.run_if();
         }
         Ok(())
     }

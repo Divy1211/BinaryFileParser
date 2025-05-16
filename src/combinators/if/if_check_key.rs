@@ -12,15 +12,15 @@ use crate::types::version::Version;
 #[derive(Debug, Clone)]
 pub struct IfCheckKey {
     key: String,
-    com: Box<CombinatorType>,
+    coms: Vec<CombinatorType>,
     not: bool,
 }
 
 impl IfCheckKey {
-    pub fn new(key: &String, com: CombinatorType, not: bool) -> Self {
+    pub fn new(key: &String, coms: Vec<CombinatorType>, not: bool) -> Self {
         IfCheckKey {
             key: key.clone(),
-            com: Box::new(com),
+            coms,
             not,
         }
     }
@@ -42,9 +42,13 @@ impl Combinator for IfCheckKey {
                 "IfCheckKey: Context key '{}' cannot be interpreted as a boolean", self.key
             )))
         };
-        
+
+        ctx.enter_if();
         if source_val ^ self.not {
-            self.com.run(retrievers, data, repeats, ver, ctx)?;
+            for com in &self.coms {
+                com.run(retrievers, data, repeats, ver, ctx)?;
+            }
+            ctx.run_if();
         }
         Ok(())
     }

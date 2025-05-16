@@ -17,16 +17,16 @@ pub struct IfCmpKey {
     key: String,
     source: Vec<usize>,
     ord: Vec<Ordering>,
-    com: Box<CombinatorType>,
+    coms: Vec<CombinatorType>,
 }
 
 impl IfCmpKey {
-    pub fn new(key: &String, source: &Vec<usize>, ord: &Vec<Ordering>, com: CombinatorType) -> Self {
+    pub fn new(key: &String, source: &Vec<usize>, ord: &Vec<Ordering>, coms: Vec<CombinatorType>) -> Self {
         IfCmpKey {
             key: key.clone(),
             source: source.clone(),
             ord: ord.clone(),
-            com: Box::new(com),
+            coms,
         }
     }
 }
@@ -51,8 +51,12 @@ impl Combinator for IfCmpKey {
             )));
         };
         
+        ctx.enter_if();
         if self.ord.contains(&ord) {
-            self.com.run(retrievers, data, repeats, ver, ctx)?;
+            for com in &self.coms {
+                com.run(retrievers, data, repeats, ver, ctx)?;
+            }
+            ctx.run_if();
         }
         Ok(())
     }

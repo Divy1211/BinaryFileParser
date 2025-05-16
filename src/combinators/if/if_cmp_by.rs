@@ -18,16 +18,16 @@ pub struct IfCmpBy {
     target: Vec<usize>,
     source: Get,
     ord: Vec<Ordering>,
-    com: Box<CombinatorType>,
+    coms: Vec<CombinatorType>,
 }
 
 impl IfCmpBy {
-    pub fn new(target: &Vec<usize>, source: &Get, ord: &Vec<Ordering>, com: CombinatorType) -> Self {
+    pub fn new(target: &Vec<usize>, source: &Get, ord: &Vec<Ordering>, coms: Vec<CombinatorType>) -> Self {
         IfCmpBy {
             target: target.clone(),
             source: source.clone(),
             ord: ord.clone(),
-            com: Box::new(com),
+            coms,
         }
     }
 }
@@ -51,8 +51,12 @@ impl Combinator for IfCmpBy {
         };
         let source = self.source.eval(retrievers, data, repeats, ver, ctx)?;
         
+        ctx.enter_if();
         if self.ord.contains(&target.cmp(&source)) {
-            self.com.run(retrievers, data, repeats, ver, ctx)?;
+            for com in &self.coms {
+                com.run(retrievers, data, repeats, ver, ctx)?;
+            }
+            ctx.run_if();
         }
         Ok(())
     }

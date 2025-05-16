@@ -13,15 +13,15 @@ use crate::types::version::Version;
 #[derive(Debug, Clone)]
 pub struct IfCheck {
     source: Vec<usize>,
-    com: Box<CombinatorType>,
+    coms: Vec<CombinatorType>,
     not: bool,
 }
 
 impl IfCheck {
-    pub fn new(source: &Vec<usize>, com: CombinatorType, not: bool) -> Self {
+    pub fn new(source: &Vec<usize>, coms: Vec<CombinatorType>, not: bool) -> Self {
         IfCheck {
             source: source.clone(),
-            com: Box::new(com),
+            coms,
             not,
         }
     }
@@ -44,8 +44,12 @@ impl Combinator for IfCheck {
             )))
         };
         
+        ctx.enter_if();
         if source_val ^ self.not {
-            self.com.run(retrievers, data, repeats, ver, ctx)?;
+            for com in &self.coms {
+                com.run(retrievers, data, repeats, ver, ctx)?;
+            }
+            ctx.run_if()
         }
         Ok(())
     }

@@ -275,9 +275,9 @@ impl Retriever {
             Some(obj) => {
                 let on_write = obj.call0(py)?.extract::<Vec<CombinatorType>>(py)?;
                 for combinator in on_write.iter() {
-                    if combinator.uses_ctx() {
+                    if combinator.uses_keys() {
                         return Err(PyTypeError::new_err(
-                            "Using contexts during writing is not supported. Override"
+                            "Using context keys during writing is not supported."
                         ))
                     }
                 }

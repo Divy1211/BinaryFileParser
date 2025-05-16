@@ -3,29 +3,23 @@ use pyo3::prelude::*;
 use crate::combinators::combinator::Combinator;
 use crate::combinators::combinator_type::CombinatorType;
 use crate::retrievers::retriever::Retriever;
-use crate::types::context::Context;
+use crate::types::context::{Context, IfTracker};
 use crate::types::parseable_type::ParseableType;
 use crate::types::version::Version;
 
 #[pyclass(module = "bfp_rs.combinators")]
 #[derive(Debug, Clone)]
-pub struct IfVer {
-    min_ver: Version,
-    max_ver: Version,
+pub struct IfElse {
     coms: Vec<CombinatorType>,
 }
 
-impl IfVer {
-    pub fn new(min_ver: &Version, max_ver: &Version, coms: Vec<CombinatorType>) -> Self {
-        IfVer {
-            min_ver: min_ver.clone(),
-            max_ver: max_ver.clone(),
-            coms,
-        }
+impl IfElse {
+    pub fn new(coms: Vec<CombinatorType>) -> Self {
+        IfElse { coms }
     }
 }
 
-impl Combinator for IfVer {
+impl Combinator for IfElse {
     fn run(
         &self,
         retrievers: &Vec<Retriever>,
@@ -34,13 +28,14 @@ impl Combinator for IfVer {
         ver: &Version,
         ctx: &mut Context,
     ) -> PyResult<()> {
-        ctx.enter_if();
-        if self.min_ver <= *ver && *ver <= self.max_ver {
-            for com in &self.coms {
-                com.run(retrievers, data, repeats, ver, ctx)?;
+        for com in &self.coms {
+            ctx.if_tracker = Some(IfTracker::new());
+            com.run(retrievers, data, repeats, ver, ctx)?;
+            if ctx.do_break() {
+                break;
             }
-            ctx.run_if();
         }
+        ctx.if_tracker = None;
         Ok(())
     }
 }

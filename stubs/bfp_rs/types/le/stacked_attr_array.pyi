@@ -1,4 +1,4 @@
-from typing import Type, TypeVar, Generic
+from typing import Type, TypeVar, Generic, Any
 
 from bfp_rs import ByteStream, Version, BaseStruct
 from bfp_rs.types.le import Option
@@ -33,7 +33,7 @@ class StackedAttrArray(Generic[T]):
     def to_file(cls, filepath: str, value: list[T]): ...
 
     @classmethod
-    def __class_getitem__(cls, item: Type[BaseStruct] | Type[Option]) -> type: ...
+    def __class_getitem__(cls, item: Any) -> type: ...
 
 class StackedAttrArray8(StackedAttrArray[T], Generic[T]):
     """

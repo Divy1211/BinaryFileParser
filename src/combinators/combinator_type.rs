@@ -1,6 +1,7 @@
 use pyo3::{pyclass, PyResult};
 
 use crate::combinators::combinator::Combinator;
+use crate::combinators::r#if::if_break::IfBreak;
 use crate::combinators::r#if::if_check::IfCheck;
 use crate::combinators::r#if::if_check_key::IfCheckKey;
 use crate::combinators::r#if::if_cmp_by::IfCmpBy;
@@ -11,6 +12,7 @@ use crate::combinators::r#if::if_cmp_len_by::IfCmpLenBy;
 use crate::combinators::r#if::if_cmp_len_from::IfCmpLenFrom;
 use crate::combinators::r#if::if_cmp_len_to::IfCmpLenTo;
 use crate::combinators::r#if::if_cmp_to::IfCmpTo;
+use crate::combinators::r#if::if_else::IfElse;
 use crate::combinators::r#if::if_is_none::IfIsNone;
 use crate::combinators::r#if::if_key_is_none::IfKeyIsNone;
 use crate::combinators::r#if::if_ver::IfVer;
@@ -57,6 +59,9 @@ pub enum CombinatorType {
     IfKeyIsNone(IfKeyIsNone),
     IfCmpKey(IfCmpKey),
     IfCmpKeyTo(IfCmpKeyTo),
+
+    IfElse(IfElse),
+    IfBreak(IfBreak),
     
     SetKeyFrom(SetKeyFrom),
     SetKeyBy(SetKeyBy),
@@ -99,6 +104,9 @@ impl Combinator for CombinatorType {
             CombinatorType::IfKeyIsNone(com)      => com.run(retrievers, data, repeats, ver, ctx),
             CombinatorType::IfCmpKey(com)         => com.run(retrievers, data, repeats, ver, ctx),
             CombinatorType::IfCmpKeyTo(com)       => com.run(retrievers, data, repeats, ver, ctx),
+
+            CombinatorType::IfElse(com)           => com.run(retrievers, data, repeats, ver, ctx),
+            CombinatorType::IfBreak(com)          => com.run(retrievers, data, repeats, ver, ctx),
             
             CombinatorType::SetKeyFrom(com)       => com.run(retrievers, data, repeats, ver, ctx),
             CombinatorType::SetKeyBy(com)         => com.run(retrievers, data, repeats, ver, ctx),
@@ -114,8 +122,20 @@ impl Combinator for CombinatorType {
 }
 
 impl CombinatorType {
-    pub fn uses_ctx(&self) -> bool {
+    pub fn uses_keys(&self) -> bool {
         match self {
+            CombinatorType::SetRepeatFromKey(_) => true,
+            
+            CombinatorType::IfCheckKey(_)       => true,
+            CombinatorType::IfKeyIsNone(_)      => true,
+            CombinatorType::IfCmpKey(_)         => true,
+            CombinatorType::IfCmpKeyTo(_)       => true,
+            
+            CombinatorType::SetKeyFrom(_)       => true,
+            CombinatorType::SetKeyBy(_)         => true,
+            CombinatorType::SetKeyFromLen(_)    => true,
+            CombinatorType::SetFromKey(_)       => true,
+            
             _ => false,
         }
     }
@@ -141,6 +161,9 @@ impl_from_for_combinator_type!(IfCheckKey, IfCheckKey);
 impl_from_for_combinator_type!(IfKeyIsNone, IfKeyIsNone);
 impl_from_for_combinator_type!(IfCmpKey, IfCmpKey);
 impl_from_for_combinator_type!(IfCmpKeyTo, IfCmpKeyTo);
+
+impl_from_for_combinator_type!(IfElse, IfElse);
+impl_from_for_combinator_type!(IfBreak, IfBreak);
 
 impl_from_for_combinator_type!(SetKeyFrom, SetKeyFrom);
 impl_from_for_combinator_type!(SetKeyBy, SetKeyBy);

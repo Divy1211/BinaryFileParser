@@ -10,7 +10,7 @@ use crate::errors::version_error::VersionError;
 use crate::errors::mutability_error::MutabilityError;
 
 use crate::combinators::set_repeat::set_repeat_builder::set_repeat;
-use crate::combinators::r#if::if_builder::{if_, if_not, if_len, if_ver, if_not_key, if_key};
+use crate::combinators::r#if::if_builder::{if_, if_not, if_len, if_ver, if_not_key, if_key, if_else, break_};
 use crate::combinators::set::set_builder::set;
 use crate::combinators::set_key::set_key_builder::set_key;
 use crate::combinators::get::{get_len, get, get_key};
@@ -154,6 +154,8 @@ fn combinators(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
     combinators.add_function(wrap_pyfunction!(if_not_key, combinators)?)?;
     combinators.add_function(wrap_pyfunction!(if_len, combinators)?)?;
     combinators.add_function(wrap_pyfunction!(if_ver, combinators)?)?;
+    combinators.add_function(wrap_pyfunction!(if_else, combinators)?)?;
+    combinators.add_function(wrap_pyfunction!(break_, combinators)?)?;
     combinators.add_function(wrap_pyfunction!(set, combinators)?)?;
     combinators.add_function(wrap_pyfunction!(set_key, combinators)?)?;
     combinators.add_function(wrap_pyfunction!(get, combinators)?)?;
