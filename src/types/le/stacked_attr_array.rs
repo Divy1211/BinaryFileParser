@@ -164,20 +164,20 @@ impl StackedAttrArray {
             return Ok(());
         }
 
-        let mut inners = inner.data.iter().map(|value| {
+        let inners = inner.data.iter().map(|value| {
             match value {
                 ParseableType::Struct { val, .. } => val.inner(),
                 _ => unreachable!("All code paths to this struct fn go through StackedAttrArray::get_bfp_ls")
             }
-        }).peekable();
-        let ver = inners.peek().expect("len check done above").ver.clone();
+        }).collect::<Vec<_>>();
+        let ver = inners[0].ver.clone();
         
-        for (i, retriever) in retrievers.iter().enumerate() {
+        for retriever in retrievers.iter() {
             if !retriever.supported(&ver) {
                 continue;
             }
-            for inner in inners.by_ref() {
-                retriever.data_type.to_bytes_in(inner.data[i].as_ref().expect("supported check done above"), buffer)?
+            for inner in &inners {
+                retriever.data_type.to_bytes_in(inner.data[retriever.idx].as_ref().expect("supported check done above"), buffer)?
             }
         }
         

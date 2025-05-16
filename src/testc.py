@@ -1,46 +1,27 @@
-from bfp_rs.types.le import u8, bool8, Bytes, void, str8, Encoding, Str, NtStr, c_str, nt_str8, str_array8, Option8, Array8, Array, StackedArray, StackedArray8, StackedAttrArray8, StackedAttrArray
-from bfp_rs.combinators import set_, if_, if_not, if_len, set_repeat, get
-from bfp_rs import Retriever, BaseStruct, ByteStream, Version, RetrieverRef, RetrieverCombiner, Manager
+from __future__ import annotations
 
-from utils import timed
+from bfp_rs import BaseStruct, Retriever, Version
+from bfp_rs.types.le import i16, bool8, StackedAttrArray
 
-class SubTest(BaseStruct):
-    a = Retriever(u8, repeat = 2)
 
-    def __str__(self):
-        return f"SubTest({self.a[0]}, {self.a[1]})"
+class TerrainUnit(BaseStruct):
+    # @formatter:off
+    mask: int         = Retriever(i16,                          default = 0)
+    type: int         = Retriever(i16,                          default = 0)
+    density: int      = Retriever(i16,                          default = 0)
+    centralized: bool = Retriever(bool8,                        default = False)
+    # @formatter:on
 
 class Test(BaseStruct):
-    a = Retriever(u8, max_ver = Version(1), repeat = 2)
+    arr = Retriever(StackedAttrArray[4][TerrainUnit])
 
-    sub = Retriever(SubTest, min_ver = Version(2))
+by = bytes([*[1]*8, *[2]*8, *[3]*8, *[1]*4])
 
-    a0 = RetrieverRef(a, 0)
-    a1 = RetrieverRef(a, 1)
+print(by)
 
-    sub_a0 = RetrieverRef(sub, SubTest.a, 0)
-    sub_a1 = RetrieverRef(sub, SubTest.a, 1)
+a = Test.from_bytes(by)
 
-    com_a0 = RetrieverCombiner(a0, sub_a0)
-    com_a1 = RetrieverCombiner(a1, sub_a1)
+by = Test.to_bytes(a)
 
-    @classmethod
-    def _get_version(
-        cls,
-        stream: ByteStream,
-        _ver: Version = Version(0),
-    ) -> Version:
-        return Version(1)
-
-    def __new__(cls, ver = Version(-1), init_defaults = True, **retriever_inits):
-        self = super().__new__(cls, ver, init_defaults, **retriever_inits)
-        self.test_man = TestMan(self)
-        return self
-
-class TestMan(Manager):
-    a = RetrieverRef(Test.com_a0)
-
-test = Test.from_bytes(b"\x01\x02")
-
-print(test.test_man.a)
+print(by)
 
