@@ -8,9 +8,9 @@ from asp_test.sections.scx_versions import DE_LATEST
 
 class AiError(BaseStruct):
     # @formatter:off
-    file_name: str   = Retriever(NtStr[260], default = "")
+    file_name: str   = Retriever(NtStr[257], default = "")
     line_number: int = Retriever(i32,        default = -1)
-    message: str     = Retriever(NtStr[128], default = -1)
+    message: str     = Retriever(NtStr[128], default = "")
     code: str        = Retriever(u32,        default = 0)
     """
     - 0: ConstantAlreadyDefined

@@ -8,7 +8,7 @@ from asp_test.sections.scx_versions import DE_LATEST
 class LegacyVictoryInfo(BaseStruct):
     # @formatter:off
     unit_type: int                = Retriever(i32,    default = 0)
-    all: bool                     = Retriever(bool32, default = 0)
+    all: bool                     = Retriever(bool32, default = False)
     player: int                   = Retriever(i32,    default = 0)
     destination_object_ref: int   = Retriever(i32,    default = 0)
     area: AreaF                   = Retriever(AreaF,  default_factory = AreaF)
