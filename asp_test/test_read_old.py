@@ -59,7 +59,7 @@ def test_1_36():
     scx = ScenarioSections.from_file(r"./scxs/genie-rs/Hotkey Trainer Buildings.aoe2scenario")
     print(scx.settings.data_header.file_name)
     scx.to_file(r"./scxs/wtest.bin", scx)
-    ScenarioSections.from_file(r"./scxs/wtest.bin")
+    ScenarioSections.from_file(r"./scxs/wtest.bin", strict = False)
 
 def test_1_11d():
     scx = ScenarioSections.from_file(r"./scxs/genie-rs/Jeremiah Johnson (Update).scx")

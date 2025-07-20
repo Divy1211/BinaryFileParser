@@ -1,18 +1,15 @@
 import sys
 
-# drive = "C:"
-# drive = "/mnt/c"
-
-sys.path.insert(0, r"C:/Users/Divy/PycharmProjects/bfp-rs")
+# sys.path.insert(0, r"C:/Users/Divy/PycharmProjects/bfp-rs")
 # sys.path.insert(0, r"/mnt/c/Users/Divy/PycharmProjects/bfp-rs/")
 
 from asp_test.sections import ScenarioSections
 from asp_test.utils import timed
 
 with timed("read"):
-    scx: ScenarioSections = ScenarioSections.from_file(r"C:\Users\Divy\PycharmProjects\BinaryFileParser\asp_test\scxs\Bomberman 8p_1_47.aoe2scenario")
-    # scx: ScenarioSections = ScenarioSections.from_file(r"/mnt/c/Users/Divy/PycharmProjects/BinaryFileParser/asp_test/scxs/Bomberman 8p_1_47.aoe2scenario")
-    print(scx.file_header.ver)
+    scx = ScenarioSections.from_file(r"C:\Users\Divy\Games\Age of Empires 2 DE\76561198276345085\resources\_common\scenario\1_55\testscx.aoe2scenario", strict = False)
+    # scx = ScenarioSections.from_file(r"/mnt/c/Users/Divy/PycharmProjects/BinaryFileParser/asp_test/scxs/Bomberman 8p_1_47.aoe2scenario")
+    print(scx.trigger_data.ver)
 
-# with timed("write"):
-#     ScenarioSections.to_file("./wtest.bin", scx)
+with timed("write"):
+    ScenarioSections.to_file("./wtest.bin", scx)

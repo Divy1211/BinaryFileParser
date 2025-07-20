@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import zlib
+from zlib_ng import zlib_ng as zlib
 from contextlib import suppress
 
 from bfp_rs import BaseStruct, Retriever, ByteStream, Version
@@ -13,7 +13,6 @@ from asp_test.sections.unit_data import UnitData
 from asp_test.sections.trigger_data import TriggerData
 from asp_test.sections.file_data import FileData
 from bfp_rs.errors import VersionError
-
 
 
 def sync_script_file_path(scx: ScenarioSections):
