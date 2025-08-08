@@ -19,7 +19,6 @@ use crate::types::byte_stream::ByteStream;
 use crate::types::context::Context;
 use crate::types::parseable::Parseable;
 use crate::types::parseable_type::ParseableType;
-use crate::types::r#struct::Struct;
 use crate::types::struct_builder::StructBuilder;
 use crate::types::version::Version;
 
@@ -78,9 +77,7 @@ impl BaseStruct {
     }
 
     pub fn len(cls: &Bound<PyType>) -> PyResult<usize> {
-        let struct_ = cls
-            .getattr(intern!(cls.py(), "__struct__")).expect("always a BaseStruct subclass")
-            .extract::<Struct>().expect("infallible");
+        let struct_ = StructBuilder::get_struct(cls)?;
 
         let retrievers = struct_.retrievers();
         Ok(retrievers.len())
