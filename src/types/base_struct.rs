@@ -243,16 +243,24 @@ impl BaseStruct {
     }
 
     #[classmethod]
+    pub fn from_base<'py>(cls: &Bound<'py, PyType>, val: BaseStruct) -> Bound<'py, PyAny> {
+        Self::with_cls(val, cls)
+    }
+    
+    #[classmethod]
     #[pyo3(signature = (stream, ver = Version::new(vec![0,])))]
     fn from_stream<'py>(cls: &Bound<'py, PyType>, stream: &mut ByteStream, ver: Version) -> PyResult<Bound<'py, PyAny>> {
         BaseStruct::from_stream_(cls, stream, ver, None)
     }
-
-    #[classmethod]
+    
     #[pyo3(name = "to_bytes")]
-    fn to_bytes_py<'py>(cls: &Bound<'py, PyType>, value: &BaseStruct) -> PyResult<Bound<'py, PyAny>> {
-        let struct_ = StructBuilder::get_struct(cls)?;
-        let mut bytes = struct_.to_bytes(value)?;
+    fn to_bytes_py<'py>(slf: Bound<'py, Self>) -> PyResult<Bound<'py, PyAny>> {
+        let value = slf.extract()?;
+        let slf = slf.into_any();
+        let cls = slf.get_type();
+        
+        let struct_ = StructBuilder::get_struct(&cls)?;
+        let mut bytes = struct_.to_bytes(&value)?;
         if struct_.is_compressed() {
             struct_.compress(&mut bytes, 0)?;
         }
@@ -283,9 +291,12 @@ impl BaseStruct {
         Ok(struct_)
     }
 
-    #[classmethod]
-    fn to_file(cls: &Bound<PyType>, filepath: &str, value: &BaseStruct) -> PyResult<()> {
-        let bytes = Self::to_bytes(cls, value, filepath)?;
+    fn to_file(slf: Bound<Self>, filepath: &str) -> PyResult<()> {
+        let value = slf.extract()?;
+        let slf = slf.into_any();
+        let cls = slf.get_type();
+
+        let bytes = Self::to_bytes(&cls, &value, filepath)?;
         let mut file = File::create(filepath)?;
         Ok(file.write_all(&bytes)?)
     }

@@ -27,6 +27,17 @@ class BaseStruct:
                 Specify overrides for the default values of retrievers for initialisation by name
         """
 
+    @classmethod
+    def from_base(cls, value: BaseStruct) -> Self:
+        """
+        Aliases the data in the base class without copying it.
+
+        Args:
+            value: The base struct instance to alias
+
+        Returns:
+            An instance of this struct
+        """
 
     @classmethod
     def from_stream(cls, stream: ByteStream, ver: Version = Version(0)) -> Self:
@@ -46,13 +57,9 @@ class BaseStruct:
         """
 
 
-    @classmethod
-    def to_bytes(cls, value: BaseStruct) -> bytes:
+    def to_bytes(self) -> bytes:
         """
         Serialize this instance of this struct to bytes
-
-        Args:
-            value: The instance to serialize
 
         Returns:
             The byte representation of this struct
@@ -100,15 +107,12 @@ class BaseStruct:
 
         """
 
-
-    @classmethod
-    def to_file(cls, filepath: str, value: BaseStruct):
+    def to_file(self, filepath: str):
         """
         Serialize this instance of this struct to the given file
 
         Args:
             filepath: The path to write the serialized file to
-            value: The instance to serialize
 
         Raises:
             CompressionError: If the ``_compress`` method is not defined and ``remaining_compressed`` is set to ``True``

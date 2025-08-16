@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from bfp_rs import BaseStruct, Retriever
-from bfp_rs.types.le import i16, bool8, StackedAttrArray
+from bfp_rs import BaseStruct, Retriever, RetrieverRef
+from bfp_rs.types.le import i16, bool8
 
 
-class TerrainUnit(BaseStruct):
+class BaseClass(BaseStruct):
     # @formatter:off
     mask: int         = Retriever(i16,                          default = 0)
     type: int         = Retriever(i16,                          default = 0)
@@ -12,19 +12,12 @@ class TerrainUnit(BaseStruct):
     centralized: bool = Retriever(bool8,                        default = False)
     # @formatter:on
 
-class Test(BaseStruct):
-    arr = Retriever(StackedAttrArray[4][TerrainUnit], default_factory = lambda _: [TerrainUnit() for _ in range(4)])
+class SubClass(BaseClass):
+    uwu: int = Retriever(i16, default = 0)
 
-# by = bytes([*[1]*8, *[2]*8, *[3]*8, *[1]*4])
+    test = RetrieverRef(BaseClass.mask)
 
-# print(by)
+a = BaseClass()
+b = SubClass.from_base(a)
 
-# a = Test.from_bytes(by)
-
-# by = Test.to_bytes(a)
-
-# print(by)
-
-a = Test()
-
-print(a.arr)
+print(b.uwu)
