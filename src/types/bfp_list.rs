@@ -6,6 +6,7 @@ use pyo3::exceptions::{PyIndexError, PyTypeError, PyValueError};
 use pyo3::prelude::{PyAnyMethods, PyTypeMethods};
 use pyo3::types::{PyInt, PySlice, PySliceIndices, PySliceMethods};
 use pyo3::{pyclass, pymethods, Bound, IntoPy, PyAny, PyRef, PyRefMut, PyResult};
+use serde::{Serialize, Serializer};
 use crate::errors::mutability_error::MutabilityError;
 use crate::types::bfp_type::BfpType;
 use crate::types::parseable_type::ParseableType;
@@ -359,4 +360,13 @@ fn slice(slice: PySliceIndices) -> PyResult<Vec<usize>> {
     };
     
     Ok(idxes)
+}
+
+impl Serialize for BfpList {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.raw.read().expect("GIL Bound read").data.serialize(serializer)
+    }
 }

@@ -1,5 +1,5 @@
 use std::fs::File;
-use std::io::Write;
+use std::io::{BufWriter, Write};
 use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard};
 use std::time::Duration;
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
@@ -7,7 +7,6 @@ use pyo3::exceptions::{PyTypeError};
 use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyDict, PyType};
-
 use crate::errors::compression_error::CompressionError;
 use crate::errors::default_attribute_error::DefaultAttributeError;
 use crate::errors::parsing_error::ParsingError;
@@ -19,6 +18,7 @@ use crate::types::byte_stream::ByteStream;
 use crate::types::context::Context;
 use crate::types::parseable::Parseable;
 use crate::types::parseable_type::ParseableType;
+use crate::types::r#struct::JsonSerializer;
 use crate::types::struct_builder::StructBuilder;
 use crate::types::version::Version;
 
@@ -319,5 +319,20 @@ impl BaseStruct {
         Err(CompressionError::new_err(
             "Unable to read object from file. A Structure with a compressed section needs to implement '_decompress' classmethod."
         ))
+    }
+
+    fn to_json(slf: Bound<Self>, filepath: &str) -> PyResult<()> {
+        let value = slf.extract()?;
+        let slf = slf.into_any();
+        let cls = slf.get_type();
+
+        let struct_ = StructBuilder::get_struct(&cls)?;
+        let serializer = JsonSerializer(&struct_, &value);
+
+        let file = File::create(filepath)?;
+        let writer = BufWriter::new(file);
+
+        serde_json::to_writer(writer, &serializer)
+            .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))
     }
 }

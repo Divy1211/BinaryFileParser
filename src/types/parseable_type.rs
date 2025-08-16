@@ -2,11 +2,12 @@ use std::cmp::Ordering;
 
 use pyo3::{Bound, IntoPy, PyAny, Python};
 use pyo3::types::PyBytes;
+use serde::{Serialize, Serializer};
 use crate::{impl_from_for_parseable_type, impl_try_into_for_parseable_type};
 use crate::types::base_struct::BaseStruct;
 use crate::types::bfp_list::BfpList;
 use crate::types::bfp_type::BfpType;
-use crate::types::r#struct::Struct;
+use crate::types::r#struct::{JsonSerializer, Struct};
 
 // todo: change to structural enum
 #[derive(Debug, Clone)]
@@ -207,3 +208,43 @@ impl_from_for_parseable_type!(BfpList, Array);
 impl_from_for_parseable_type!(Vec<u8>, Bytes);
 
 impl_from_for_parseable_type!(Option<Box<ParseableType>>, Option);
+
+impl Serialize for ParseableType {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer
+    {
+        match self {
+            ParseableType::None => serializer.serialize_none(),
+
+            ParseableType::UInt8(v) => serializer.serialize_u8(*v),
+            ParseableType::UInt16(v) => serializer.serialize_u16(*v),
+            ParseableType::UInt32(v) => serializer.serialize_u32(*v),
+            ParseableType::UInt64(v) => serializer.serialize_u64(*v),
+            ParseableType::UInt128(v) => serializer.serialize_u128(*v),
+
+            ParseableType::Int8(v) => serializer.serialize_i8(*v),
+            ParseableType::Int16(v) => serializer.serialize_i16(*v),
+            ParseableType::Int32(v) => serializer.serialize_i32(*v),
+            ParseableType::Int64(v) => serializer.serialize_i64(*v),
+            ParseableType::Int128(v) => serializer.serialize_i128(*v),
+
+            ParseableType::Float32(v) => serializer.serialize_f32(*v),
+            ParseableType::Float64(v) => serializer.serialize_f64(*v),
+
+            ParseableType::Bool(v) => serializer.serialize_bool(*v),
+
+            ParseableType::Str(s) => serializer.serialize_str(s),
+
+            ParseableType::Array(arr) => arr.serialize(serializer),
+
+            ParseableType::Bytes(bytes) => serializer.serialize_bytes(bytes),
+
+            ParseableType::Option(opt) => opt.serialize(serializer),
+
+            ParseableType::Struct { val, struct_ } => {
+                JsonSerializer(struct_, val).serialize(serializer)
+            }
+        }
+    }
+}

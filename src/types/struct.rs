@@ -2,7 +2,8 @@ use std::sync::Arc;
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyType};
-
+use serde::{Serialize, Serializer};
+use serde::ser::SerializeMap;
 use crate::errors::compression_error::CompressionError;
 use crate::retrievers::retriever::{RetState, Retriever};
 use crate::retrievers::retriever_combiner::RetrieverCombiner;
@@ -245,5 +246,52 @@ impl Parseable for Struct {
 
     fn to_bytes_in(&self, value: &Self::Type, buffer: &mut Vec<u8>) -> PyResult<()> {
         self.to_bytes_(value, None, buffer)
+    }
+}
+
+pub struct JsonSerializer<'a, 'b>(pub &'a Struct, pub &'b BaseStruct);
+impl Serialize for JsonSerializer<'_, '_> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer
+    {
+        let struct_ = self.0;
+        let value = self.1;
+        let mut inner = value.inner_mut();
+
+        let retrievers = &struct_.raw.retrievers;
+        
+        let mut s = serializer.serialize_map(None)?;
+        
+        for retriever in retrievers.iter() {
+            if !retriever.supported(&inner.ver) {
+                continue;
+            }
+
+            let (data, repeats, ver) = inner.split();
+
+            retriever.call_on_writes(&retrievers, data, repeats, ver).map_err(|py_err| {
+                serde::ser::Error::custom(format!(
+                    "Python error during serialization: {}",
+                    py_err
+                ))
+            })?;
+
+            let value = inner.data[retriever.idx].as_ref().expect("supported check done above");
+            
+            match retriever.state(&inner.repeats) {
+                RetState::NoneList | RetState::NoneValue => { s.serialize_entry(&retriever.name, &Option::<i32>::None)?; },
+                RetState::Value => {
+                    s.serialize_entry(&retriever.name, value)?;
+                }
+                RetState::List => {
+                    let ParseableType::Array(ls) = value else {
+                        unreachable!("Retriever state guarantee broken while reading '{}'", retriever.name)
+                    };
+                    s.serialize_entry(&retriever.name, ls)?;
+                }
+            }
+        }
+        s.end()
     }
 }

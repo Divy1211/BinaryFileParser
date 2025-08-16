@@ -78,6 +78,7 @@ flamegraph*
 perf*
 profile.*.gz
 tmp.bin
+test.json
 
 imgs/bfp.kra
 imgs/file-1453.png

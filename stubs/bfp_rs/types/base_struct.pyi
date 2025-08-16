@@ -59,7 +59,7 @@ class BaseStruct:
 
     def to_bytes(self) -> bytes:
         """
-        Serialize this instance of this struct to bytes
+        Serialize this struct to bytes
 
         Returns:
             The byte representation of this struct
@@ -109,7 +109,7 @@ class BaseStruct:
 
     def to_file(self, filepath: str):
         """
-        Serialize this instance of this struct to the given file
+        Serialize this struct to the given file
 
         Args:
             filepath: The path to write the serialized file to
@@ -119,6 +119,13 @@ class BaseStruct:
                 in one of the retrievers
         """
 
+    def to_json(self, filepath: str):
+        """
+        Serialize this struct to the given file in JSON.
+
+        Args:
+            filepath: The path to write the serialized file to
+        """
 
     @classmethod
     def _get_version(cls, stream: ByteStream, ver: Version = Version(0)) -> Version:
