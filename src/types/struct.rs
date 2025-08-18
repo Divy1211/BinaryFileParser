@@ -1,15 +1,20 @@
+use std::collections::HashMap;
+use std::fmt;
 use std::sync::Arc;
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyType};
-use serde::{Serialize, Serializer};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::de::{DeserializeSeed, MapAccess, Visitor};
 use serde::ser::SerializeMap;
 use crate::errors::compression_error::CompressionError;
+use crate::errors::parsing_error::ParsingError;
 use crate::retrievers::retriever::{RetState, Retriever};
 use crate::retrievers::retriever_combiner::RetrieverCombiner;
 use crate::retrievers::retriever_ref::RetrieverRef;
 use crate::types::base_struct::BaseStruct;
 use crate::types::bfp_list::BfpList;
+use crate::types::bfp_type::{ArraySeed, TypeDeserializer};
 use crate::types::byte_stream::ByteStream;
 use crate::types::context::Context;
 use crate::types::parseable::Parseable;
@@ -148,12 +153,26 @@ impl Struct {
 
             data.push(Some(match retriever.state(&repeats) {
                 RetState::NoneValue | RetState::NoneList => { ParseableType::None }
-                RetState::Value => { retriever.from_stream_ctx(stream, &ver, ctx)? }
+                RetState::Value => {
+                    retriever.from_stream_ctx(stream, &ver, ctx)
+                        .map_err(|e| { Python::with_gil(|py| {
+                            let err = ParsingError::new_err(format!("Error occurred while reading '{}'", retriever.name));
+                            err.set_cause(py, Some(e));
+                            err
+                        }) })?
+                }
                 RetState::List => {
                     let mut ls = Vec::with_capacity(retriever.repeat(&repeats) as usize);
                     for i in 0..retriever.repeat(&repeats) {
                         ctx.idxes.push(i as usize);
-                        ls.push(retriever.from_stream_ctx(stream, &ver, ctx)?);
+                        ls.push(
+                            retriever.from_stream_ctx(stream, &ver, ctx)
+                                .map_err(|e| { Python::with_gil(|py| {
+                                    let err = ParsingError::new_err(format!("Error occurred while reading '{}'", retriever.name));
+                                    err.set_cause(py, Some(e));
+                                    err
+                                }) })?
+                        );
                         ctx.idxes.pop();
                     }
                     BfpList::new(ls, retriever.data_type.clone()).into()
@@ -215,7 +234,7 @@ impl Struct {
                 }
                 RetState::List => {
                     let ParseableType::Array(ls) = value else {
-                        unreachable!("Retriever state guarantee broken while reading '{}'", retriever.name)
+                        unreachable!("Retriever state guarantee broken while writing '{}'", retriever.name)
                     };
                     let inner = ls.inner();
                     for item in inner.data.iter() {
@@ -249,8 +268,8 @@ impl Parseable for Struct {
     }
 }
 
-pub struct JsonSerializer<'a, 'b>(pub &'a Struct, pub &'b BaseStruct);
-impl Serialize for JsonSerializer<'_, '_> {
+pub struct SerdeSerializer<'a, 'b>(pub &'a Struct, pub &'b BaseStruct);
+impl Serialize for SerdeSerializer<'_, '_> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer
@@ -262,7 +281,8 @@ impl Serialize for JsonSerializer<'_, '_> {
         let retrievers = &struct_.raw.retrievers;
         
         let mut s = serializer.serialize_map(None)?;
-        
+
+        s.serialize_entry("ver", &inner.ver)?;
         for retriever in retrievers.iter() {
             if !retriever.supported(&inner.ver) {
                 continue;
@@ -286,12 +306,104 @@ impl Serialize for JsonSerializer<'_, '_> {
                 }
                 RetState::List => {
                     let ParseableType::Array(ls) = value else {
-                        unreachable!("Retriever state guarantee broken while reading '{}'", retriever.name)
+                        unreachable!("Retriever state guarantee broken while writing '{}'", retriever.name)
                     };
                     s.serialize_entry(&retriever.name, ls)?;
                 }
             }
         }
         s.end()
+    }
+}
+
+pub struct SerdeDeserializer<'a, 'b>(pub &'a Struct, pub &'b mut Context);
+impl<'de, 'a, 'b> DeserializeSeed<'de> for SerdeDeserializer<'a, 'b> {
+    type Value = BaseStruct;
+
+    fn deserialize<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserializer.deserialize_map(self)
+    }
+}
+
+impl<'de, 'a, 'b> Visitor<'de> for SerdeDeserializer<'a, 'b> {
+    type Value = BaseStruct;
+
+    fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.write_str("a map matching retriever names")
+    }
+
+    fn visit_map<M>(self, mut access: M) -> Result<Self::Value, M::Error>
+    where
+        M: MapAccess<'de>,
+    {
+        let retrievers = &self.0.raw.retrievers;
+        let ctx = self.1;
+        let mut data = Vec::with_capacity(retrievers.len());
+        let mut repeats = vec![None; retrievers.len()];
+
+        let mut values = HashMap::with_capacity(retrievers.len() + 1);
+        while let Some((key, value)) = access.next_entry::<String, serde_json::Value>()? {
+            values.insert(key, value);
+        }
+        
+        let Some(ver) = values.get("ver") else {
+            return Err(serde::de::Error::custom("Invalid Object: Version not found"));
+        };
+        let ver = Version::deserialize(ver).map_err(|e| serde::de::Error::custom(e))?;
+        
+        for (i, retriever) in retrievers.iter().enumerate() {
+            if !retriever.supported(&ver) {
+                data.push(None);
+                continue;
+            }
+            
+            let Some(value) = values.remove(&retriever.name) else {
+                return Err(serde::de::Error::custom(format!("Invalid Object: '{}' not found", retriever.name)));
+            };
+
+            data.push(Some(match retriever.state(&repeats) {
+                RetState::Value | RetState::NoneValue if value.is_null() => {
+                    repeats[i] = Some(-1);
+                    ParseableType::None
+                },
+                RetState::List | RetState::NoneList if value.is_null() => {
+                    repeats[i] = Some(-2);
+                    ParseableType::None
+                },
+                RetState::Value | RetState::NoneValue => {
+                    repeats[i] = None;
+                    TypeDeserializer(&retriever.data_type, ctx)
+                        .deserialize(value)
+                        .map_err(|e| serde::de::Error::custom(format!("Error occurred while reading '{}': {e}", retriever.name)))?
+                }
+                RetState::List | RetState::NoneList => {
+                    let repeat = retriever.repeat(&repeats);
+                    if !value.is_array() {
+                        return Err(serde::de::Error::custom(format!(
+                            "Invalid Object: {} should be an array", retriever.name
+                        )))
+                    }
+                    let len = value.as_array().expect("Infallible").len() as isize;
+                    if repeat == -2 {
+                        repeats[i] = Some(len);
+                    } else if repeats[i].is_none() && repeat != len {
+                        return Err(serde::de::Error::custom(format!(
+                            "List length mismatch for '{}' which is a retriever of fixed repeat. Expected: {repeat}, Actual: {len}", retriever.name
+                        )))
+                    }
+                    let ls = ArraySeed(TypeDeserializer(&retriever.data_type, ctx))
+                        .deserialize(value)
+                        .map_err(|e| serde::de::Error::custom(format!("Error occurred while reading '{}': {e}", retriever.name)))?;
+                    ParseableType::Array(ls)
+                }
+            }));
+            retriever.call_on_reads(&retrievers, &mut data, &mut repeats, &ver, ctx).map_err(|e| {
+                serde::de::Error::custom(e)
+            })?;
+        }
+        Ok(BaseStruct::new(ver, data, repeats))
     }
 }

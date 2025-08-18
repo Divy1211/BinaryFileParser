@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from bfp_rs import BaseStruct, Retriever, RetrieverRef
-from bfp_rs.types.le import i16, bool8
+from bfp_rs.types.le import i16, bool8, Array
 
 
 class BaseClass(BaseStruct):
@@ -17,7 +17,7 @@ class SubClass(BaseClass):
 
     test = RetrieverRef(BaseClass.mask)
 
-a = BaseClass()
-b = SubClass.from_base(a)
-
-print(b.uwu)
+# a = SubClass(type = 20, mask = 20)
+# a.to_json(r"../test.json")
+a = SubClass.from_json(r"../test.json")
+print(a.mask)

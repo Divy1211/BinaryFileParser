@@ -128,6 +128,21 @@ class BaseStruct:
         """
 
     @classmethod
+    def from_json(cls, filepath: str) -> Self:
+        """
+        Deserialize and create an instance of this struct from the given JSON file
+
+        Args:
+            filepath: The file to use for deserialization
+
+        Returns:
+            An instance of this struct
+
+        Raises:
+            ValueError: For JSONs which do not comply with the BaseStruct schema
+        """
+
+    @classmethod
     def _get_version(cls, stream: ByteStream, ver: Version = Version(0)) -> Version:
         """
         Called before deserialization begins. Used to determine the version of the struct
