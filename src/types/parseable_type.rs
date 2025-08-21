@@ -7,7 +7,8 @@ use crate::{impl_from_for_parseable_type, impl_try_into_for_parseable_type};
 use crate::types::base_struct::BaseStruct;
 use crate::types::bfp_list::BfpList;
 use crate::types::bfp_type::BfpType;
-use crate::types::r#struct::{SerdeSerializer, Struct};
+use crate::types::r#struct::Struct;
+use crate::types::serial::struct_serializer::StructSerializer;
 
 // todo: change to structural enum
 #[derive(Debug, Clone)]
@@ -243,7 +244,7 @@ impl Serialize for ParseableType {
             ParseableType::Option(opt) => opt.serialize(serializer),
 
             ParseableType::Struct { val, struct_ } => {
-                SerdeSerializer(struct_, val).serialize(serializer)
+                StructSerializer(struct_, val).serialize(serializer)
             }
         }
     }

@@ -12,3 +12,4 @@ pub mod manager;
 pub mod manager_info;
 pub mod struct_builder;
 pub mod context;
+mod serial;

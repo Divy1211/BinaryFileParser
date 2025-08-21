@@ -2,13 +2,15 @@ use std::fs::File;
 use std::io::{BufReader, BufWriter, Write};
 use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard};
 use std::time::Duration;
+
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
-use pyo3::exceptions::{PyTypeError};
+use pyo3::exceptions::PyTypeError;
 use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyDict, PyType};
 use serde::de::DeserializeSeed;
 use serde_json::Deserializer;
+
 use crate::errors::compression_error::CompressionError;
 use crate::errors::default_attribute_error::DefaultAttributeError;
 use crate::errors::parsing_error::ParsingError;
@@ -20,7 +22,8 @@ use crate::types::byte_stream::ByteStream;
 use crate::types::context::Context;
 use crate::types::parseable::Parseable;
 use crate::types::parseable_type::ParseableType;
-use crate::types::r#struct::{SerdeDeserializer, SerdeSerializer};
+use crate::types::serial::struct_deserializer::StructDeserializer;
+use crate::types::serial::struct_serializer::StructSerializer;
 use crate::types::struct_builder::StructBuilder;
 use crate::types::version::Version;
 
@@ -329,7 +332,7 @@ impl BaseStruct {
         let cls = slf.get_type();
 
         let struct_ = StructBuilder::get_struct(&cls)?;
-        let serializer = SerdeSerializer(&struct_, &value);
+        let serializer = StructSerializer(&struct_, &value);
 
         let file = File::create(filepath)?;
         let writer = BufWriter::new(file);
@@ -342,7 +345,7 @@ impl BaseStruct {
     fn from_json<'py>(cls: &Bound<'py, PyType>, filepath: &str) -> PyResult<Bound<'py, PyAny>> {
         let struct_ = StructBuilder::get_struct(&cls)?;
         let mut ctx = Context::new();
-        let deserializer = SerdeDeserializer(&struct_, &mut ctx);
+        let deserializer = StructDeserializer(&struct_, &mut ctx);
 
         let file = File::open(filepath)?;
         let reader = BufReader::new(file);
