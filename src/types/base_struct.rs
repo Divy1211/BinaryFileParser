@@ -19,7 +19,7 @@ use crate::retrievers::retriever::Retriever;
 use crate::retrievers::retriever_combiner::RetrieverCombiner;
 use crate::retrievers::retriever_ref::RetrieverRef;
 use crate::types::byte_stream::ByteStream;
-use crate::types::context::Context;
+use crate::types::context::{Context, ContextPtr};
 use crate::types::parseable::Parseable;
 use crate::types::parseable_type::ParseableType;
 use crate::types::serial::struct_deserializer::StructDeserializer;
@@ -90,7 +90,7 @@ impl BaseStruct {
 
     // todo: figure out unsafe allocations
     pub fn with_cls<'py>(val: BaseStruct, cls: &Bound<'py, PyType>) -> Bound<'py, PyAny> {
-        let obj = cls.call((Version::new(vec![-1]), false), None).expect("always a BaseStruct subclass");
+        let obj = cls.call((Version::new(vec![-1]), ContextPtr::new(), false), None).expect("always a BaseStruct subclass");
         *(obj.downcast::<BaseStruct>().expect("infallible").borrow_mut()) = val;
         obj
     }
@@ -207,8 +207,8 @@ impl BaseStruct {
     
     #[new]
     #[classmethod]
-    #[pyo3(signature = (ver = Version::new(vec![-1]), init_defaults = true, **retriever_inits))]
-    fn new_py(cls: &Bound<PyType>, ver: Version, init_defaults: bool, retriever_inits: Option<&Bound<'_, PyDict>>) -> PyResult<Self> {
+    #[pyo3(signature = (ver = Version::new(vec![-1]), ctx = ContextPtr::new(), init_defaults = true, **retriever_inits))]
+    fn new_py(cls: &Bound<PyType>, ver: Version, ctx: ContextPtr, init_defaults: bool, retriever_inits: Option<&Bound<'_, PyDict>>) -> PyResult<Self> {
         let len = BaseStruct::len(cls)?;
         let mut data = vec![None; len];
         let mut repeats = vec![None; len];
@@ -218,8 +218,8 @@ impl BaseStruct {
         }
 
         let struct_ = StructBuilder::get_struct(cls)?;
-        let retrievers = struct_.retrievers();
-
+        let retrievers = &struct_.raw.retrievers;
+        
         for ret in retrievers.iter() {
             if !ret.supported(&ver) {
                 continue;
@@ -228,9 +228,9 @@ impl BaseStruct {
                 .and_then(|di| di.get_item(&ret.name).unwrap_or(None))
                 .map(|obj| ret.data_type.to_parseable(&obj))
                 .transpose()?;
-
+            
             if init.is_none() {
-                init = match ret.from_default(&ver, &mut repeats, cls.py()) {
+                init = match ret.from_default(&ver, &mut repeats, &ctx, cls.py()) {
                     Ok(val) => Some(val),
                     Err(e) => {
                         let err = DefaultAttributeError::new_err(format!(
@@ -243,6 +243,9 @@ impl BaseStruct {
             }
 
             data[ret.idx] = init;
+            
+            let mut ctx = ctx.inner.write().expect("GIL bound write");
+            ret.call_on_reads(retrievers, &mut data, &mut repeats, &ver, &mut *ctx)?;
         }
         Ok(BaseStruct::new(ver, data, repeats))
     }

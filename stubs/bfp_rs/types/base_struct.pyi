@@ -1,6 +1,7 @@
 from typing import Any, Self
 
 from bfp_rs.types.byte_stream import ByteStream
+from bfp_rs.types.context import Context
 from bfp_rs.types.version import Version
 
 
@@ -12,12 +13,13 @@ class BaseStruct:
     ver: Version
     "The version of the struct"
 
-    def __new__(cls, ver: Version = Version(-1), init_defaults: bool = True, **retriever_inits: Any) -> Self:
+    def __new__(cls, ver: Version = Version(-1), ctx: Context = Context(), init_defaults: bool = True, **retriever_inits: Any) -> Self:
         """
         Default initialise and create a new instance of this struct
 
         Args:
             ver: The struct version to create
+            ctx: Stores ctx key/values used by on_read/on_write combinators
 
             init_defaults:
                 If set to false, skip initialisation of struct values from defaults. This is only useful when the values

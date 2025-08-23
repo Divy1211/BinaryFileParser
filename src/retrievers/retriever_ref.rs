@@ -95,6 +95,8 @@ impl RetrieverRef {
 
         let borrow = instance.downcast::<BaseStruct>()?.borrow();
         let inner = borrow.inner();
+        let ver = inner.ver.clone();
+        drop(inner);
 
         let target = &slf.borrow().target;
         let mut current = instance;
@@ -107,7 +109,7 @@ impl RetrieverRef {
                 return Err(VersionError::new_err(format!(
                     "{} is not supported in struct version {}",
                     slf.borrow().name,
-                    inner.ver
+                    ver
                 )))
             };
             current = item;
@@ -120,7 +122,7 @@ impl RetrieverRef {
             return Err(VersionError::new_err(format!(
                 "{} is not supported in struct version {}",
                 slf.borrow().name,
-                inner.ver
+                ver
             )))
         };
         Ok(())

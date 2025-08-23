@@ -6,6 +6,7 @@ from .types import *
 __all__ = [
     "ByteStream",
     "BaseStruct",
+    "Context",
 
     "Retriever",
     "RetrieverRef",

@@ -1,6 +1,8 @@
 use std::collections::HashMap;
+use std::sync::{Arc, RwLock};
 use pyo3::exceptions::PyKeyError;
-use pyo3::PyResult;
+use pyo3::{pyclass, pymethods, Bound, PyResult};
+use pyo3::types::PyType;
 use crate::types::parseable_type::ParseableType;
 
 pub struct IfTracker {
@@ -23,6 +25,33 @@ pub struct Context {
     pub idxes: Vec<usize>,
     pub keys: HashMap<String, ParseableType>,
     pub if_tracker: Option<IfTracker>,
+}
+
+#[pyclass(name = "Context")]
+#[derive(Clone)]
+pub struct ContextPtr {
+    pub inner: Arc<RwLock<Context>>,
+}
+
+impl ContextPtr {
+    pub fn new() -> ContextPtr {
+        ContextPtr {
+            inner: Arc::new(RwLock::new(Context::new())),
+        }
+    }
+    pub fn from(ctx: Context) -> ContextPtr {
+        ContextPtr {
+            inner: Arc::new(RwLock::new(ctx)),
+        }
+    }
+}
+
+#[pymethods]
+impl ContextPtr {
+    #[new]
+    pub fn new_py() -> ContextPtr {
+        ContextPtr::new()
+    }
 }
 
 impl Context {

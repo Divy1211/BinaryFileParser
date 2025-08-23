@@ -1,23 +1,16 @@
 from __future__ import annotations
 
-from bfp_rs import BaseStruct, Retriever, RetrieverRef
+from asp_test.sections import ScenarioSections, MapData
+from bfp_rs import BaseStruct, Retriever, RetrieverRef, ret, Context
+from bfp_rs.combinators import set_repeat, get, set_key
 from bfp_rs.types.le import i16, bool8, Array
 
 
-class BaseClass(BaseStruct):
-    # @formatter:off
-    mask: int         = Retriever(i16,                          default = 0)
-    type: int         = Retriever(i16,                          default = 0)
-    density: int      = Retriever(i16,                          default = 0)
-    centralized: bool = Retriever(bool8,                        default = False)
-    # @formatter:on
+class MockSS(ScenarioSections):
+    map_data: MapData = Retriever(MapData, default_factory = lambda ver: MapData(ver, width = 2, height = 2))
 
-class SubClass(BaseClass):
-    uwu: int = Retriever(i16, default = 0)
+a = MockSS()
+print(len(a.map_data.terrain_tiles))
 
-    test = RetrieverRef(BaseClass.mask)
-
-# a = SubClass(type = 20, mask = 20)
-# a.to_json(r"../test.json")
-a = SubClass.from_json(r"../test.json")
-print(a.mask)
+scx = ScenarioSections()
+print(len(scx.map_data.terrain_tiles))

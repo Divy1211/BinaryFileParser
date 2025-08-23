@@ -25,6 +25,7 @@ use crate::retrievers::retriever_ref::RetrieverRef;
 use crate::types::base_struct::BaseStruct;
 use crate::types::bfp_type::BfpType;
 use crate::types::byte_stream::ByteStream;
+use crate::types::context::ContextPtr;
 use crate::types::le::array::{Array, ArrayBuilder};
 use crate::types::le::bool::{Bool128, Bool16, Bool32, Bool64, Bool8};
 use crate::types::le::bytes::Bytes;
@@ -183,6 +184,7 @@ fn errors(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
 fn binary_file_parser(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
     bfp.add_class::<ByteStream>()?;
     bfp.add_class::<BaseStruct>()?;
+    bfp.add_class::<ContextPtr>()?;
     bfp.add_class::<Retriever>()?;
     bfp.add_class::<RetrieverRef>()?;
     bfp.add_class::<RetrieverCombiner>()?;

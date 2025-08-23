@@ -12,7 +12,7 @@ use crate::types::base_struct::BaseStruct;
 use crate::types::bfp_list::BfpList;
 use crate::types::bfp_type::BfpType;
 use crate::types::byte_stream::ByteStream;
-use crate::types::context::Context;
+use crate::types::context::{Context, ContextPtr};
 use crate::types::parseable::Parseable;
 use crate::types::parseable_type::ParseableType;
 use crate::types::version::Version;
@@ -203,7 +203,7 @@ impl Retriever {
 }
 
 impl Retriever {
-    pub fn from_default(&self, ver: &Version, repeats: &mut Vec<Option<isize>>, py: Python) -> PyResult<ParseableType> {
+    pub fn from_default(&self, ver: &Version, repeats: &mut Vec<Option<isize>>, ctx: &ContextPtr, py: Python) -> PyResult<ParseableType> {
         let state = self.state(repeats);
         if state == RetState::NoneValue || state == RetState::NoneList {
             return Ok(ParseableType::None);
@@ -224,7 +224,10 @@ impl Retriever {
 
         if let Some(default_factory) = self.default_factory.as_ref() {
             let first_default = default_factory
-                .call_bound(py, (ver.clone(),), None)?
+                .call_bound(py, (ver.clone(),) , None)
+                .or_else(|_err| {
+                    default_factory.call_bound(py, (ver.clone(), ctx.clone()) , None)
+                })?
                 .into_bound(py);
             if state == RetState::Value {
                 if first_default.is_none() {
@@ -250,7 +253,10 @@ impl Retriever {
 
             for _ in 1..repeat {
                 let default = default_factory
-                    .call_bound(py, (ver.clone(),), None)?
+                    .call_bound(py, (ver.clone(),), None)
+                    .or_else(|_err| {
+                        default_factory.call_bound(py, (ver.clone(), ctx.clone()) , None)
+                    })?
                     .into_bound(py);
                 ls.push(self.data_type.to_parseable(&default)?);
             }
