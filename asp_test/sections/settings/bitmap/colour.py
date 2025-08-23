@@ -1,4 +1,4 @@
-from bfp_rs import BaseStruct, Retriever, Version
+from bfp_rs import BaseStruct, Retriever, Version, Context
 from bfp_rs.types.le import u8
 
 from asp_test.sections.scx_versions import DE_LATEST
@@ -17,4 +17,4 @@ class Colour(BaseStruct):
         init_defaults = True,
         **retriever_inits
     ):
-        return super().__new__(cls, ver, init_defaults, **retriever_inits)
+        return super().__new__(cls, ver, ctx or Context(), init_defaults, **retriever_inits)

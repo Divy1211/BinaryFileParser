@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from asp_test.sections.scx_versions import TRIGGER_LATEST
 
-from bfp_rs import BaseStruct, Retriever, Version
+from bfp_rs import BaseStruct, Retriever, Version, Context
 from bfp_rs.types.le import i32, u8
 
 
@@ -12,5 +12,5 @@ class Decision(BaseStruct):
     state: int = Retriever(u8,  default = 0)
     # @formatter:on
 
-    def __new__(cls, ver: Version = TRIGGER_LATEST, init_defaults = True, **retriever_inits):
-        return super().__new__(cls, ver, init_defaults, **retriever_inits)
+    def __new__(cls, ver: Version = TRIGGER_LATEST, ctx: Context = None, init_defaults = True, **retriever_inits):
+        return super().__new__(cls, ver, ctx or Context(), init_defaults, **retriever_inits)

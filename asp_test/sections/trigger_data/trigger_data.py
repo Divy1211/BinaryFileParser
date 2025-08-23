@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from bfp_rs import BaseStruct, Retriever, Version, ByteStream, ret
+from bfp_rs import BaseStruct, Retriever, Version, ByteStream, ret, Context
 from bfp_rs.types.le import (
     Array32, f64, i8, u32, bool8, u64, Array64,
 )
@@ -20,18 +20,18 @@ def trigger_display_orders_repeat():
 
 class TriggerData(BaseStruct):
     # @formatter:off
-    version: float                         = Retriever(f64,                                                default = 3.6)
-    objectives_state: int                  = Retriever(i8,                        min_ver = Version(1, 5), default = 0)
-    triggers: list[Trigger]                = Retriever(Array32[Trigger],                                   default_factory = lambda _: [],             on_read = trigger_display_orders_repeat)
-    trigger_display_orders: list[int]      = Retriever(u32,                       min_ver = Version(1, 4), default = 0,                    repeat = 0)
-    variable_data: VariableData            = Retriever(VariableData,              min_ver = Version(1, 9), default_factory = VariableData)
-    unused1: int                           = Retriever(u32,                       min_ver = Version(2, 4), default = 0)
-    unused2: int                           = Retriever(u32,                       min_ver = Version(2, 7), default = 0)
-    unused3: bool                          = Retriever(bool8,                     min_ver = Version(2, 7), default = False)
-    unused4: bytes                         = Retriever(u64,                       min_ver = Version(3, 5), default = 0)
-    decisions: Decision                    = Retriever(Array64[Decision],         min_ver = Version(4, 0), default_factory = lambda _: []) #, remaining_compressed = True)
-    attackers: Attacker                    = Retriever(Array64[Attacker],         min_ver = Version(4, 1), default_factory = lambda _: [])
-    display_order_is_execution_order: bool = Retriever(bool8,                     min_ver = Version(4, 5), default = False)
+    version: float                     = Retriever(f64,                                                default = 3.6)
+    objectives_state: int              = Retriever(i8,                        min_ver = Version(1, 5), default = 0)
+    triggers: list[Trigger]            = Retriever(Array32[Trigger],                                   default_factory = lambda _: [],             on_read = trigger_display_orders_repeat)
+    trigger_display_orders: list[int]  = Retriever(u32,                       min_ver = Version(1, 4), default = 0,                    repeat = 0)
+    variable_data: VariableData        = Retriever(VariableData,              min_ver = Version(1, 9), default_factory = VariableData)
+    unused1: int                       = Retriever(u32,                       min_ver = Version(2, 4), default = 0)
+    unused2: int                       = Retriever(u32,                       min_ver = Version(2, 7), default = 0)
+    unused3: bool                      = Retriever(bool8,                     min_ver = Version(2, 7), default = False)
+    unused4: bytes                     = Retriever(u64,                       min_ver = Version(3, 5), default = 0)
+    decisions: Decision                = Retriever(Array64[Decision],         min_ver = Version(4, 0), default_factory = lambda _: [])
+    attackers: Attacker                = Retriever(Array64[Attacker],         min_ver = Version(4, 1), default_factory = lambda _: [])
+    is_legacy_execution_order: bool    = Retriever(bool8,                     min_ver = Version(4, 5), default = False)
     # @formatter:on
 
     @classmethod
@@ -43,5 +43,5 @@ class TriggerData(BaseStruct):
         ver_str = str(f64.from_bytes(stream.peek(8)))
         return Version(*map(int, ver_str.split(".")))
 
-    def __new__(cls, ver: Version = TRIGGER_LATEST, init_defaults = True, **retriever_inits):
-        return super().__new__(cls, ver, init_defaults, **retriever_inits)
+    def __new__(cls, ver: Version = TRIGGER_LATEST, ctx: Context = None, init_defaults = True, **retriever_inits):
+        return super().__new__(cls, ver, ctx or Context(), init_defaults, **retriever_inits)

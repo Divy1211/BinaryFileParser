@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from bfp_rs import BaseStruct, Retriever, Version
+from bfp_rs import BaseStruct, Retriever, Version, Context
 from bfp_rs.types.le import (
     Array16, bool8, Array, nt_str16, u32,
     u8,
@@ -26,5 +26,5 @@ class ScenarioPlayerData(BaseStruct):
     victory_options: VictoryOptions          = Retriever(VictoryOptions,                           default_factory = lambda _ver: VictoryOptions())
     # @formatter:on
 
-    def __new__(cls, ver: Version = DE_LATEST, init_defaults = True, **retriever_inits):
-        return super().__new__(cls, ver, init_defaults, **retriever_inits)
+    def __new__(cls, ver: Version = DE_LATEST, ctx: Context = None, init_defaults = True, **retriever_inits):
+        return super().__new__(cls, ver, ctx or Context(), init_defaults, **retriever_inits)

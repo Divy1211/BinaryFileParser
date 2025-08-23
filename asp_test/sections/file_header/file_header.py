@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from time import time
 
-from bfp_rs import BaseStruct, ByteStream, Retriever, Version
+from bfp_rs import BaseStruct, ByteStream, Retriever, Version, Context
 from bfp_rs.types.le import bool32, Str, i32, nt_str32, u32
 
 from asp_test.sections.file_header.dlc_options import DLCOptions
@@ -29,5 +29,5 @@ class FileHeader(BaseStruct):
         ver = i32.from_bytes(stream.peek(12)[8:])
         return Version(ver)
 
-    def __new__(cls, ver: Version = Version(6), init_defaults = True, **retriever_inits):
-        return super().__new__(cls, ver, init_defaults, **retriever_inits)
+    def __new__(cls, ver: Version = Version(6), ctx: Context = None, init_defaults = True, **retriever_inits):
+        return super().__new__(cls, ver, ctx or Context(), init_defaults, **retriever_inits)

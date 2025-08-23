@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 
-from bfp_rs import BaseStruct, Retriever, Version, ret
+from bfp_rs import BaseStruct, Retriever, Version, ret, Context
 from bfp_rs.types.le import Bytes, i16, i32, str16, u32
 from bfp_rs.combinators import if_, set_repeat, get
 
@@ -41,5 +41,5 @@ class BackgroundImage(BaseStruct):
     pixels: list[bytes] | None           = Retriever(Bytes[1],         min_ver = Version(1, 10), default_factory = lambda _ver: None, repeat = -2)
     # @formatter:on
 
-    def __new__(cls, ver: Version = DE_LATEST, init_defaults = True, **retriever_inits):
-        return super().__new__(cls, ver, init_defaults, **retriever_inits)
+    def __new__(cls, ver: Version = DE_LATEST, ctx: Context = None, init_defaults = True, **retriever_inits):
+        return super().__new__(cls, ver, ctx or Context(), init_defaults, **retriever_inits)

@@ -1,4 +1,4 @@
-from bfp_rs import BaseStruct, Retriever, Version, RetrieverCombiner, ret
+from bfp_rs import BaseStruct, Retriever, Version, RetrieverCombiner, ret, Context
 from bfp_rs.types.le import bool32, bool8, Array, i32, i8, u32, Bytes
 
 from asp_test.sections.settings.diplomacy.legacy_victory_info import LegacyVictoryInfo
@@ -22,5 +22,5 @@ class Diplomacy(BaseStruct):
 
     lock_teams_in_game: bool = RetrieverCombiner(ret(_lock_teams_in_game_old), ret(_lock_teams_in_game))
 
-    def __new__(cls, ver: Version = DE_LATEST, init_defaults = True, **retriever_inits):
-        return super().__new__(cls, ver, init_defaults, **retriever_inits)
+    def __new__(cls, ver: Version = DE_LATEST, ctx: Context = None, init_defaults = True, **retriever_inits):
+        return super().__new__(cls, ver, ctx or Context(), init_defaults, **retriever_inits)

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from bfp_rs import BaseStruct, Retriever, Version, ret
+from bfp_rs import BaseStruct, Retriever, Version, ret, Context
 from bfp_rs.types.le import Array32, bool32, bool8, i32, nt_str32, u32, u8
 from bfp_rs.combinators import set_repeat
 
@@ -42,5 +42,5 @@ class Trigger(BaseStruct):
     condition_display_orders: list[int]    = Retriever(u32,                                             default = 0, repeat = 0)
     # @formatter:on
 
-    def __new__(cls, ver: Version = TRIGGER_LATEST, init_defaults = True, **retriever_inits):
-        return super().__new__(cls, ver, init_defaults, **retriever_inits)
+    def __new__(cls, ver: Version = TRIGGER_LATEST, ctx: Context = None, init_defaults = True, **retriever_inits):
+        return super().__new__(cls, ver, ctx or Context(), init_defaults, **retriever_inits)

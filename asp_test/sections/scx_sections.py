@@ -3,7 +3,7 @@ from __future__ import annotations
 from zlib_ng import zlib_ng as zlib
 from contextlib import suppress
 
-from bfp_rs import BaseStruct, Retriever, ByteStream, Version
+from bfp_rs import BaseStruct, Retriever, ByteStream, Version, Context
 
 from asp_test.sections.scx_versions import DE_LATEST
 from asp_test.sections.file_header import FileHeader
@@ -70,12 +70,11 @@ class ScenarioSections(BaseStruct):
         ver_str = stream.peek(4).decode("ASCII")
         return Version(*map(int, ver_str.split(".")))
 
-    def __new__(cls, ver: Version = DE_LATEST, init_defaults = True, **retriever_inits):
-        return super().__new__(cls, ver, init_defaults, **retriever_inits)
+    def __new__(cls, ver: Version = DE_LATEST, ctx: Context = None, init_defaults = True, **retriever_inits):
+        return super().__new__(cls, ver, ctx or Context(), init_defaults, **retriever_inits)
 
-    @classmethod
-    def to_bytes(cls, value: ScenarioSections):
-        sync_script_file_path(value)
-        sync_num_triggers(value)
-        sync_resources(value)
-        return super().to_bytes(value)
+    def to_bytes(self):
+        sync_script_file_path(self)
+        sync_num_triggers(self)
+        sync_resources(self)
+        return super().to_bytes()

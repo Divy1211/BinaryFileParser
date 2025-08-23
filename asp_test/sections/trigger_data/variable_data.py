@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from bfp_rs import BaseStruct, Retriever, Version
+from bfp_rs import BaseStruct, Retriever, Version, Context
 from bfp_rs.types.le import Array32, Bytes, Array, i32
 
 from asp_test.sections.scx_versions import TRIGGER_LATEST
@@ -15,5 +15,5 @@ class VariableData(BaseStruct):
     variables: list[Variable]          = Retriever(Array32[Variable], min_ver = Version(2, 2), default_factory = lambda _ver: [])
     # @formatter:on
 
-    def __new__(cls, ver: Version = TRIGGER_LATEST, init_defaults = True, **retriever_inits):
-        return super().__new__(cls, ver, init_defaults, **retriever_inits)
+    def __new__(cls, ver: Version = TRIGGER_LATEST, ctx: Context = None, init_defaults = True, **retriever_inits):
+        return super().__new__(cls, ver, ctx or Context(), init_defaults, **retriever_inits)

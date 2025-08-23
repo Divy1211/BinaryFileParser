@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from bfp_rs import BaseStruct, Retriever, Version, RetrieverRef
+from bfp_rs import BaseStruct, Retriever, Version, RetrieverRef, Context
 from bfp_rs.types.le import Array32, i32, str32
 
 from asp_test.sections.scx_versions import TRIGGER_LATEST
@@ -51,5 +51,5 @@ class Condition(BaseStruct):
     include_changeable_weapon_objects: int = RetrieverRef(_properties, 27)
     # @formatter:on
 
-    def __new__(cls, ver: Version = TRIGGER_LATEST, init_defaults = True, **retriever_inits):
-        return super().__new__(cls, ver, init_defaults, **retriever_inits)
+    def __new__(cls, ver: Version = TRIGGER_LATEST, ctx: Context = None, init_defaults = True, **retriever_inits):
+        return super().__new__(cls, ver, ctx or Context(), init_defaults, **retriever_inits)

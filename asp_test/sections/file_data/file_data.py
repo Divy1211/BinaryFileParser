@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from bfp_rs import BaseStruct, Retriever, Version, ret
+from bfp_rs import BaseStruct, Retriever, Version, ret, Context
 from bfp_rs.types.le import Array32, bool32, str16, str32, Option32
 from bfp_rs.combinators import set_repeat, if_not, if_len, set_
 
@@ -28,5 +28,5 @@ class FileData(BaseStruct):
     ai_files: list[AiFile] | None = Retriever(Array32[AiFile],                                                      default_factory = lambda _ver: None)
     # @formatter:on
 
-    def __new__(cls, ver: Version = DE_LATEST, init_defaults = True, **retriever_inits):
-        return super().__new__(cls, ver, init_defaults, **retriever_inits)
+    def __new__(cls, ver: Version = DE_LATEST, ctx: Context = None, init_defaults = True, **retriever_inits):
+        return super().__new__(cls, ver, ctx or Context(), init_defaults, **retriever_inits)

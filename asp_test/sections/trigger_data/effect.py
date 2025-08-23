@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from bfp_rs import BaseStruct, Retriever, Version, RetrieverRef, ret
+from bfp_rs import BaseStruct, Retriever, Version, RetrieverRef, ret, Context
 from bfp_rs.types.le import Array32, i32, nt_str32
 from bfp_rs.combinators import set_repeat
 
@@ -101,5 +101,5 @@ class Effect(BaseStruct):
     #     from testing.sections.effects import Effect as EffectCls
     #     return EffectCls._make_effect(self)
 
-    def __new__(cls, ver: Version = TRIGGER_LATEST, init_defaults = True, **retriever_inits):
-        return super().__new__(cls, ver, init_defaults, **retriever_inits)
+    def __new__(cls, ver: Version = TRIGGER_LATEST, ctx: Context = None, init_defaults = True, **retriever_inits):
+        return super().__new__(cls, ver, ctx or Context(), init_defaults, **retriever_inits)

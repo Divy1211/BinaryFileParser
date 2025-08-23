@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from bfp_rs import BaseStruct, Retriever, Version, RetrieverRef, RetrieverCombiner, ret
+from bfp_rs import BaseStruct, Retriever, Version, RetrieverRef, RetrieverCombiner, ret, Context
 from bfp_rs.types.le import bool32, bool8, i32, StackedArray32, str16, u16, u32, u8, Array
 
 from asp_test.sections.settings.options.view import View
@@ -49,5 +49,5 @@ class Options(BaseStruct):
     disabled_building_ids: list[list[int]] = RetrieverCombiner(ret(_disabled_building_ids), ret(_legacy_disabled_building_ids))
     # @formatter:on
 
-    def __new__(cls, ver: Version = DE_LATEST, init_defaults = True, **retriever_inits):
-        return super().__new__(cls, ver, init_defaults, **retriever_inits)
+    def __new__(cls, ver: Version = DE_LATEST, ctx: Context = None, init_defaults = True, **retriever_inits):
+        return super().__new__(cls, ver, ctx or Context(), init_defaults, **retriever_inits)
