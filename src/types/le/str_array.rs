@@ -5,6 +5,7 @@ use pyo3::types::{PyBytes, PyTuple};
 use crate::types::bfp_list::BfpList;
 use crate::types::bfp_type::BfpType;
 use crate::types::byte_stream::ByteStream;
+use crate::types::context::Context;
 use crate::types::le::encoding::Encoding;
 use crate::types::le::size::Size;
 use crate::types::le::str::Str;
@@ -44,11 +45,13 @@ impl StrArray {
     pub fn get_bfp_ls(&self, ls: &Bound<PyAny>) -> PyResult<BfpList> {
         Ok(match ls.extract::<BfpList>() {
             Ok(ls) => {
-                let BfpType::Str(_) = ls.data_type else {
+                let inner = ls.inner();
+                let BfpType::Str(_) = inner.data_type else {
                     return Err(PyTypeError::new_err(format!(
-                        "List type mismatch, assigning list[{}] to list[str]", ls.data_type.py_name()
+                        "List type mismatch, assigning list[{}] to list[str]", inner.data_type.py_name()
                     )))
                 };
+                drop(inner);
                 ls
             },
             Err(_) => {
@@ -64,7 +67,7 @@ impl Parseable for StrArray {
     type Type = BfpList;
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn from_stream(&self, stream: &mut ByteStream, _ver: &Version) -> std::io::Result<Self::Type> {
+    fn from_stream_ctx(&self, stream: &mut ByteStream, _ver: &Version, _ctx: &mut Context) -> PyResult<Self::Type> {
         let len = self.len_type.from_stream(stream, _ver)?;
         
         let mut lens = Vec::with_capacity(len);
@@ -81,20 +84,29 @@ impl Parseable for StrArray {
     }
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn to_bytes(&self, value: &Self::Type) -> std::io::Result<Vec<u8>> {
-        let ls = value.ls.read().expect("GIL bound read");
-        let ls = ls.iter().map(String::try_from).collect::<Result<Vec<_>, _>>().expect("All code paths to this fn go through StrArray::get_bfp_ls");
-        let mut all_bytes = self.len_type.to_bytes(&ls.len())?;
-        let mut len_bytes = Vec::with_capacity(ls.len());
-        let mut str_bytes = Vec::with_capacity(ls.len());
-        for string in ls {
-            let mut bytes = str_to_bytes(&string, &self.enc1, &self.enc2)?;
-            len_bytes.append(&mut self.str_len_type.to_bytes(&bytes.len())?);
-            str_bytes.append(&mut bytes);
+    fn to_bytes_in(&self, value: &Self::Type, buffer: &mut Vec<u8>) -> PyResult<()> {
+        let inner = value.inner();
+        let data = inner.data.iter()
+            .map(String::try_from)
+            .map(|result| result.expect("All code paths to this fn go through StrArray::get_bfp_ls"));
+
+        self.len_type.to_bytes_in(&inner.data.len(), buffer)?;
+        
+        let num_len_bytes = self.str_len_type.num_bytes();
+        
+        let mut start = buffer.len();
+        buffer.resize(buffer.len() + inner.data.len() * num_len_bytes, 0);
+        
+        for string in data {
+            let content_start = buffer.len();
+            str_to_bytes(&string, &self.enc1, &self.enc2, buffer)?;
+            
+            let len_bytes = self.str_len_type.to_bytes_array(buffer.len() - content_start)?;
+            
+            buffer[start..start+num_len_bytes].copy_from_slice(&len_bytes[..num_len_bytes]);
+            start += num_len_bytes;
         }
-        all_bytes.append(&mut len_bytes);
-        all_bytes.append(&mut str_bytes);
-        Ok(all_bytes)
+        Ok(())
     }
 }
 

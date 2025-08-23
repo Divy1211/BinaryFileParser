@@ -1,4 +1,4 @@
-from bfp_rs import BaseStruct, Retriever, Version, ByteStream, ret, set_mut, borrow_mut
+from bfp_rs import BaseStruct, Retriever, Version, ByteStream, ret, set_mut, borrow_mut, Context
 from bfp_rs.combinators import set_repeat
 from bfp_rs.types.le import Bytes, u16, u32, Tail
 

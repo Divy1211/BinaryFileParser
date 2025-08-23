@@ -1,6 +1,7 @@
 from typing import Any, Self
 
 from bfp_rs.types.byte_stream import ByteStream
+from bfp_rs.types.context import Context
 from bfp_rs.types.version import Version
 
 
@@ -12,12 +13,13 @@ class BaseStruct:
     ver: Version
     "The version of the struct"
 
-    def __new__(cls, ver: Version = Version(-1), init_defaults: bool = True, **retriever_inits: Any) -> Self:
+    def __new__(cls, ver: Version = Version(-1), ctx: Context = Context(), init_defaults: bool = True, **retriever_inits: Any) -> Self:
         """
         Default initialise and create a new instance of this struct
 
         Args:
             ver: The struct version to create
+            ctx: Stores ctx key/values used by on_read/on_write combinators
 
             init_defaults:
                 If set to false, skip initialisation of struct values from defaults. This is only useful when the values
@@ -27,6 +29,17 @@ class BaseStruct:
                 Specify overrides for the default values of retrievers for initialisation by name
         """
 
+    @classmethod
+    def from_base(cls, value: BaseStruct) -> Self:
+        """
+        Aliases the data in the base class without copying it.
+
+        Args:
+            value: The base struct instance to alias
+
+        Returns:
+            An instance of this struct
+        """
 
     @classmethod
     def from_stream(cls, stream: ByteStream, ver: Version = Version(0)) -> Self:
@@ -46,13 +59,9 @@ class BaseStruct:
         """
 
 
-    @classmethod
-    def to_bytes(cls, value: BaseStruct) -> bytes:
+    def to_bytes(self) -> bytes:
         """
-        Serialize this instance of this struct to bytes
-
-        Args:
-            value: The instance to serialize
+        Serialize this struct to bytes
 
         Returns:
             The byte representation of this struct
@@ -100,21 +109,40 @@ class BaseStruct:
 
         """
 
-
-    @classmethod
-    def to_file(cls, filepath: str, value: BaseStruct):
+    def to_file(self, filepath: str):
         """
-        Serialize this instance of this struct to the given file
+        Serialize this struct to the given file
 
         Args:
             filepath: The path to write the serialized file to
-            value: The instance to serialize
 
         Raises:
             CompressionError: If the ``_compress`` method is not defined and ``remaining_compressed`` is set to ``True``
                 in one of the retrievers
         """
 
+    def to_json(self, filepath: str):
+        """
+        Serialize this struct to the given file in JSON.
+
+        Args:
+            filepath: The path to write the serialized file to
+        """
+
+    @classmethod
+    def from_json(cls, filepath: str) -> Self:
+        """
+        Deserialize and create an instance of this struct from the given JSON file
+
+        Args:
+            filepath: The file to use for deserialization
+
+        Returns:
+            An instance of this struct
+
+        Raises:
+            ValueError: For JSONs which do not comply with the BaseStruct schema
+        """
 
     @classmethod
     def _get_version(cls, stream: ByteStream, ver: Version = Version(0)) -> Version:

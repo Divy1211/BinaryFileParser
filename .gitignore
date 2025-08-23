@@ -77,3 +77,9 @@ asp_test/scxs/*
 flamegraph*
 perf*
 profile.*.gz
+tmp.bin
+test.json
+
+imgs/bfp.kra
+imgs/file-1453.png
+imgs/settings-25-xxl.png

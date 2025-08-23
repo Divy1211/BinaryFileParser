@@ -3,6 +3,7 @@ use pyo3::types::{PyBytes, PyType};
 
 use crate::types::bfp_type::BfpType;
 use crate::types::byte_stream::ByteStream;
+use crate::types::context::Context;
 use crate::types::parseable::Parseable;
 use crate::types::version::Version;
 
@@ -16,17 +17,16 @@ impl Parseable for Bytes {
     type Type = Vec<u8>;
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn from_stream(&self, stream: &mut ByteStream, _ver: &Version) -> std::io::Result<Self::Type> {
+    fn from_stream_ctx(&self, stream: &mut ByteStream, _ver: &Version, _ctx: &mut Context) -> PyResult<Self::Type> {
         let mut bytes = stream.get(self.len)?.to_vec();
         bytes[..].reverse();
         Ok(bytes)
     }
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn to_bytes(&self, value: &Self::Type) -> std::io::Result<Vec<u8>> {
-        let mut bytes = value.clone();
-        bytes[..].reverse();
-        Ok(bytes)
+    fn to_bytes_in(&self, value: &Self::Type, buffer: &mut Vec<u8>) -> PyResult<()> {
+        buffer.extend(value.iter().rev());
+        Ok(())
     }
 }
 

@@ -8,6 +8,7 @@ use crate::combinators::combinator_type::CombinatorType;
 use crate::combinators::get::Get;
 use crate::combinators::utils::{get_rec};
 use crate::retrievers::retriever::Retriever;
+use crate::types::context::Context;
 use crate::types::parseable_type::ParseableType;
 use crate::types::version::Version;
 
@@ -17,16 +18,16 @@ pub struct IfCmpBy {
     target: Vec<usize>,
     source: Get,
     ord: Vec<Ordering>,
-    com: Box<CombinatorType>,
+    coms: Vec<CombinatorType>,
 }
 
 impl IfCmpBy {
-    pub fn new(target: &Vec<usize>, source: &Get, ord: &Vec<Ordering>, com: CombinatorType) -> Self {
+    pub fn new(target: &Vec<usize>, source: &Get, ord: &Vec<Ordering>, coms: Vec<CombinatorType>) -> Self {
         IfCmpBy {
             target: target.clone(),
             source: source.clone(),
             ord: ord.clone(),
-            com: Box::new(com),
+            coms,
         }
     }
 }
@@ -37,7 +38,8 @@ impl Combinator for IfCmpBy {
         retrievers: &Vec<Retriever>,
         data: &mut Vec<Option<ParseableType>>,
         repeats: &mut Vec<Option<isize>>,
-        ver: &Version
+        ver: &Version,
+        ctx: &mut Context,
     ) -> PyResult<()> {
         let (target_name, target) = get_rec(&self.target, retrievers, data, ver)?;
 
@@ -47,10 +49,14 @@ impl Combinator for IfCmpBy {
                 target_name,
             )));
         };
-        let source = self.source.eval(retrievers, data, repeats, ver)?;
+        let source = self.source.eval(retrievers, data, repeats, ver, ctx)?;
         
+        ctx.enter_if();
         if self.ord.contains(&target.cmp(&source)) {
-            self.com.run(retrievers, data, repeats, ver)?;
+            for com in &self.coms {
+                com.run(retrievers, data, repeats, ver, ctx)?;
+            }
+            ctx.run_if();
         }
         Ok(())
     }

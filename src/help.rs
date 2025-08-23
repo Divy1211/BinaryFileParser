@@ -13,14 +13,16 @@ pub struct BorrowMutGuard {
 impl BorrowMutGuard {
     #[new]
     pub fn new_py(ls: PyRef<BfpList>) -> BorrowMutGuard {
+        let inner = ls.inner();
         Self {
             ls: ls.clone(),
-            old_state: *(ls.immutable.read().expect("GIL bound read"))
+            old_state: inner.immutable
         }
     }
     
     pub fn __enter__(slf: PyRefMut<Self>) {
-        *slf.ls.immutable.write().expect("Gil bound write") = false;
+        let mut inner = slf.ls.inner_mut();
+        inner.immutable = false;
     }
 
     pub fn __exit__(
@@ -29,12 +31,14 @@ impl BorrowMutGuard {
         _exc_value: PyObject,
         _traceback: PyObject,
     ) -> PyResult<bool> {
-        *slf.ls.immutable.write().expect("GIL bound write") = slf.old_state;
+        let mut inner = slf.ls.inner_mut();
+        inner.immutable = slf.old_state;
         Ok(false)
     }
 }
 
 #[pyfunction]
 pub fn set_mut(ls: PyRefMut<BfpList>, value: bool) {
-    *ls.immutable.write().expect("GIL bound write") = !value;
+    let mut inner = ls.inner_mut();
+    inner.immutable = !value;
 }

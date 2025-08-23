@@ -10,9 +10,10 @@ use crate::errors::version_error::VersionError;
 use crate::errors::mutability_error::MutabilityError;
 
 use crate::combinators::set_repeat::set_repeat_builder::set_repeat;
-use crate::combinators::r#if::if_builder::{if_, if_not, if_len, if_ver};
+use crate::combinators::r#if::if_builder::{if_, if_not, if_len, if_ver, if_not_key, if_key, if_else, break_};
 use crate::combinators::set::set_builder::set;
-use crate::combinators::get::{get_len, get};
+use crate::combinators::set_key::set_key_builder::set_key;
+use crate::combinators::get::{get_len, get, get_key};
 
 use crate::help::BorrowMutGuard;
 use crate::help::set_mut;
@@ -24,6 +25,7 @@ use crate::retrievers::retriever_ref::RetrieverRef;
 use crate::types::base_struct::BaseStruct;
 use crate::types::bfp_type::BfpType;
 use crate::types::byte_stream::ByteStream;
+use crate::types::context::ContextPtr;
 use crate::types::le::array::{Array, ArrayBuilder};
 use crate::types::le::bool::{Bool128, Bool16, Bool32, Bool64, Bool8};
 use crate::types::le::bytes::Bytes;
@@ -149,10 +151,16 @@ fn combinators(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
     combinators.add_function(wrap_pyfunction!(set_repeat, combinators)?)?;
     combinators.add_function(wrap_pyfunction!(if_, combinators)?)?;
     combinators.add_function(wrap_pyfunction!(if_not, combinators)?)?;
+    combinators.add_function(wrap_pyfunction!(if_key, combinators)?)?;
+    combinators.add_function(wrap_pyfunction!(if_not_key, combinators)?)?;
     combinators.add_function(wrap_pyfunction!(if_len, combinators)?)?;
     combinators.add_function(wrap_pyfunction!(if_ver, combinators)?)?;
+    combinators.add_function(wrap_pyfunction!(if_else, combinators)?)?;
+    combinators.add_function(wrap_pyfunction!(break_, combinators)?)?;
     combinators.add_function(wrap_pyfunction!(set, combinators)?)?;
+    combinators.add_function(wrap_pyfunction!(set_key, combinators)?)?;
     combinators.add_function(wrap_pyfunction!(get, combinators)?)?;
+    combinators.add_function(wrap_pyfunction!(get_key, combinators)?)?;
     combinators.add_function(wrap_pyfunction!(get_len, combinators)?)?;
     
     Ok(())
@@ -176,6 +184,7 @@ fn errors(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
 fn binary_file_parser(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
     bfp.add_class::<ByteStream>()?;
     bfp.add_class::<BaseStruct>()?;
+    bfp.add_class::<ContextPtr>()?;
     bfp.add_class::<Retriever>()?;
     bfp.add_class::<RetrieverRef>()?;
     bfp.add_class::<RetrieverCombiner>()?;

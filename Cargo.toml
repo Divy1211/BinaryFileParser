@@ -1,12 +1,18 @@
 [package]
 name = "bfp-rs"
-version = "0.3.3-alpha1"
+version = "0.3.0-alpha11"
 edition = "2021"
 
 [profile.release]
 opt-level = 3
 codegen-units = 1
 lto = true
+
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 3
 
 [features]
 inline_always = []
@@ -20,3 +26,5 @@ crate-type = ["cdylib"]
 pyo3 = "0.22.0"
 encoding_rs = "0.8.35"
 indicatif = "0.17.11"
+serde = "1.0.219"
+serde_json = "1.0.140"

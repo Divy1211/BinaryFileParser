@@ -308,7 +308,7 @@ impl BfpType {
             (BfpType::StackedAttrArray(_type), ParseableType::Array(_val))         => Some(value),
 
             (BfpType::Struct(type_),   ParseableType::Struct { struct_, .. }) => {
-                if type_.fully_qualified_name == struct_.fully_qualified_name {
+                if type_ == struct_ {
                     Some(value)
                 } else {
                     None

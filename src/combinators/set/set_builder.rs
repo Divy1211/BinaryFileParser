@@ -1,10 +1,11 @@
 use pyo3::prelude::*;
-use pyo3::types::{PyTuple};
+use pyo3::types::{PyString, PyTuple};
 
 use crate::combinators::combinator_type::CombinatorType;
 use crate::combinators::get::Get;
 use crate::combinators::set::set_by::SetBy;
 use crate::combinators::set::set_from::SetFrom;
+use crate::combinators::set::set_from_key::SetFromKey;
 use crate::combinators::utils::idxes_from_tup;
 use crate::combinators::set::set_from_len::SetFromLen;
 use crate::combinators::set::set_to::SetTo;
@@ -35,6 +36,13 @@ impl SetBuilder {
         Ok(SetFrom::new(
             &self.target,
             source,
+        ).into())
+    }
+    
+    pub fn from_key(&self, key: &Bound<PyString>) -> PyResult<CombinatorType> {
+        Ok(SetFromKey::new(
+            &self.target,
+            key.to_string(),
         ).into())
     }
 

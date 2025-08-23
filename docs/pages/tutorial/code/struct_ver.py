@@ -1,6 +1,6 @@
 from typing import cast
 
-from bfp_rs import BaseStruct, Retriever, Version, ByteStream, ret
+from bfp_rs import BaseStruct, Retriever, Version, ByteStream, ret, Context
 from bfp_rs.combinators import set_repeat
 from bfp_rs.errors import VersionError
 from bfp_rs.types.le import Bytes, u16, u32, Tail, u8

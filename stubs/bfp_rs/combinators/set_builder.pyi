@@ -37,6 +37,18 @@ class SetBuilder:
         """
 
 
+    def from_key(self, key: str) -> Combinator:
+        """
+        Set the previously selected value to the value of this context key
+
+        Args:
+            key: The context key to set from
+
+        Returns:
+            A combinator that encodes the setter logic defined by the ``SetBuilder`` chain
+        """
+
+
     def from_len(self, *source: Retriever | int) -> Combinator:
         """
         Set the previously selected value to the length of this value if it is a list

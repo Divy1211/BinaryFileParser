@@ -6,6 +6,7 @@ use crate::combinators::combinator::Combinator;
 use crate::combinators::combinator_type::CombinatorType;
 use crate::combinators::utils::{get_rec};
 use crate::retrievers::retriever::Retriever;
+use crate::types::context::Context;
 use crate::types::parseable_type::ParseableType;
 use crate::types::version::Version;
 
@@ -15,16 +16,16 @@ pub struct IfCmpLenTo {
     target: Vec<usize>,
     source: usize,
     ord: Vec<Ordering>,
-    com: Box<CombinatorType>,
+    coms: Vec<CombinatorType>,
 }
 
 impl IfCmpLenTo {
-    pub fn new(target: &Vec<usize>, source: usize, ord: &Vec<Ordering>, com: CombinatorType) -> Self {
+    pub fn new(target: &Vec<usize>, source: usize, ord: &Vec<Ordering>, coms: Vec<CombinatorType>) -> Self {
         IfCmpLenTo {
             target: target.clone(),
             source,
             ord: ord.clone(),
-            com: Box::new(com),
+            coms,
         }
     }
 }
@@ -35,7 +36,8 @@ impl Combinator for IfCmpLenTo {
         retrievers: &Vec<Retriever>,
         data: &mut Vec<Option<ParseableType>>,
         repeats: &mut Vec<Option<isize>>,
-        ver: &Version
+        ver: &Version,
+        ctx: &mut Context,
     ) -> PyResult<()> {
         let (target_name, target) = get_rec(&self.target, retrievers, data, ver)?;
 
@@ -47,9 +49,13 @@ impl Combinator for IfCmpLenTo {
         };
 
         let ord = target.cmp(&self.source);
-        
+
+        ctx.enter_if();
         if self.ord.contains(&ord) {
-            self.com.run(retrievers, data, repeats, ver)?;
+            for com in &self.coms {
+                com.run(retrievers, data, repeats, ver, ctx)?;
+            }
+            ctx.run_if();
         }
         Ok(())
     }

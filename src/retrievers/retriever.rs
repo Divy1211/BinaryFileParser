@@ -3,7 +3,7 @@ use std::sync::Arc;
 use pyo3::prelude::*;
 use pyo3::types::PyType;
 use pyo3::{pyclass, PyObject};
-use pyo3::exceptions::{PyValueError};
+use pyo3::exceptions::{PyTypeError, PyValueError};
 use crate::combinators::combinator::Combinator;
 use crate::combinators::combinator_type::CombinatorType;
 use crate::errors::default_attribute_error::DefaultAttributeError;
@@ -12,6 +12,7 @@ use crate::types::base_struct::BaseStruct;
 use crate::types::bfp_list::BfpList;
 use crate::types::bfp_type::BfpType;
 use crate::types::byte_stream::ByteStream;
+use crate::types::context::{Context, ContextPtr};
 use crate::types::parseable::Parseable;
 use crate::types::parseable_type::ParseableType;
 use crate::types::version::Version;
@@ -27,26 +28,26 @@ pub enum RetState {
 #[pyclass(module = "bfp_rs")]
 #[derive(Debug, Clone)]
 pub struct Retriever {
+    pub idx: usize,
+    
     pub data_type: BfpType,
 
     min_ver: Version,
     max_ver: Version,
-    
-    default: Arc<PyObject>,
-    default_factory: Arc<PyObject>,
-    
-    repeat: isize,
-    
+
+    pub repeat: isize,
     pub remaining_compressed: bool,
+
+    pub name: String,
     
-    pub on_read: Arc<Vec<CombinatorType>>,
-    pub on_write: Arc<Vec<CombinatorType>>,
+    on_read: Option<Arc<Vec<CombinatorType>>>,
+    on_write: Option<Arc<Vec<CombinatorType>>>,
+    
+    default: Option<Arc<PyObject>>,
+    default_factory: Option<Arc<PyObject>>,
 
     tmp_on_read: Option<Arc<PyObject>>,
     tmp_on_write: Option<Arc<PyObject>>,
-    
-    pub name: String,
-    pub idx: usize,
 }
 
 #[pymethods]
@@ -62,7 +63,6 @@ impl Retriever {
         on_read = None, on_write = None
     ))]
     fn new(
-        py: Python,
         data_type: &Bound<PyAny>,
 
         min_ver: Version,
@@ -88,19 +88,26 @@ impl Retriever {
         };
         
         if repeat < -2 {
-            return Err(PyValueError::new_err("Repeat values cannot be less than -1"));
+            return Err(PyValueError::new_err("Repeat values cannot be less than -2"));
+        }
+
+        if repeat == -1 {
+            return Err(PyValueError::new_err(
+                "Repeat values should never be set to -1, as there is no way to dynamically indicate a single value with a set_repeat.\n\
+                Note: If you're trying to make a value be parsed conditionally, use set_repeat to -1 instead"
+            ));
         }
         
         Ok(Retriever {
             data_type: BfpType::from_py_any(data_type)?,
             min_ver,
             max_ver,
-            default: Arc::new(default.unwrap_or(py.None())),
-            default_factory: Arc::new(default_factory.unwrap_or(py.None())),
+            default: default.map(Arc::new),
+            default_factory: default_factory.map(Arc::new),
             repeat,
             remaining_compressed,
-            on_read: Arc::new(Vec::new()),
-            on_write: Arc::new(Vec::new()),
+            on_read: None,
+            on_write: None,
             tmp_on_read,
             tmp_on_write,
             idx: 0,
@@ -123,16 +130,15 @@ impl Retriever {
         }
         let slf = slf.borrow();
         let instance = instance.downcast::<BaseStruct>()?.borrow();
-        if !slf.supported(&instance.ver) {
-            let ver = &instance.ver;
+        let inner = instance.inner();
+        if !slf.supported(&inner.ver) {
             return Err(VersionError::new_err(format!(
-                "'{}' is not supported in struct version {ver}", slf.name
+                "'{}' is not supported in struct version {}", slf.name, inner.ver
             )))
         }
-        let data = instance.data.read().expect("GIL bound read");
-        
+
         Ok(
-            data[slf.idx].clone().expect("Attempting to access uninitialised data in struct")
+            inner.data[slf.idx].clone().expect("Attempting to access uninitialised data in struct")
                 .to_bound(slf.py())
         )
     }
@@ -147,33 +153,32 @@ impl Retriever {
         }
         let slf = slf.borrow();
         let instance = instance.borrow();
-        if !slf.supported(&instance.ver) {
-            let ver = &instance.ver;
+        let mut inner = instance.inner_mut();
+        if !slf.supported(&inner.ver) {
             return Err(VersionError::new_err(format!(
-                "'{}' is not supported in struct version {ver}", slf.name
+                "'{}' is not supported in struct version {}", slf.name, inner.ver
             )))
         }
-        let mut repeats = instance.repeats.write().expect("GIL bound read");
-        let mut data = instance.data.write().expect("GIL bound write");
 
-        data[slf.idx] = Some(match slf.state(&repeats) {
+        inner.data[slf.idx] = Some(match slf.state(&inner.repeats) {
             RetState::Value | RetState::NoneValue if value.is_none() => {
-                repeats[slf.idx] = Some(-1);
+                inner.repeats[slf.idx] = Some(-1);
                 ParseableType::None
             }
             RetState::Value | RetState::NoneValue => {
+                inner.repeats[slf.idx] = None;
                 slf.data_type.to_parseable(&value)?
             }
             RetState::List | RetState::NoneList if value.is_none() => {
-                repeats[slf.idx] = Some(-2);
+                inner.repeats[slf.idx] = Some(-2);
                 ParseableType::None
             }
             RetState::List | RetState::NoneList => {
-                let repeat = slf.repeat(&repeats);
+                let repeat = slf.repeat(&inner.repeats);
                 let len = value.len()? as isize;
                 if repeat == -2 {
-                    repeats[slf.idx] = Some(len);
-                } else if repeats[slf.idx].is_none() && repeat != len {
+                    inner.repeats[slf.idx] = Some(len);
+                } else if inner.repeats[slf.idx].is_none() && repeat != len {
                     return Err(PyValueError::new_err(format!(
                         "List length mismatch for '{}' which is a retriever of fixed repeat. Expected: {repeat}, Actual: {len}", slf.name
                     )))
@@ -198,19 +203,18 @@ impl Retriever {
 }
 
 impl Retriever {
-    pub fn from_default(&self, ver: &Version, repeats: &Vec<Option<isize>>, py: Python) -> PyResult<ParseableType> {
+    pub fn from_default(&self, ver: &Version, repeats: &mut Vec<Option<isize>>, ctx: &ContextPtr, py: Python) -> PyResult<ParseableType> {
         let state = self.state(repeats);
         if state == RetState::NoneValue || state == RetState::NoneList {
             return Ok(ParseableType::None);
         }
         let repeat = self.repeat(repeats) as usize;
 
-        if !self.default.is_none(py) {
-            let default = self.data_type.to_parseable(self.default.bind(py));
+        if let Some(default) = self.default.as_ref() {
+            let default = self.data_type.to_parseable(default.bind(py))?;
             if state == RetState::Value {
-                return default;
+                return Ok(default);
             }
-            let default = default?;
             let mut ls = Vec::with_capacity(repeat);
             for _ in 0..repeat {
                 ls.push(default.clone());
@@ -218,19 +222,43 @@ impl Retriever {
             return Ok(ParseableType::Array(BfpList::new(ls, self.data_type.clone())));
         }
 
-        if !self.default_factory.is_none(py) {
+        if let Some(default_factory) = self.default_factory.as_ref() {
+            let first_default = default_factory
+                .call_bound(py, (ver.clone(),) , None)
+                .or_else(|_err| {
+                    default_factory.call_bound(py, (ver.clone(), ctx.clone()) , None)
+                })?
+                .into_bound(py);
             if state == RetState::Value {
-                return self.default_factory
-                    .call_bound(py, (ver.clone(),), None) // default_factory(ver)
-                    .and_then(|obj| self.data_type.to_parseable(obj.bind(py)));
+                if first_default.is_none() {
+                    // let OptionX[T] consume the None first
+                    if let Ok(default) = self.data_type.to_parseable(&first_default) {
+                        return Ok(default);
+                    }
+                    repeats[self.idx] = Some(-1);
+                    return Ok(ParseableType::None);
+                }
+                return self.data_type.to_parseable(&first_default);
             }
+            if first_default.is_none() {
+                repeats[self.idx] = Some(-2);
+                return Ok(ParseableType::None);
+            }
+
             let mut ls = Vec::with_capacity(repeat);
-            for _ in 0..repeat {
-                ls.push(
-                    self.default_factory
-                        .call_bound(py, (ver.clone(),), None) // default_factory(ver)
-                        .and_then(|obj| self.data_type.to_parseable(obj.bind(py)))?
-                );
+
+            if repeat > 0 {
+                ls.push(self.data_type.to_parseable(&first_default)?);
+            }
+
+            for _ in 1..repeat {
+                let default = default_factory
+                    .call_bound(py, (ver.clone(),), None)
+                    .or_else(|_err| {
+                        default_factory.call_bound(py, (ver.clone(), ctx.clone()) , None)
+                    })?
+                    .into_bound(py);
+                ls.push(self.data_type.to_parseable(&default)?);
             }
             return Ok(ParseableType::Array(BfpList::new(ls, self.data_type.clone())));
         }
@@ -243,7 +271,7 @@ impl Retriever {
     pub fn construct_fns(&mut self, py: Python) -> PyResult<()> {
         match &self.tmp_on_read {
             Some(obj) => {
-                self.on_read = Arc::new(obj.call0(py)?.extract::<Vec<CombinatorType>>(py)?);
+                self.on_read = Some(Arc::new(obj.call0(py)?.extract::<Vec<CombinatorType>>(py)?));
                 self.tmp_on_read = None;
             }
             _ => {}
@@ -251,7 +279,15 @@ impl Retriever {
 
         match &self.tmp_on_write {
             Some(obj) => {
-                self.on_write = Arc::new(obj.call0(py)?.extract::<Vec<CombinatorType>>(py)?);
+                let on_write = obj.call0(py)?.extract::<Vec<CombinatorType>>(py)?;
+                for combinator in on_write.iter() {
+                    if combinator.uses_keys() {
+                        return Err(PyTypeError::new_err(
+                            "Using context keys during writing is not supported."
+                        ))
+                    }
+                }
+                self.on_write = Some(Arc::new(on_write));
                 self.tmp_on_write = None;
             }
             _ => {}
@@ -266,10 +302,14 @@ impl Retriever {
         retrievers: &Vec<Retriever>,
         data: &mut Vec<Option<ParseableType>>,
         repeats: &mut Vec<Option<isize>>,
-        ver: &Version
+        ver: &Version,
+        ctx: &mut Context,
     ) -> PyResult<()> {
-        for combinator in self.on_read.iter() {
-            combinator.run(retrievers, data, repeats, ver)?;
+        let Some(on_read) = self.on_read.as_ref() else {
+            return Ok(());
+        };
+        for combinator in on_read.iter() {
+            combinator.run(retrievers, data, repeats, ver, ctx)?;
         }
         Ok(())
     }
@@ -282,8 +322,12 @@ impl Retriever {
         repeats: &mut Vec<Option<isize>>,
         ver: &Version
     ) -> PyResult<()> {
-        for combinator in self.on_write.iter() {
-            combinator.run(retrievers, data, repeats, ver)?;
+        let Some(on_write) = self.on_write.as_ref() else {
+            return Ok(());
+        };
+        let mut ctx = Context::new();
+        for combinator in on_write.iter() {
+            combinator.run(retrievers, data, repeats, ver, &mut ctx)?;
         }
         Ok(())
     }
@@ -294,16 +338,13 @@ impl Retriever {
     }
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    pub fn from_stream(&self, stream: &mut ByteStream, ver: &Version) -> std::io::Result<ParseableType> {
-        self.data_type.from_stream(stream, ver)
+    pub fn from_stream_ctx(&self, stream: &mut ByteStream, ver: &Version, ctx: &mut Context) -> PyResult<ParseableType> {
+        self.data_type.from_stream_ctx(stream, ver, ctx)
     }
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    pub fn to_bytes(&self, value: &ParseableType) -> std::io::Result<Vec<u8>> {
-        if *value == ParseableType::None {
-            return Ok(vec![]);
-        }
-        self.data_type.to_bytes(value)
+    pub fn to_bytes_in(&self, value: &ParseableType, buffer: &mut Vec<u8>) -> PyResult<()> {
+        self.data_type.to_bytes_in(value, buffer)
     }
 
     #[cfg_attr(feature = "inline_always", inline(always))]

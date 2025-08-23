@@ -4,6 +4,7 @@ from typing import Any, Callable
 from bfp_rs.types import Version, BaseStruct
 
 from bfp_rs.combinators.combinator import Combinator
+from bfp_rs.types.context import Context
 
 
 class Retriever:
@@ -19,7 +20,7 @@ class Retriever:
         min_ver: Version = Version(-1),
         max_ver: Version = Version(10_000),
         default: Any = None,
-        default_factory: Callable[[Version], Any] = None,
+        default_factory: Callable[[Version], Any] | Callable[[Version, Context], Any] = None,
         repeat: int = 1,
         remaining_compressed: bool = False,
         on_read: Callable[[], list[Combinator]] = None,

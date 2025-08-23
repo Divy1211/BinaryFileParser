@@ -5,6 +5,7 @@ use crate::combinators::combinator::Combinator;
 use crate::combinators::utils::{get_rec, set_rec};
 use crate::retrievers::retriever::Retriever;
 use crate::types::bfp_type::BfpType;
+use crate::types::context::Context;
 use crate::types::parseable_type::ParseableType;
 use crate::types::version::Version;
 
@@ -35,6 +36,7 @@ impl Combinator for SetFromLen {
         data: &mut Vec<Option<ParseableType>>,
         repeats: &mut Vec<Option<isize>>,
         ver: &Version,
+        _ctx: &mut Context,
     ) -> PyResult<()> {
         let (name, source) = get_rec(&self.source, retrievers, data, ver)?;
 

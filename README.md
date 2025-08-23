@@ -1,5 +1,7 @@
 # BinaryFileParser
 
+<center><img src="./imgs/bfp.png" height="500"></center>
+
 A blazingly fast python library written in rust for serializing/deserializing python objects to/from binary files. BFP syntax is declarative and very versatile, allowing the user to specify file formats in a very readable and concise manner.
 
 ## Installation

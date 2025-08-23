@@ -10,13 +10,22 @@ class IfBuilder:
     Constructs combinators that may execute conditionally during parsing, depending on the values of their retriever
     inputs
     """
-    def then(self, com: Combinator) -> Combinator:
+
+    def is_none(self) -> IfBuilder:
+        """
+        Checks if the previously selected value is none
+
+        Returns:
+            An ``IfBuilder`` instance to continue defining additional combinator properties
+        """
+
+    def then(self, *coms: Combinator) -> Combinator:
         """
         Finishes the if-combinator construction by defining a nested combinator, should be called last on an
         ``IfBuilder``
 
         Args:
-            com: The nested combinator to run if the conditions for this if combinator are met
+            *coms: The nested combinators to run if the conditions for this if combinator are met
 
         Returns:
             A combinator that encodes the conditional logic defined by the ``IfBuilder`` chain
@@ -127,6 +136,30 @@ def if_not(target: Retriever | int | Get) -> IfBuilder:
     """
 
 
+def if_key(key: str) -> IfBuilder:
+    """
+    Select this context key for a comparison
+
+    Args:
+        key: The context key to compare
+
+    Returns:
+        An ``IfBuilder`` instance to continue defining additional combinator properties
+    """
+
+
+def if_not_key(key: str) -> IfBuilder:
+    """
+    Select this context key for a comparison with the result inverted
+
+    Args:
+        key: The context key to compare
+
+    Returns:
+        An ``IfBuilder`` instance to continue defining additional combinator properties
+    """
+
+
 def if_len(target: Retriever | int | Get) -> IfBuilder:
     """
     Select this value and use its length for a comparison
@@ -153,3 +186,24 @@ def if_ver(*, min: Version = Version(-1), max: Version = Version(10_000)) -> IfB
         An ``IfBuilder`` instance to continue defining additional combinator properties
     """
 
+def if_else(*coms: Combinator) -> Combinator:
+    """
+    Creates an if-else-if like chain using the provided ``if_`` combinators, such that at most only one of them will run
+    their innermost combinator. if multiple ``if_``s are nested in one combinator, it is treated as a single if block,
+    ``if condition1 and condition2`` unless a ``break_()`` combinator is passed.
+    If a combinator other than ``if_`` is passed, it is treated like a default case (order matters!)
+
+    Args:
+        *coms: The nested combinators to chain.
+
+    Returns:
+        A combinator that encodes the conditional logic defined by the ``IfBuilder`` chain
+    """
+
+def break_() -> Combinator:
+    """
+    Break from an if_else combinator chain unconditionally.
+
+    Returns:
+        A combinator that encodes the conditional logic defined by the ``IfBuilder`` chain
+    """

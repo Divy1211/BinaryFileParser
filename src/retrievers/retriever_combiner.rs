@@ -13,7 +13,7 @@ pub struct RetrieverCombiner  {
     target: Vec<String>,
     pub name: String,
     
-    tuple: Arc<Py<PyTuple>>
+    tuple: Arc<Py<PyTuple>> // todo: Option this, so it can be none-ed after __set_name__ to lose the Arc
 }
 
 #[pymethods]
@@ -51,7 +51,7 @@ impl RetrieverCombiner {
         Err(VersionError::new_err(format!(
             "{} is not supported in struct version {}",
             slf.borrow().name,
-            instance.downcast::<BaseStruct>()?.borrow().ver
+            instance.downcast::<BaseStruct>()?.borrow().inner().ver
         )))
     }
 
@@ -74,7 +74,7 @@ impl RetrieverCombiner {
         Err(VersionError::new_err(format!(
             "{} is not supported in struct version {}",
             slf.borrow().name,
-            instance.downcast::<BaseStruct>()?.borrow().ver
+            instance.downcast::<BaseStruct>()?.borrow().inner().ver
         )))
     }
 

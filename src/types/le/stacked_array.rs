@@ -5,6 +5,7 @@ use pyo3::types::{PyBytes, PyList};
 use crate::types::bfp_list::BfpList;
 use crate::types::bfp_type::BfpType;
 use crate::types::byte_stream::ByteStream;
+use crate::types::context::Context;
 use crate::types::le::array::Array;
 use crate::types::le::size::Size;
 use crate::types::parseable::Parseable;
@@ -65,9 +66,10 @@ impl StackedArray {
     pub fn get_bfp_ls(&self, ls: &Bound<PyAny>) -> PyResult<BfpList> {
         Ok(match ls.extract::<BfpList>() {
             Ok(ls) => {
-                let BfpType::Array(type_) = &ls.data_type else {
+                let inner = ls.inner();
+                let BfpType::Array(type_) = &inner.data_type else {
                     return Err(PyTypeError::new_err(format!(
-                        "List type mismatch, assigning list[{}] to list[list[{}]]", ls.data_type.py_name(), self.data_type.py_name()
+                        "List type mismatch, assigning list[{}] to list[list[{}]]", inner.data_type.py_name(), self.data_type.py_name()
                     )));
                 };
                 if self.data_type != type_.data_type {
@@ -75,6 +77,7 @@ impl StackedArray {
                         "List type mismatch, assigning list[list[{}]] to list[list[{}]]", type_.data_type.py_name(), self.data_type.py_name()
                     )))
                 };
+                drop(inner);
                 ls
             },
             Err(_) => {
@@ -92,17 +95,17 @@ impl Parseable for StackedArray {
     type Type = BfpList;
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn from_stream(&self, stream: &mut ByteStream, ver: &Version) -> std::io::Result<Self::Type> {
-        let len = self.len_type.from_stream(stream, ver)?;
+    fn from_stream_ctx(&self, stream: &mut ByteStream, ver: &Version, ctx: &mut Context) -> PyResult<Self::Type> {
+        let len = self.len_type.from_stream_ctx(stream, ver, ctx)?;
         let mut lens = Vec::with_capacity(len);
         for _ in 0..len {
-            lens.push(self.ls_len_type.from_stream(stream, ver)?);
+            lens.push(self.ls_len_type.from_stream_ctx(stream, ver, ctx)?);
         }
         let mut lss: Vec<ParseableType> = Vec::with_capacity(len);
         for len in lens {
             let mut items = Vec::with_capacity(len);
             for _ in 0..len {
-                items.push(self.data_type.from_stream(stream, ver)?);
+                items.push(self.data_type.from_stream_ctx(stream, ver, ctx)?);
             }
             lss.push(BfpList::new(items, *self.data_type.clone()).into());
         }
@@ -110,26 +113,30 @@ impl Parseable for StackedArray {
     }
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn to_bytes(&self, value: &Self::Type) -> std::io::Result<Vec<u8>> {
-        let lss = value.ls.read().expect("GIL bound read");
-        let mut bytes = self.len_type.to_bytes(&lss.len())?;
+    fn to_bytes_in(&self, value: &Self::Type, buffer: &mut Vec<u8>) -> PyResult<()> {
+        let inner = value.inner();
+        self.len_type.to_bytes_in(&inner.data.len(), buffer)?;
 
-        let mut len_bytes = Vec::with_capacity(lss.len());
-        let mut ls_bytes = Vec::with_capacity(lss.len());
+        let num_len_bytes = self.ls_len_type.num_bytes();
 
-        for ls in lss.iter() {
-            let ParseableType::Array(ls) = ls else { unreachable!("All code paths to this fn go through StackedArray::get_bfp_ls") };
-            let ls = ls.ls.read().expect("GIL bound read");
-            
-            len_bytes.append(&mut self.ls_len_type.to_bytes(&ls.len())?);
-            for item in ls.iter() {
-                ls_bytes.append(&mut self.data_type.to_bytes(item)?);
+        let mut start = buffer.len();
+        buffer.resize(buffer.len() + inner.data.len() * num_len_bytes, 0);
+
+        for ls in inner.data.iter() {
+            let ParseableType::Array(ls) = ls else {
+                unreachable!("All code paths to this fn go through StackedArray::get_bfp_ls")
+            };
+            let inner = ls.inner();
+            let len_bytes = self.ls_len_type.to_bytes_array(inner.data.len())?;
+            buffer[start..start+num_len_bytes].copy_from_slice(&len_bytes[..num_len_bytes]);
+            start += num_len_bytes;
+
+            for item in inner.data.iter() {
+                self.data_type.to_bytes_in(item, buffer)?;
             }
         }
 
-        bytes.append(&mut len_bytes);
-        bytes.append(&mut ls_bytes);
-        Ok(bytes)
+        Ok(())
     }
 }
 

@@ -5,6 +5,7 @@ use pyo3::types::{PyBytes, PyList, PyType};
 use crate::types::bfp_list::BfpList;
 use crate::types::bfp_type::BfpType;
 use crate::types::byte_stream::ByteStream;
+use crate::types::context::Context;
 use crate::types::parseable::Parseable;
 use crate::types::parseable_type::ParseableType;
 use crate::types::version::Version;
@@ -24,11 +25,13 @@ impl Tail {
     pub fn get_bfp_ls(&self, ls: &Bound<PyAny>) -> PyResult<BfpList> {
         Ok(match ls.extract::<BfpList>() {
             Ok(ls) => {
-                if *self.data_type != ls.data_type {
+                let inner = ls.inner();
+                if *self.data_type != inner.data_type {
                     return Err(PyTypeError::new_err(format!(
-                        "List type mismatch, assigning list[{}] to list[{}]", ls.data_type.py_name(), self.data_type.py_name()
+                        "List type mismatch, assigning list[{}] to list[{}]", inner.data_type.py_name(), self.data_type.py_name()
                     )))
                 };
+                drop(inner);
                 ls
             },
             Err(_) => {
@@ -45,26 +48,23 @@ impl Parseable for Tail {
     type Type = BfpList;
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn from_stream(&self, stream: &mut ByteStream, ver: &Version) -> std::io::Result<Self::Type> {
+    fn from_stream_ctx(&self, stream: &mut ByteStream, ver: &Version, ctx: &mut Context) -> PyResult<Self::Type> {
         let mut ls = Vec::new();
 
         while !stream.is_empty() {
-            ls.push(self.data_type.from_stream(stream, ver)?);
+            ls.push(self.data_type.from_stream_ctx(stream, ver, ctx)?);
         }
 
         Ok(BfpList::new(ls, *self.data_type.clone()))
     }
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn to_bytes(&self, value: &Self::Type) -> std::io::Result<Vec<u8>> {
-        let ls = value.ls.read().expect("GIL bound read");
-        let mut bytes = Vec::new();
-
-        for item in ls.iter() {
-            bytes.append(&mut self.data_type.to_bytes(item)?);
+    fn to_bytes_in(&self, value: &Self::Type, buffer: &mut Vec<u8>) -> PyResult<()> {
+        let inner = value.inner();
+        for item in inner.data.iter() {
+            self.data_type.to_bytes_in(item, buffer)?;
         }
-
-        Ok(bytes)
+        Ok(())
     }
 }
 

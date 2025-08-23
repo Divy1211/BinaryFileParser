@@ -3,3 +3,4 @@ pub mod set_repeat_builder;
 pub mod set_repeat_to;
 pub mod set_repeat_from_len;
 pub mod set_repeat_by;
+pub mod set_repeat_from_key;

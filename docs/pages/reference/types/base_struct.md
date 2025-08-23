@@ -8,6 +8,8 @@
             "from_bytes",
             "from_file",
             "to_file",
+            "from_json",
+            "to_json",
             "_get_version",
             "_compress",
             "_decompress",

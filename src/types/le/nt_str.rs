@@ -1,9 +1,9 @@
-use std::iter::repeat;
 use pyo3::exceptions::PyTypeError;
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyTuple, PyType};
 use crate::types::bfp_type::BfpType;
 use crate::types::byte_stream::ByteStream;
+use crate::types::context::Context;
 use crate::types::le::encoding::Encoding;
 use crate::types::le::size::Size;
 use crate::types::le::utils::{str_from_bytes, str_to_bytes};
@@ -39,7 +39,7 @@ impl Parseable for NtStr {
     type Type = String;
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn from_stream(&self, stream: &mut ByteStream, _ver: &Version) -> std::io::Result<Self::Type> {
+    fn from_stream_ctx(&self, stream: &mut ByteStream, _ver: &Version, _ctx: &mut Context) -> PyResult<Self::Type> {
         let Some(len_size) = &self.len_type else {
             let mut bytes = Vec::new();
             for byte in stream {
@@ -62,18 +62,32 @@ impl Parseable for NtStr {
     }
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn to_bytes(&self, value: &Self::Type) -> std::io::Result<Vec<u8>> {
-        let mut bytes = str_to_bytes(value, &self.enc1, &self.enc2)?;
-        bytes.push(0);
+    fn to_bytes_in(&self, value: &Self::Type, buffer: &mut Vec<u8>) -> PyResult<()> {
         let Some(len_size) = &self.len_type else {
-            return Ok(bytes);
+            str_to_bytes(value, &self.enc1, &self.enc2, buffer)?;
+            buffer.push(0);
+            return Ok(());
         };
-        if let Size::Fixed(len) = len_size { if bytes.len() < *len {
-            bytes.extend(repeat(0).take(*len - bytes.len()));
-        }}
-        let mut len_bytes = len_size.to_bytes(&bytes.len())?;
-        len_bytes.append(&mut bytes);
-        Ok(len_bytes)
+        let num_len_bytes = len_size.num_bytes();
+        
+        let start = buffer.len();
+        buffer.resize(buffer.len() + num_len_bytes, 0);
+        
+        let content_start = buffer.len();
+        str_to_bytes(value, &self.enc1, &self.enc2, buffer)?;
+        buffer.push(0);
+        let mut len = buffer.len() - content_start;
+
+        if let Size::Fixed(fixed_len) = *len_size {
+            if len < fixed_len {
+                buffer.resize(content_start + fixed_len, 0);
+                len = fixed_len;
+            }
+        }
+        let len_bytes = len_size.to_bytes_array(len)?;
+        buffer[start..content_start].copy_from_slice(&len_bytes[..num_len_bytes]);
+
+        Ok(())
     }
 }
 

@@ -26,6 +26,7 @@ nav:
           - Get:                    "reference/combinators/get.md"
           - IfBuilder:              "reference/combinators/if_builder.md"
           - SetBuilder:             "reference/combinators/set_builder.md"
+          - SetKeyBuilder:          "reference/combinators/set_key_builder.md"
           - SetRepeatBuilder:       "reference/combinators/set_repeat_builder.md"
       - Errors:
           - CompressionError:       "reference/errors/compression_error.md"
@@ -40,6 +41,7 @@ nav:
       - Types:
           - BaseStruct:             "reference/types/base_struct.md"
           - ByteStream:             "reference/types/byte_stream.md"
+          - Context:                "reference/types/context.md"
           - Manager:                "reference/types/manager.md"
           - Version:                "reference/types/version.md"
           - Little Endian:

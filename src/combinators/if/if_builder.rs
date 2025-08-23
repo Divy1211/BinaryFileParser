@@ -2,17 +2,24 @@ use std::cmp::{Ordering, PartialEq};
 
 use pyo3::exceptions::{PyTypeError, PyValueError};
 use pyo3::prelude::*;
-use pyo3::types::PyTuple;
+use pyo3::types::{PyString, PyTuple};
 
 use crate::combinators::combinator_type::CombinatorType;
 use crate::combinators::get::Get;
+use crate::combinators::r#if::if_break::IfBreak;
 use crate::combinators::r#if::if_check::IfCheck;
+use crate::combinators::r#if::if_check_key::IfCheckKey;
 use crate::combinators::r#if::if_cmp_by::IfCmpBy;
 use crate::combinators::r#if::if_cmp_from::IfCmpFrom;
+use crate::combinators::r#if::if_cmp_key::IfCmpKey;
+use crate::combinators::r#if::if_cmp_key_to::IfCmpKeyTo;
 use crate::combinators::r#if::if_cmp_len_by::IfCmpLenBy;
 use crate::combinators::r#if::if_cmp_len_from::IfCmpLenFrom;
 use crate::combinators::r#if::if_cmp_len_to::IfCmpLenTo;
 use crate::combinators::r#if::if_cmp_to::IfCmpTo;
+use crate::combinators::r#if::if_else::IfElse;
+use crate::combinators::r#if::if_is_none::IfIsNone;
+use crate::combinators::r#if::if_key_is_none::IfKeyIsNone;
 use crate::combinators::r#if::if_ver::IfVer;
 use crate::combinators::utils::idxes_from_tup;
 use crate::retrievers::retriever::Retriever;
@@ -32,6 +39,7 @@ enum State {
 
 #[pyclass(module = "bfp_rs.combinators")]
 pub struct IfBuilder {
+    key: Option<String>,
     target: Vec<usize>,
     target_data_type: BfpType,
 
@@ -46,6 +54,8 @@ pub struct IfBuilder {
     
     state: State,
     
+    none_check: bool,
+    
     not: bool,
     len: bool,
 }
@@ -53,6 +63,7 @@ pub struct IfBuilder {
 impl Default for IfBuilder {
     fn default() -> Self {
         IfBuilder {
+            key: None,
             target: vec![],
             target_data_type: BfpType::Int8(Int8),
             source: None,
@@ -64,6 +75,7 @@ impl Default for IfBuilder {
             state: State::HasTarget,
             not: false,
             len: false,
+            none_check: false,
         }
     }
 }
@@ -128,60 +140,119 @@ impl IfBuilder {
 
 #[pymethods]
 impl IfBuilder {
-    fn then(&self, com: CombinatorType) -> PyResult<CombinatorType> {
+    fn is_none<'py>(slf: Bound<'py, Self>) -> Bound<'py, Self> {
+        slf.borrow_mut().none_check = true;
+        slf
+    }
+
+    #[pyo3(signature = (*coms), text_signature = "(*coms: CombinatorType)")]
+    fn then(&self, coms: Vec<CombinatorType>) -> PyResult<CombinatorType> {
         Ok(match self.state {
             State::VerCheck => {
                 IfVer::new(
                     self.min_ver.as_ref().expect("infallible"),
                     self.max_ver.as_ref().expect("infallible"),
-                    com,
+                    coms,
                 ).into()
             }
+            State::HasTarget if self.none_check => {
+                match &self.key {
+                    None => {
+                        IfIsNone::new(
+                            &self.target,
+                            coms,
+                            self.not,
+                        ).into()
+                    }
+                    Some(key) => {
+                        IfKeyIsNone::new(
+                            key,
+                            coms,
+                            self.not,
+                        ).into()
+                    }
+                }
+            }
             State::HasTarget => {
-                IfCheck::new(
-                    &self.target,
-                    com,
-                    self.not,
-                ).into()
+                match &self.key {
+                    None => {
+                        IfCheck::new(
+                            &self.target,
+                            coms,
+                            self.not,
+                        ).into()
+                    }
+                    Some(key) => {
+                        IfCheckKey::new(
+                            key,
+                            coms,
+                            self.not,
+                        ).into()
+                    }
+                }
             }
             State::HasSource if self.len => {
                 IfCmpLenFrom::new(
                     &self.target,
                     self.source.as_ref().expect("infallible"),
                     self.ord.as_ref().expect("infallible"),
-                    com,
+                    coms,
                 ).into()
             }
             State::HasSource => {
-                IfCmpFrom::new(
-                    &self.target,
-                    self.source.as_ref().expect("infallible"),
-                    self.ord.as_ref().expect("infallible"),
-                    com,
-                ).into()
+                match &self.key {
+                    None => {
+                        IfCmpFrom::new(
+                            &self.target,
+                            self.source.as_ref().expect("infallible"),
+                            self.ord.as_ref().expect("infallible"),
+                            coms,
+                        ).into()
+                    }
+                    Some(key) => {
+                        IfCmpKey::new(
+                            key,
+                            self.source.as_ref().expect("infallible"),
+                            self.ord.as_ref().expect("infallible"),
+                            coms,
+                        ).into()
+                    }
+                }
             }
             State::HasSourceConst if self.len => {
                 IfCmpLenTo::new(
                     &self.target,
                     self.source.as_ref().expect("infallible")[0],
                     self.ord.as_ref().expect("infallible"),
-                    com,
+                    coms,
                 ).into()
             }
             State::HasSourceConst => {
-                IfCmpTo::new(
-                    &self.target,
-                    self.source_const.as_ref().expect("infallible"),
-                    self.ord.as_ref().expect("infallible"),
-                    com,
-                ).into()
+                match &self.key {
+                    None => {
+                        IfCmpTo::new(
+                            &self.target,
+                            self.source_const.as_ref().expect("infallible"),
+                            self.ord.as_ref().expect("infallible"),
+                            coms,
+                        ).into()
+                    }
+                    Some(key) => {
+                        IfCmpKeyTo::new(
+                            key,
+                            self.source_const.as_ref().expect("infallible"),
+                            self.ord.as_ref().expect("infallible"),
+                            coms,
+                        ).into()
+                    }
+                }
             }
             State::HasSourceGet if self.len => {
                 IfCmpLenBy::new(
                     &self.target,
                     self.source_get.as_ref().expect("infallible"),
                     self.ord.as_ref().expect("infallible"),
-                    com,
+                    coms,
                 ).into()
             }
             State::HasSourceGet => {
@@ -189,7 +260,7 @@ impl IfBuilder {
                     &self.target,
                     self.source_get.as_ref().expect("infallible"),
                     self.ord.as_ref().expect("infallible"),
-                    com,
+                    coms,
                 ).into()
             }
         })
@@ -288,6 +359,23 @@ pub fn if_not(target: &Bound<PyTuple>) -> PyResult<IfBuilder> {
 }
 
 #[pyfunction]
+pub fn if_key(key: &Bound<PyString>) -> PyResult<IfBuilder> {
+    Ok(IfBuilder {
+        key: Some(key.to_string()),
+        ..Default::default()
+    })
+}
+
+#[pyfunction]
+pub fn if_not_key(key: &Bound<PyString>) -> PyResult<IfBuilder> {
+    Ok(IfBuilder {
+        key: Some(key.to_string()),
+        not: true,
+        ..Default::default()
+    })
+}
+
+#[pyfunction]
 #[pyo3(signature = (*target), text_signature = "(*source: Retriever | int | Get)")]
 pub fn if_len(target: &Bound<PyTuple>) -> PyResult<IfBuilder> {
     let (target, target_data_type, _target_name) = idxes_from_tup(target)?;
@@ -309,4 +397,15 @@ pub fn if_ver(min: Version, max: Version) -> PyResult<IfBuilder> {
         state: State::VerCheck,
         ..Default::default()
     })
+}
+
+#[pyfunction]
+#[pyo3(signature = (*coms), text_signature = "(*coms: CombinatorType)")]
+pub fn if_else(coms: Vec<CombinatorType>) -> CombinatorType {
+    IfElse::new(coms).into()
+}
+
+#[pyfunction]
+pub fn break_() -> CombinatorType {
+    IfBreak.into()
 }

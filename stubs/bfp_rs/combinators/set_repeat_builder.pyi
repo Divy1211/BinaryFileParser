@@ -34,6 +34,18 @@ class SetRepeatBuilder:
         Returns:
             A combinator that encodes the setter logic defined by the ``SetRepeatBuilder`` chain
         """
+        
+        
+    def from_key(self, key: str) -> Combinator:
+        """
+        Set the repeat of the previously selected property to the value of this context key
+
+        Args:
+            key: The context key to get
+
+        Returns:
+            A combinator that encodes the setter logic defined by the ``SetRepeatBuilder`` chain
+        """
 
 
     def from_len(self, *source: Retriever | int) -> Combinator:

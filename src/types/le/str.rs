@@ -3,6 +3,7 @@ use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyTuple, PyType};
 use crate::types::bfp_type::BfpType;
 use crate::types::byte_stream::ByteStream;
+use crate::types::context::Context;
 use crate::types::le::encoding::Encoding;
 use crate::types::le::size::Size;
 use crate::types::le::str_array::StrArray;
@@ -40,18 +41,25 @@ impl Parseable for Str {
     type Type = String;
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn from_stream(&self, stream: &mut ByteStream, _ver: &Version) -> std::io::Result<Self::Type> {
+    fn from_stream_ctx(&self, stream: &mut ByteStream, _ver: &Version, _ctx: &mut Context) -> PyResult<Self::Type> {
         let len = self.len_type.from_stream(stream, _ver)?;
         let bytes = stream.get(len)?;
         str_from_bytes(bytes, &self.enc1, &self.enc2)
     }
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    fn to_bytes(&self, value: &Self::Type) -> std::io::Result<Vec<u8>> {
-        let mut bytes = str_to_bytes(value, &self.enc1, &self.enc2)?;
-        let mut len_bytes = self.len_type.to_bytes(&bytes.len())?;
-        len_bytes.append(&mut bytes);
-        Ok(len_bytes)
+    fn to_bytes_in(&self, value: &Self::Type, buffer: &mut Vec<u8>) -> PyResult<()> {
+        let num_len_bytes = self.len_type.num_bytes();
+        
+        let start = buffer.len();
+        buffer.resize(buffer.len() + num_len_bytes, 0);
+        
+        let content_start = buffer.len();
+        str_to_bytes(value, &self.enc1, &self.enc2, buffer)?;
+        
+        let len_bytes = self.len_type.to_bytes_array(buffer.len() - content_start)?;
+        buffer[start..content_start].copy_from_slice(&len_bytes[..num_len_bytes]);
+        Ok(())
     }
 }
 

@@ -1,8 +1,10 @@
+use pyo3::exceptions::{PyTypeError};
 use pyo3::prelude::*;
 use pyo3::intern;
 use pyo3::types::PyType;
 
 use crate::retrievers::retriever_ref::RetrieverRef;
+use crate::types::base_struct::BaseStruct;
 use crate::types::manager_info::ManagerInfo;
 
 #[pyclass(module = "bfp_rs", subclass)]
@@ -30,7 +32,10 @@ impl Manager {
 #[pymethods]
 impl Manager {
     #[new]
-    pub fn new_py(_struct: Py<PyAny>) -> Manager {
-        Self { _struct }
+    pub fn new_py(_struct: Py<PyAny>, py: Python) -> PyResult<Manager> {
+        if !_struct.bind(py).is_instance_of::<BaseStruct>() {
+            return Err(PyTypeError::new_err("Managers must hold base struct instances only"))
+        }
+        Ok(Self { _struct })
     }
 }

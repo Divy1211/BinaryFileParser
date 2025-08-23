@@ -3,6 +3,7 @@ use std::fmt::{Display, Formatter};
 use pyo3::prelude::*;
 use pyo3::class::basic::CompareOp;
 use pyo3::types::{PyTuple, PyType};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 #[pyclass(module = "bfp_rs", frozen)]
 #[derive(PartialEq, PartialOrd, Eq, Ord, Clone, Debug)]
@@ -63,5 +64,24 @@ impl Display for Version {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let nums = self.joined(".");
         write!(f, "v{nums}")
+    }
+}
+
+impl Serialize for Version {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer
+    {
+        self.ver.serialize(serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for Version {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>
+    {
+        let ver = Vec::<i128>::deserialize(deserializer)?;
+        Ok(Version::new(ver))
     }
 }

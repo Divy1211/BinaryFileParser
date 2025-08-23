@@ -22,7 +22,7 @@ pub struct RetrieverRef  {
     target: Vec<Ref>,
     pub name: String,
     
-    tuple: Arc<Py<PyTuple>>,
+    tuple: Arc<Py<PyTuple>>, // todo: Option this, so it can be none-ed after __set_name__ to lose the Arc
 }
 
 #[pymethods]
@@ -57,8 +57,8 @@ impl RetrieverRef {
         if let Ok(inner) = instance.getattr(intern!(slf.py(), "_struct")) {
             instance = inner;
         }
-        
-        let ver = instance.downcast::<BaseStruct>()?.borrow().ver.clone();
+        let borrow = instance.downcast::<BaseStruct>()?.borrow();
+        let inner = borrow.inner();
         
         let target = &slf.borrow().target;
         let mut current = instance;
@@ -71,7 +71,7 @@ impl RetrieverRef {
                 return Err(VersionError::new_err(format!(
                     "{} is not supported in struct version {}",
                     slf.borrow().name,
-                    ver
+                    inner.ver,
                 )))
             };
             current = item;
@@ -93,8 +93,11 @@ impl RetrieverRef {
             instance = inner;
         }
 
-        let ver = instance.downcast::<BaseStruct>()?.borrow().ver.clone();
-        
+        let borrow = instance.downcast::<BaseStruct>()?.borrow();
+        let inner = borrow.inner();
+        let ver = inner.ver.clone();
+        drop(inner);
+
         let target = &slf.borrow().target;
         let mut current = instance;
 

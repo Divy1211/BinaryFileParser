@@ -5,3 +5,4 @@ pub mod set_repeat;
 pub mod r#if;
 pub mod set;
 pub mod get;
+pub mod set_key;

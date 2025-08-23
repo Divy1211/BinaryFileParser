@@ -9,36 +9,11 @@ use crate::types::bfp_type::BfpType;
 use crate::types::parseable_type::ParseableType;
 use crate::types::version::Version;
 
-#[cfg_attr(feature = "inline_always", inline(always))]
-pub fn check_initialized(
-    idx: usize,
-    retrievers: &Vec<Retriever>,
-    data: &Vec<Option<ParseableType>>
-) -> PyResult<()> {
-    if idx >= data.len() {
-        return Err(PyValueError::new_err(format!(
-            "Combinator: '{}' has not been initialised yet", retrievers[idx].name
-        )))
-    }
+// todo: add an if_supported
+// todo: add grouped combinators
 
-    Ok(())
-}
 
-#[cfg_attr(feature = "inline_always", inline(always))]
-pub fn get<'a>(
-    idx: usize,
-    retrievers: &Vec<Retriever>,
-    data: &'a Vec<Option<ParseableType>>,
-    ver: &Version,
-) -> PyResult<&'a ParseableType> {
-    let Some(repeat) = &data[idx] else {
-        return Err(VersionError::new_err(format!(
-            "Combinator: '{}' is not supported in struct version {ver}", retrievers[idx].name
-        )))
-    };
-
-    Ok(repeat)
-}
+// todo: make an internal BfpError type for error data to not be lost when converting to a PyErr
 
 pub fn idxes_from_tup(target: &Bound<PyTuple>) -> PyResult<(Vec<usize>, BfpType, String)> {
     if <Bound<PyTuple> as PyTupleMethods>::len(target) == 0 {
@@ -51,17 +26,21 @@ pub fn idxes_from_tup(target: &Bound<PyTuple>) -> PyResult<(Vec<usize>, BfpType,
 
     let mut data_type = fst.data_type;
     let mut name = fst.name;
+    let mut repeat = fst.repeat;
     let target = target.into_iter().map(|val| {
-        val.extract::<Retriever>()
-            .map(|ret| {
-                data_type = ret.data_type;
-                name = ret.name;
-                Ok(ret.idx)
-            })
-            .unwrap_or_else(|_| val.extract::<usize>())
-            .map_err(|_| {
-                PyValueError::new_err("Only Retrievers or indexes may be specified in a path target. Use a single get[_len]() for arithmetic operations on int/list Retrievers")
-            })
+        if let Ok(ret) = val.extract::<Retriever>() {
+            data_type = ret.data_type;
+            name = ret.name;
+            repeat = ret.repeat;
+            return Ok(ret.idx);
+        }
+        if let Ok(idx) = val.extract::<usize>() {
+            if repeat == 1 {
+                data_type = data_type.get_contained_type(&name)?;
+            }
+            return Ok(idx);
+        }
+        Err(PyValueError::new_err("Only Retrievers or indexes may be specified in a path target. Use a single get[_len]() for arithmetic operations on int/list Retrievers"))
     }).collect::<PyResult<_>>()?;
     
     Ok((target, data_type, name))
@@ -69,27 +48,27 @@ pub fn idxes_from_tup(target: &Bound<PyTuple>) -> PyResult<(Vec<usize>, BfpType,
 
 pub fn get_rec(
     idxes: &[usize],
-    retrievers: &Vec<Retriever>,
+    retrievers: &[Retriever],
     data: &Vec<Option<ParseableType>>,
     ver: &Version,
 ) -> PyResult<(String, ParseableType)> {
     let idx = idxes[0];
     if idx > retrievers.len() {
         return Err(PyIndexError::new_err(
-            "GetRec: Retriever index out of bounds"
+            "Get: Retriever index out of bounds"
         ));
     }
     let ret = &retrievers[idx];
     if idx >= data.len() {
         return Err(PyValueError::new_err(format!(
-            "GetRec: '{}' has not been initialised yet", ret.name
+            "Get: '{}' has not been initialised yet", ret.name
         )));
     }
     let val = &data[idx];
     match val {
         None => {
             Err(VersionError::new_err(format!(
-                "GetRec: '{}' is not supported in struct version {ver}", ret.name
+                "Get: '{}' is not supported in struct version {ver}", ret.name
             )))
         }
         Some(val) => {
@@ -109,32 +88,31 @@ fn get_from_parseable_type(
 ) -> PyResult<(String, ParseableType)> {
     match val {
         ParseableType::Struct { val, struct_ } => {
-            let sub_data = val.data.read().expect("GIL bound read");
-            let sub_rets = struct_.retrievers.read().expect("GIL bound read");
+            let inner = val.inner();
 
             get_rec(
                 idxes,
-                &sub_rets,
-                &sub_data,
-                &val.ver
+                struct_.retrievers(),
+                &inner.data,
+                &inner.ver
             )
         },
         ParseableType::Array(ls) => {
             let idx = idxes[0];
-            let val = ls.ls.read().expect("GIL bound read");
-            if idx > val.len() {
+            let inner = ls.inner();
+            if idx > inner.data.len() {
                 return Err(PyIndexError::new_err(format!(
-                    "GetRec: List index out of bounds '{}'", name
+                    "Get: List index out of bounds '{}'", name
                 )));
             }
             if idxes.len() == 1 {
-                return Ok((name.clone(), val[idx].clone()));
+                return Ok((name.clone(), inner.data[idx].clone()));
             }
-            get_from_parseable_type(&val[idx], &idxes[1..], ver, name)
+            get_from_parseable_type(&inner.data[idx], &idxes[1..], ver, name)
         },
         _ => {
             Err(VersionError::new_err(format!(
-                "GetRec: Attempting sub-property/index access on non struct/list '{}'", name
+                "Get: Attempting sub-property/index access on non struct/list '{}'", name
             )))
         }
     }
@@ -142,7 +120,7 @@ fn get_from_parseable_type(
 
 pub fn set_rec(
     idxes: &[usize],
-    retrievers: &Vec<Retriever>,
+    retrievers: &[Retriever],
     data: &mut Vec<Option<ParseableType>>,
     repeats: &mut Vec<Option<isize>>,
     ver: &Version,
@@ -151,20 +129,20 @@ pub fn set_rec(
     let idx = idxes[0];
     if idx > retrievers.len() {
         return Err(PyIndexError::new_err(
-            "SetRec: Retriever index out of bounds"
+            "Set: Retriever index out of bounds"
         ));
     }
     let ret = &retrievers[idx];
     if idx >= data.len() {
         return Err(PyValueError::new_err(format!(
-            "SetRec: '{}' has not been initialised yet", ret.name
+            "Set: '{}' has not been initialised yet", ret.name
         )));
     }
     let val = &data[idx];
     match val {
         None => {
             Err(VersionError::new_err(format!(
-                "SetRec: '{}' is not supported in struct version {ver}", ret.name
+                "Set: '{}' is not supported in struct version {ver}", ret.name
             )))
         }
         Some(val) => {
@@ -185,48 +163,47 @@ fn set_from_parseable_type(
 ) -> PyResult<()> {
     match val {
         ParseableType::Struct { val, struct_ } => {
-            let mut sub_data = val.data.write().expect("GIL bound write");
-            let mut sub_repeats = val.repeats.write().expect("GIL bound write");
-            let sub_rets = struct_.retrievers.read().expect("GIL bound read");
+            let mut inner = val.inner_mut();
+            let (data, repeats, ver) = inner.split();
 
             set_rec(
                 idxes,
-                &sub_rets,
-                &mut sub_data,
-                &mut sub_repeats,
-                &val.ver,
+                struct_.retrievers(),
+                data,
+                repeats,
+                ver,
                 val2,
             )
         },
         ParseableType::Array(ls) => {
             let idx = idxes[0];
-            let mut val3 = ls.ls.write().expect("GIL bound write");
-            if idx > val3.len() {
+            let mut inner = ls.inner_mut();
+            if idx > inner.data.len() {
                 return Err(PyIndexError::new_err(format!(
-                    "SetRec: List index out of bounds '{}'", name
+                    "Set: List index out of bounds '{}'", name
                 )));
             }
             if idxes.len() == 1 {
-                if !val.is_ls_of(&ls.data_type) {
+                let Some(val2) = inner.data_type.try_cast(val2) else {
                     return Err(PyTypeError::new_err(format!(
                         "Set: Unable to set '{}' from value of incorrect type", name
                     )))
-                }
-                val3[idx] = val2.clone();
+                };
+                inner.data[idx] = val2;
                 return Ok(())
             }
-            set_from_parseable_type(&val3[idx], &idxes[1..], ver, name, val2)
+            set_from_parseable_type(&inner.data[idx], &idxes[1..], ver, name, val2)
         },
         _ => {
             Err(VersionError::new_err(format!(
-                "SetRec: Attempting sub-property/index access on non struct/list '{}'", name
+                "Set: Attempting sub-property/index access on non struct/list '{}'", name
             )))
         }
     }
 }
 
 pub fn set_data(
-    retrievers: &Vec<Retriever>,
+    retrievers: &[Retriever],
     data: &mut Vec<Option<ParseableType>>,
     repeats: &mut Vec<Option<isize>>,
     ver: &Version,
