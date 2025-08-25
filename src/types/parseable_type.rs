@@ -1,5 +1,4 @@
 use std::cmp::Ordering;
-
 use pyo3::{Bound, IntoPy, PyAny, Python};
 use pyo3::types::PyBytes;
 use serde::{Serialize, Serializer};
@@ -87,7 +86,12 @@ impl ParseableType {
                 }
             },
 
-            ParseableType::Struct { val, struct_ }      => BaseStruct::with_cls(val, struct_.py_type(py)),
+            ParseableType::Struct { val, struct_ }      => {
+                let inner = val.inner();
+                inner.obj.get_or_init(|| {
+                    BaseStruct::with_cls(val.clone(), struct_.py_type(py)).unbind()
+                }).bind(py).clone()
+            },
         }
     }
     
@@ -243,7 +247,7 @@ impl Serialize for ParseableType {
 
             ParseableType::Option(opt) => opt.serialize(serializer),
 
-            ParseableType::Struct { val, struct_ } => {
+            ParseableType::Struct { val, struct_, .. } => {
                 StructSerializer(struct_, val).serialize(serializer)
             }
         }

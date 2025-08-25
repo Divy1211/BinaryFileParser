@@ -1,10 +1,10 @@
 use std::fs::File;
 use std::io::{BufReader, BufWriter, Write};
-use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard};
+use std::sync::{Arc, OnceLock, RwLock, RwLockReadGuard, RwLockWriteGuard};
 use std::time::Duration;
 
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
-use pyo3::exceptions::PyTypeError;
+use pyo3::exceptions::{PyAttributeError, PyTypeError};
 use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyDict, PyType};
@@ -32,6 +32,7 @@ pub struct BaseStructRaw {
     pub ver: Version,
     pub data: Vec<Option<ParseableType>>,
     pub repeats: Vec<Option<isize>>,
+    pub obj: OnceLock<Py<PyAny>>
 }
 
 impl BaseStructRaw {
@@ -77,7 +78,8 @@ impl BaseStruct {
         BaseStruct { raw: Arc::new(RwLock::new(BaseStructRaw {
             ver,
             data,
-            repeats
+            repeats,
+            obj: OnceLock::new()
         }))}
     }
 
@@ -208,7 +210,15 @@ impl BaseStruct {
     #[new]
     #[classmethod]
     #[pyo3(signature = (ver = Version::new(vec![-1]), ctx = ContextPtr::new(), init_defaults = true, **retriever_inits))]
-    fn new_py(cls: &Bound<PyType>, ver: Version, ctx: ContextPtr, init_defaults: bool, retriever_inits: Option<&Bound<'_, PyDict>>) -> PyResult<Self> {
+    fn new_py(cls: &Bound<PyType>, mut ver: Version, ctx: ContextPtr, init_defaults: bool, retriever_inits: Option<&Bound<'_, PyDict>>) -> PyResult<Self> {
+        if ver == Version::new(vec![-1]) {
+            ver = match cls.getattr("__default_ver__") {
+                Ok(val) => val.extract(),
+                Err(err) if err.is_instance_of::<PyAttributeError>(cls.py()) => Ok(ver),
+                Err(err) => Err(err),
+            }?;
+        }
+
         let len = BaseStruct::len(cls)?;
         let mut data = vec![None; len];
         let mut repeats = vec![None; len];

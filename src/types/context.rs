@@ -1,8 +1,7 @@
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
 use pyo3::exceptions::PyKeyError;
-use pyo3::{pyclass, pymethods, Bound, PyResult};
-use pyo3::types::PyType;
+use pyo3::{pyclass, pymethods, PyResult};
 use crate::types::parseable_type::ParseableType;
 
 pub struct IfTracker {

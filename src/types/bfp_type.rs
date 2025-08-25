@@ -282,8 +282,11 @@ impl BfpType {
                         )
                     ))
                 }
-                
-                ParseableType::Struct { val: value.extract::<BaseStruct>()?, struct_: struct_.clone() }
+                let val = value.extract::<BaseStruct>()?;
+                let inner = val.inner();
+                let _ = inner.obj.set(value.clone().unbind());
+                drop(inner);
+                ParseableType::Struct { val, struct_: struct_.clone() }
             }
         })
     }
@@ -339,7 +342,7 @@ impl Parseable for BfpType {
             
             BfpType::Struct(struct_)          => ParseableType::Struct {
                 val: struct_.from_stream_ctx(stream, ver, ctx)?,
-                struct_: struct_.clone()
+                struct_: struct_.clone(),
             },
         })
     }
