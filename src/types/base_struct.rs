@@ -213,7 +213,12 @@ impl BaseStruct {
     fn new_py(cls: &Bound<PyType>, mut ver: Version, ctx: ContextPtr, init_defaults: bool, retriever_inits: Option<&Bound<'_, PyDict>>) -> PyResult<Self> {
         if ver == Version::new(vec![-1]) {
             ver = match cls.getattr("__default_ver__") {
-                Ok(val) => val.extract(),
+                Ok(val) => {
+                    val.extract().map_err(|_| PyTypeError::new_err(format!(
+                        "Error while reading __default_ver__: '{}' cannot be converted to 'Version'",
+                        val.get_type().name().map_or("<unknown>".into(), |val| { val.to_string() })
+                    )))
+                },
                 Err(err) if err.is_instance_of::<PyAttributeError>(cls.py()) => Ok(ver),
                 Err(err) => Err(err),
             }?;
