@@ -13,7 +13,7 @@ class RefStruct:
 
     def __new__(cls, struct: BaseStruct) -> Self:
         """
-        Construct an instance of this manager with its references bound to the properties of the given struct
+        Construct an instance of this RefStruct with its references bound to the properties of the given struct instance
 
         Args:
             struct: The struct to reference properties from
