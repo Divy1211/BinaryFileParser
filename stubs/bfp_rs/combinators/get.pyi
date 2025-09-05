@@ -58,9 +58,27 @@ def get_key(key: str) -> Get:
         An instance encoding the retriever path and manipulations to perform during parsing
 
     Raises:
-        ValueError: If the value at the source path is not an ``int``, and ``int`` operations are attempted
+        ValueError:
+            - If the value at the source path is not an ``int``, and ``int`` operations are attempted
+            - If it is attempted to be used in a ``RefStruct``
     """
 
+def get_attr(attr: str) -> Get:
+    """
+    Fetches the value of a ``RefStruct`` attribute. If the resulting value is an ``int``, it's result can be manipulated with ``int``
+    operations. For example, ``get_attr("some_prop")+1`` is like doing ``ctx["some_prop"]+1``
+
+    Args:
+        attr: The attribute to get
+
+    Returns:
+        An instance encoding the retriever path and manipulations to perform during parsing
+
+    Raises:
+        ValueError:
+            - If the value at the source path is not an ``int``, and ``int`` operations are attempted.
+            - If it is attempted to be used in a ``Combinator``
+    """
 
 def get_len(*source: Retriever | int) -> Get:
     """

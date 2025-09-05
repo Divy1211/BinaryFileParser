@@ -13,7 +13,7 @@ use crate::combinators::set_repeat::set_repeat_builder::set_repeat;
 use crate::combinators::r#if::if_builder::{if_, if_not, if_len, if_ver, if_not_key, if_key, if_else, break_};
 use crate::combinators::set::set_builder::set;
 use crate::combinators::set_key::set_key_builder::set_key;
-use crate::combinators::get::{get_len, get, get_key};
+use crate::combinators::get::{get_len, get, get_key, get_attr};
 
 use crate::help::BorrowMutGuard;
 use crate::help::set_mut;
@@ -40,7 +40,7 @@ use crate::types::le::stacked_attr_array::{StackedAttrArray, StackedAttrArrayBui
 use crate::types::le::str::Str;
 use crate::types::le::str_array::StrArray;
 use crate::types::le::tail::Tail;
-use crate::types::manager::Manager;
+use crate::types::ref_struct::RefStruct;
 use crate::types::version::Version;
 
 pub mod retrievers;
@@ -161,6 +161,7 @@ fn combinators(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
     combinators.add_function(wrap_pyfunction!(set_key, combinators)?)?;
     combinators.add_function(wrap_pyfunction!(get, combinators)?)?;
     combinators.add_function(wrap_pyfunction!(get_key, combinators)?)?;
+    combinators.add_function(wrap_pyfunction!(get_attr, combinators)?)?;
     combinators.add_function(wrap_pyfunction!(get_len, combinators)?)?;
     
     Ok(())
@@ -189,7 +190,7 @@ fn binary_file_parser(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
     bfp.add_class::<RetrieverRef>()?;
     bfp.add_class::<RetrieverCombiner>()?;
     bfp.add_class::<Version>()?;
-    bfp.add_class::<Manager>()?;
+    bfp.add_class::<RefStruct>()?;
     
     bfp.add_class::<BorrowMutGuard>()?;
 
