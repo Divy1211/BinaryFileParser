@@ -152,7 +152,7 @@ impl BfpList {
             return Err(PyIndexError::new_err("list index out of range"))
         }
         
-        Ok(inner.data.remove(item as usize).to_bound(slf.py()))
+        inner.data.remove(item as usize).to_bound(slf.py())
     }
 
     fn clear<'py>(slf: PyRefMut<'py, BfpList>) -> PyResult<()> {
@@ -244,11 +244,9 @@ impl BfpList {
                 return Err(PyIndexError::new_err("list index out of range"))
             }
             
-            return Ok(
-                inner.data[item]
-                    .clone()
-                    .to_bound(slf.py())
-            );
+            return inner.data[item]
+                .clone()
+                .to_bound(slf.py());
         }
         if item.is_instance_of::<PySlice>() {
             let item = item.downcast_into::<PySlice>().expect("infallible");
@@ -256,8 +254,8 @@ impl BfpList {
             
             return Ok(
                 idxes.into_iter()
-                    .map(|idx| inner.data[idx].clone().to_bound(slf.py()) )
-                    .collect::<Vec<_>>()
+                    .map(|idx| inner.data[idx].clone().to_bound(slf.py()))
+                    .collect::<PyResult<Vec<_>>>()?
                     .into_py(slf.py())
                     .into_bound(slf.py())
             )
@@ -335,15 +333,15 @@ impl BfpList {
         ))
     }
 
-    fn __repr__(slf: PyRef<BfpList>) -> String { // todo: implement this properly
+    fn __repr__(slf: PyRef<BfpList>) -> PyResult<String> { // todo: implement this properly
         let inner = slf.inner();
 
-        format!(
+        Ok(format!(
             "[{}]",
             inner.data.iter()
-                .map(|l| l.clone().to_bound(slf.py()).to_string())
-                .collect::<Vec<String>>().join(", ")
-        )
+                .map(|l| Ok(l.clone().to_bound(slf.py())?.to_string()))
+                .collect::<PyResult<Vec<_>>>()?.join(", ")
+        ))
     }
 }
 

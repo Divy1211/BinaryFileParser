@@ -137,10 +137,8 @@ impl Retriever {
             )))
         }
 
-        Ok(
-            inner.data[slf.idx].clone().expect("Attempting to access uninitialised data in struct")
-                .to_bound(slf.py())
-        )
+        inner.data[slf.idx].clone().expect("Attempting to access uninitialised data in struct")
+            .to_bound(slf.py())
     }
 
     fn __set__(

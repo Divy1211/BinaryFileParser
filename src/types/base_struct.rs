@@ -91,14 +91,14 @@ impl BaseStruct {
     }
 
     // todo: figure out unsafe allocations
-    pub fn with_cls<'py>(val: BaseStruct, cls: &Bound<'py, PyType>) -> Bound<'py, PyAny> {
+    pub fn with_cls<'py>(val: BaseStruct, cls: &Bound<'py, PyType>) -> PyResult<Bound<'py, PyAny>> {
         let kwargs = PyDict::new_bound(cls.py());
-        kwargs.set_item("ver", Version::new(vec![-1]).into_py(cls.py())).expect("infallible");
-        kwargs.set_item("ctx", ContextPtr::new().into_py(cls.py())).expect("infallible");
-        kwargs.set_item("init_defaults", false).expect("infallible");
-        let obj = cls.call_method("__new__", (cls,), Some(&kwargs)).expect("always a BaseStruct subclass");
-        *(obj.downcast::<BaseStruct>().expect("infallible").borrow_mut()) = val;
-        obj
+        kwargs.set_item("ver", Version::new(vec![-1]).into_py(cls.py()))?;
+        kwargs.set_item("ctx", ContextPtr::new().into_py(cls.py()))?;
+        kwargs.set_item("init_defaults", false)?;
+        let obj = cls.call_method("__new__", (cls,), Some(&kwargs))?;
+        *(obj.downcast::<BaseStruct>().expect("always a BaseStruct subclass").borrow_mut()) = val;
+        Ok(obj)
     }
     
     pub fn add_ret(cls: &Bound<PyType>, retriever: &Bound<Retriever>) -> PyResult<()> {
@@ -180,7 +180,7 @@ impl BaseStruct {
         
         let Some(filepath) = filepath else {
             let base = struct_.from_stream_(stream, &ver, None, &mut Context::new())?;
-            return Ok(BaseStruct::with_cls(base, cls));
+            return BaseStruct::with_cls(base, cls);
         };
         
         
@@ -199,7 +199,7 @@ impl BaseStruct {
         spinner.set_message(format!("✔ Finished Reading File '{}'", filepath));
         spinner.finish();
         
-        Ok(BaseStruct::with_cls(base, cls))
+        BaseStruct::with_cls(base, cls)
     }
 }
 
@@ -270,7 +270,7 @@ impl BaseStruct {
     }
 
     #[classmethod]
-    pub fn from_base<'py>(cls: &Bound<'py, PyType>, val: BaseStruct) -> Bound<'py, PyAny> {
+    pub fn from_base<'py>(cls: &Bound<'py, PyType>, val: BaseStruct) -> PyResult<Bound<'py, PyAny>> {
         Self::with_cls(val, cls)
     }
     
@@ -375,6 +375,6 @@ impl BaseStruct {
         let mut de = Deserializer::from_reader(reader);
 
         let val = deserializer.deserialize(&mut de).map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
-        Ok(BaseStruct::with_cls(val, cls))
+        BaseStruct::with_cls(val, cls)
     }
 }

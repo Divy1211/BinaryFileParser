@@ -1,5 +1,5 @@
 use std::cmp::Ordering;
-use pyo3::{Bound, IntoPy, PyAny, Python};
+use pyo3::{Bound, IntoPy, PyAny, PyResult, Python};
 use pyo3::types::PyBytes;
 use serde::{Serialize, Serializer};
 use crate::{impl_from_for_parseable_type, impl_try_into_for_parseable_type};
@@ -53,44 +53,51 @@ impl ParseableType {
     }
     
     /// converts ParseableTypes back to python values
-    pub fn to_bound(self, py: Python) -> Bound<'_, PyAny> {
+    pub fn to_bound(self, py: Python) -> PyResult<Bound<'_, PyAny>> {
         match self {
-            ParseableType::None                         => py.None().into_bound(py),
-            ParseableType::UInt8(val)                   => val.into_py(py).into_bound(py),
-            ParseableType::UInt16(val)                  => val.into_py(py).into_bound(py),
-            ParseableType::UInt32(val)                  => val.into_py(py).into_bound(py),
-            ParseableType::UInt64(val)                  => val.into_py(py).into_bound(py),
-            ParseableType::UInt128(val)                 => val.into_py(py).into_bound(py),
+            ParseableType::None                         => Ok(py.None().into_bound(py)),
+            ParseableType::UInt8(val)                   => Ok(val.into_py(py).into_bound(py)),
+            ParseableType::UInt16(val)                  => Ok(val.into_py(py).into_bound(py)),
+            ParseableType::UInt32(val)                  => Ok(val.into_py(py).into_bound(py)),
+            ParseableType::UInt64(val)                  => Ok(val.into_py(py).into_bound(py)),
+            ParseableType::UInt128(val)                 => Ok(val.into_py(py).into_bound(py)),
 
-            ParseableType::Int8(val)                    => val.into_py(py).into_bound(py),
-            ParseableType::Int16(val)                   => val.into_py(py).into_bound(py),
-            ParseableType::Int32(val)                   => val.into_py(py).into_bound(py),
-            ParseableType::Int64(val)                   => val.into_py(py).into_bound(py),
-            ParseableType::Int128(val)                  => val.into_py(py).into_bound(py),
+            ParseableType::Int8(val)                    => Ok(val.into_py(py).into_bound(py)),
+            ParseableType::Int16(val)                   => Ok(val.into_py(py).into_bound(py)),
+            ParseableType::Int32(val)                   => Ok(val.into_py(py).into_bound(py)),
+            ParseableType::Int64(val)                   => Ok(val.into_py(py).into_bound(py)),
+            ParseableType::Int128(val)                  => Ok(val.into_py(py).into_bound(py)),
 
-            ParseableType::Float32(val)                 => val.into_py(py).into_bound(py),
-            ParseableType::Float64(val)                 => val.into_py(py).into_bound(py),
+            ParseableType::Float32(val)                 => Ok(val.into_py(py).into_bound(py)),
+            ParseableType::Float64(val)                 => Ok(val.into_py(py).into_bound(py)),
 
-            ParseableType::Bool(val)                    => val.into_py(py).into_bound(py),
+            ParseableType::Bool(val)                    => Ok(val.into_py(py).into_bound(py)),
 
-            ParseableType::Str(val)                     => val.into_py(py).into_bound(py),
+            ParseableType::Str(val)                     => Ok(val.into_py(py).into_bound(py)),
 
-            ParseableType::Array(val)                   => val.into_py(py).into_bound(py),
+            ParseableType::Array(val)                   => Ok(val.into_py(py).into_bound(py)),
 
-            ParseableType::Bytes(val)                   => PyBytes::new_bound(py, &val).into_any(),
+            ParseableType::Bytes(val)                   => Ok(PyBytes::new_bound(py, &val).into_any()),
 
             ParseableType::Option(val)                  => { 
                 match val {
-                    None      => py.None().into_bound(py),
+                    None      => Ok(py.None().into_bound(py)),
                     Some(val) => val.to_bound(py),
                 }
             },
 
             ParseableType::Struct { val, struct_ }      => {
                 let inner = val.inner();
-                inner.obj.get_or_init(|| {
-                    BaseStruct::with_cls(val.clone(), struct_.py_type(py)).unbind()
-                }).bind(py).clone()
+                match inner.obj.get() {
+                    None => {
+                        let obj = BaseStruct::with_cls(val.clone(), struct_.py_type(py))?;
+                        inner.obj.set(obj.clone().unbind()).expect("infallible");
+                        Ok(obj)
+                    }
+                    Some(obj) => {
+                        Ok(obj.bind(py).clone())
+                    }
+                }
             },
         }
     }

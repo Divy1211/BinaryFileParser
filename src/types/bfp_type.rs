@@ -403,16 +403,16 @@ impl BfpType {
 
     #[pyo3(name = "from_stream", signature = (stream, ver = Version::new(vec![0,])))]
     fn from_stream_py<'py>(slf: PyRef<'py, Self>, stream: &mut ByteStream, ver: Version) -> PyResult<Bound<'py, PyAny>> {
-        Ok(slf.from_stream(stream, &ver)?.to_bound(slf.py()))
+        slf.from_stream(stream, &ver)?.to_bound(slf.py())
     }
 
     #[pyo3(name = "from_file")]
     fn from_file_py<'py>(slf: PyRef<'py, Self>, filepath: &str) -> PyResult<Bound<'py, PyAny>> {
-        Ok(slf.from_file(filepath)?.to_bound(slf.py()))
+        slf.from_file(filepath)?.to_bound(slf.py())
     }
     #[pyo3(name = "from_bytes", signature = (bytes, ver = Version::new(vec![0,])))]
     fn from_bytes_py<'py>(slf: PyRef<'py, Self>, bytes: &[u8], ver: Version) -> PyResult<Bound<'py, PyAny>> {
-        Ok(slf.from_bytes(bytes, &ver)?.to_bound(slf.py()))
+        slf.from_bytes(bytes, &ver)?.to_bound(slf.py())
     }
     #[pyo3(name = "to_file")]
     fn to_file_py(slf: PyRef<Self>, filepath: &str, value: &Bound<PyAny>) -> PyResult<()> {
