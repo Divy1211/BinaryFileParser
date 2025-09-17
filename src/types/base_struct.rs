@@ -92,7 +92,11 @@ impl BaseStruct {
 
     // todo: figure out unsafe allocations
     pub fn with_cls<'py>(val: BaseStruct, cls: &Bound<'py, PyType>) -> Bound<'py, PyAny> {
-        let obj = cls.call((Version::new(vec![-1]), ContextPtr::new(), false), None).expect("always a BaseStruct subclass");
+        let kwargs = PyDict::new_bound(cls.py());
+        kwargs.set_item("ver", Version::new(vec![-1]).into_py(cls.py())).expect("infallible");
+        kwargs.set_item("ctx", ContextPtr::new().into_py(cls.py())).expect("infallible");
+        kwargs.set_item("init_defaults", false).expect("infallible");
+        let obj = cls.call_method("__new__", (cls,), Some(&kwargs)).expect("always a BaseStruct subclass");
         *(obj.downcast::<BaseStruct>().expect("infallible").borrow_mut()) = val;
         obj
     }

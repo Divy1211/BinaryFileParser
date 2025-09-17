@@ -14,7 +14,7 @@ use crate::types::ref_struct::RefStruct;
 #[derive(Debug, Clone)]
 enum Ref {
     Attr(String),
-    Item(usize),
+    Item(isize),
     Get(Get),
 }
 
@@ -70,22 +70,35 @@ impl RetrieverRef {
         let instance = OnceCell::new();
         
         for ref_ in target {
-            let Ok(item) = (match ref_ {
+            let item = match ref_ {
                 Ref::Attr(name) => current.getattr(name.as_str()),
-                Ref::Item(idx) => current.get_item(*idx),
+                Ref::Item(idx) => {
+                    let mut idx = *idx;
+                    if idx < 0 {
+                        idx += current.len()? as isize;
+                    }
+                    current.get_item(idx)
+                },
                 Ref::Get(get) => {
                     let Some(ref_struct) = &ref_struct else {
                         return Err(PyValueError::new_err("A get_attr can only be used in a RefStruct"));
                     };
-                    current.get_item(get.eval_ref(ref_struct, &instance.get().expect("Get is never first"))?)
+                    let mut idx = get.eval_ref(ref_struct, &instance.get().expect("Get is never first"))?;
+                    if idx < 0 {
+                        idx += current.len()? as i128;
+                    }
+                    current.get_item(idx)
                 },
-            }) else {
-                return Err(VersionError::new_err(format!(
-                    "{} is not supported in struct version {}",
-                    slf.borrow().name,
-                    inner.ver,
-                )))
-            };
+            }.map_err(|err| {
+                if err.is_instance_of::<VersionError>(current.py()) {
+                    return VersionError::new_err(format!(
+                        "{} is not supported in struct version {}",
+                        slf.borrow().name,
+                        inner.ver,
+                    ))
+                }
+                return err;
+            })?;
             instance.get_or_init(|| current);
             current = item;
         }
@@ -118,22 +131,35 @@ impl RetrieverRef {
         let instance = OnceCell::new();
 
         for ref_ in &target[..target.len()-1] {
-            let Ok(item) = (match ref_ {
+            let item = match ref_ {
                 Ref::Attr(name) => current.getattr(name.as_str()),
-                Ref::Item(idx) => current.get_item(*idx),
+                Ref::Item(idx) => {
+                    let mut idx = *idx;
+                    if idx < 0 {
+                        idx += current.len()? as isize;
+                    }
+                    current.get_item(idx)
+                },
                 Ref::Get(get) => {
                     let Some(ref_struct) = &ref_struct else {
                         return Err(PyValueError::new_err("A get_attr can only be used in a RefStruct"));
                     };
-                    current.get_item(get.eval_ref(ref_struct, &instance.get().expect("Get is never first"))?)
+                    let mut idx = get.eval_ref(ref_struct, &instance.get().expect("Get is never first"))?;
+                    if idx < 0 {
+                        idx += current.len()? as i128;
+                    }
+                    current.get_item(idx)
                 },
-            }) else {
-                return Err(VersionError::new_err(format!(
-                    "{} is not supported in struct version {}",
-                    slf.borrow().name,
-                    ver
-                )))
-            };
+            }.map_err(|err| {
+                if err.is_instance_of::<VersionError>(current.py()) {
+                    return VersionError::new_err(format!(
+                        "{} is not supported in struct version {}",
+                        slf.borrow().name,
+                        ver
+                    ))
+                }
+                return err;
+            })?;
             instance.get_or_init(|| current);
             current = item;
         }
@@ -162,7 +188,7 @@ impl RetrieverRef {
         this.name = name.to_string();
 
         this.target = this.tuple.bind(slf.py()).into_iter().map(|val| {
-            val.extract::<usize>()
+            val.extract::<isize>()
                 .map(|num| Ref::Item(num))
                 .or_else(|_err| val.downcast::<Retriever>()
                     .map(|r| Ref::Attr(r.borrow().name.clone()))

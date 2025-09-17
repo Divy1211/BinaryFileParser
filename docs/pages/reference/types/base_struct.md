@@ -5,6 +5,7 @@
             "__new__",
             "from_stream",
             "to_bytes",
+            "from_base",
             "from_bytes",
             "from_file",
             "to_file",

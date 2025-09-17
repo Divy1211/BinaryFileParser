@@ -136,7 +136,7 @@ impl Get {
                 Item::Mod => {
                     let op2 = stack.pop().expect("By construction");
                     let op1 = stack.pop().expect("By construction");
-                    stack.push(op1 % op2);
+                    stack.push(op1.rem_euclid(op2));
                 }
                 Item::BitAnd => {
                     let op2 = stack.pop().expect("By construction");
@@ -234,7 +234,7 @@ impl Get {
                 Item::Mod => {
                     let op2 = stack.pop().expect("By construction");
                     let op1 = stack.pop().expect("By construction");
-                    stack.push(op1 % op2);
+                    stack.push(op1.rem_euclid(op2));
                 }
                 Item::BitAnd => {
                     let op2 = stack.pop().expect("By construction");
