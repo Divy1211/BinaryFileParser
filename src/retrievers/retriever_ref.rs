@@ -1,9 +1,9 @@
 use std::cell::OnceCell;
 use std::sync::Arc;
-use pyo3::exceptions::PyValueError;
+use pyo3::exceptions::{PyTypeError, PyValueError};
 use pyo3::intern;
 use pyo3::prelude::*;
-use pyo3::types::{PyTuple, PyType};
+use pyo3::types::{PyDict, PyTuple, PyType};
 use crate::combinators::get::Get;
 use crate::errors::version_error::VersionError;
 use crate::retrievers::retriever::Retriever;
@@ -25,14 +25,15 @@ pub struct RetrieverRef  {
     target: Vec<Ref>,
     pub name: String,
     
-    tuple: Arc<Py<PyTuple>>, // todo: Option this, so it can be none-ed after __set_name__ to lose the Arc
+    tuple: Option<Arc<Py<PyTuple>>>, // todo: Option this, so it can be none-ed after __set_name__ to lose the Arc
+    enum_: Option<Arc<Py<PyType>>>,
 }
 
 #[pymethods]
 impl RetrieverRef {
     #[new]
-    #[pyo3(signature = (*target), text_signature = "(*target: Retriever | RetrieverRef | RetrieverCombiner | int)")]
-    pub fn new(target: Bound<PyTuple>) -> PyResult<Self> {
+    #[pyo3(signature = (*target, r#enum = None), text_signature = "(*target: Retriever | RetrieverRef | RetrieverCombiner | int, enum = None)")]
+    pub fn new(target: Bound<PyTuple>, r#enum: Option<Bound<PyType>>) -> PyResult<Self> {
         if <Bound<PyTuple> as PyTupleMethods>::len(&target) == 0 {
             return Err(PyValueError::new_err("RetrieverRef targets must contain at least one retriever"))
         }
@@ -40,11 +41,29 @@ impl RetrieverRef {
         if target.get_item(0)?.extract::<usize>().is_ok() || target.get_item(0)?.extract::<Get>().is_ok() {
             return Err(PyValueError::new_err("RetrieverRef targets must begin with a retriever"))
         };
-        
+
+        let enum_ = match r#enum {
+            None => None,
+            Some(cls) => {
+                let globals = PyDict::new_bound(cls.py());
+                cls.py().run_bound("from enum import Enum", Some(&globals), None)?;
+                let enum_cls = globals.get_item("Enum")?.expect("infallible");
+
+                if !cls.is_subclass(&enum_cls)? {
+                    return Err(PyTypeError::new_err(format!(
+                        "Provided enum class '{}' does not subclass Enum", cls.fully_qualified_name()?
+                    )));
+                }
+
+                Some(Arc::new(cls.unbind()))
+            }
+        };
+
         Ok(Self {
             target: Vec::new(),
             name: String::new(),
-            tuple: Arc::new(target.unbind()),
+            tuple: Some(Arc::new(target.unbind())),
+            enum_,
         })
     }
 
@@ -102,15 +121,29 @@ impl RetrieverRef {
             instance.get_or_init(|| current);
             current = item;
         }
-        
+
+        let this = slf.borrow();
+        if let Some(cls) = &this.enum_ {
+            let cls = cls.bind(slf.py());
+            if let Ok(value) = cls.call1((&current,)) {
+                current = value;
+            }
+        }
         Ok(current)
     }
 
     fn __set__(
         slf: Bound<Self>,
         mut instance: Bound<PyAny>,
-        value: Bound<PyAny>,
+        mut value: Bound<PyAny>,
     ) -> PyResult<()> {
+        let this = slf.borrow();
+        if let Some(cls) = &this.enum_ {
+            let cls = cls.bind(slf.py());
+            if value.is_instance(cls)? {
+                value = value.getattr(intern!(slf.py(), "value"))?;
+            }
+        }
         if instance.is_none() {
             return Err(PyValueError::new_err("RetrieverRef is not assignable"))
         }
@@ -187,7 +220,10 @@ impl RetrieverRef {
         let mut this = slf.borrow_mut();
         this.name = name.to_string();
 
-        this.target = this.tuple.bind(slf.py()).into_iter().map(|val| {
+        this.target = this.tuple.take()
+            .expect("This runs before none-d")
+            .bind(slf.py())
+            .into_iter().map(|val| {
             val.extract::<isize>()
                 .map(|num| Ref::Item(num))
                 .or_else(|_err| val.downcast::<Retriever>()

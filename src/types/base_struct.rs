@@ -7,7 +7,7 @@ use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 use pyo3::exceptions::{PyAttributeError, PyTypeError};
 use pyo3::intern;
 use pyo3::prelude::*;
-use pyo3::types::{PyBytes, PyDict, PyType};
+use pyo3::types::{PyBytes, PyDict, PyTuple, PyType};
 use serde::de::DeserializeSeed;
 use serde_json::Deserializer;
 
@@ -96,7 +96,11 @@ impl BaseStruct {
         kwargs.set_item("ver", Version::new(vec![-1]).into_py(cls.py()))?;
         kwargs.set_item("ctx", ContextPtr::new().into_py(cls.py()))?;
         kwargs.set_item("init_defaults", false)?;
-        let obj = cls.call_method("__new__", (cls,), Some(&kwargs))?;
+        let obj = cls.call_method(intern!(cls.py(), "__new__"), (cls,), Some(&kwargs))?;
+        let name = intern!(cls.py(), "__reconstruct__");
+        if cls.hasattr(name)? {
+            cls.call_method(name, (&obj,), None)?;
+        }
         *(obj.downcast::<BaseStruct>().expect("always a BaseStruct subclass").borrow_mut()) = val;
         Ok(obj)
     }
@@ -213,8 +217,14 @@ impl BaseStruct {
     
     #[new]
     #[classmethod]
-    #[pyo3(signature = (ver = Version::new(vec![-1]), ctx = ContextPtr::new(), init_defaults = true, **retriever_inits))]
-    fn new_py(cls: &Bound<PyType>, mut ver: Version, ctx: ContextPtr, init_defaults: bool, retriever_inits: Option<&Bound<'_, PyDict>>) -> PyResult<Self> {
+    #[pyo3(signature = (*_args, ver = Version::new(vec![-1]), ctx = ContextPtr::new(), init_defaults = true, **retriever_inits))]
+    fn new_py(
+        cls: &Bound<PyType>,
+        _args: &Bound<'_, PyTuple>,
+        mut ver: Version, ctx: ContextPtr,
+        init_defaults: bool,
+        retriever_inits: Option<&Bound<'_, PyDict>>
+    ) -> PyResult<Self> {
         if ver == Version::new(vec![-1]) {
             ver = match cls.getattr("__default_ver__") {
                 Ok(val) => {

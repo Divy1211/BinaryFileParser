@@ -3,6 +3,7 @@
         members: [
             "ver",
             "__new__",
+            "__reconstruct__",
             "from_stream",
             "to_bytes",
             "from_base",

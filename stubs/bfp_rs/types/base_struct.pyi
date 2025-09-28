@@ -13,11 +13,12 @@ class BaseStruct:
     ver: Version
     "The version of the struct"
 
-    def __new__(cls, ver: Version = Version(-1), ctx: Context = Context(), init_defaults: bool = True, **retriever_inits: Any) -> Self:
+    def __new__(cls, *args, ver: Version = Version(-1), ctx: Context = Context(), init_defaults: bool = True, **retriever_inits: Any) -> Self:
         """
         Default initialise and create a new instance of this struct
 
         Args:
+            args: generic args receiver
             ver: The struct version to create
             ctx: Stores ctx key/values used by on_read/on_write combinators
 
@@ -27,6 +28,15 @@ class BaseStruct:
 
             **retriever_inits:
                 Specify overrides for the default values of retrievers for initialisation by name
+        """
+
+    def __reconstruct__(self):
+        """
+        An initialization method that is called when externally loaded structs are accessed for the first time, since
+        __init__ is skipped.
+
+        Note: This method is not called when structs are created directly by code. If required, __init__ should call
+              this function.
         """
 
     @classmethod
