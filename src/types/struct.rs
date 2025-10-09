@@ -263,4 +263,3 @@ impl Parseable for Struct {
         self.to_bytes_(value, None, buffer)
     }
 }
-

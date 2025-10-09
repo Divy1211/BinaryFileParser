@@ -9,6 +9,7 @@ use pyo3::{pyclass, pymethods, Bound, IntoPy, PyAny, PyRef, PyRefMut, PyResult};
 use serde::{Serialize, Serializer};
 use crate::errors::mutability_error::MutabilityError;
 use crate::types::bfp_type::BfpType;
+use crate::types::diff::{Diff, Diffable};
 use crate::types::parseable_type::ParseableType;
 
 #[derive(Debug)]
@@ -42,14 +43,14 @@ impl BfpList {
     }
     
     pub fn len(&self) -> usize {
-        self.raw.read().expect("GIL Bound read").data.len()
+        self.inner().data.len()
     }
 }
 
 impl PartialOrd for BfpList {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        let data1 = &self.raw.read().expect("GIL bound read").data;
-        let data2 = &other.raw.read().expect("GIL bound read").data;
+        let data1 = &self.inner().data;
+        let data2 = &other.inner().data;
         
         data1.partial_cmp(data2)
     }
@@ -57,8 +58,8 @@ impl PartialOrd for BfpList {
 
 impl PartialEq for BfpList {
     fn eq(&self, other: &Self) -> bool {
-        let data1 = &self.raw.read().expect("GIL bound read").data;
-        let data2 = &other.raw.read().expect("GIL bound read").data;
+        let data1 = &self.inner().data;
+        let data2 = &other.inner().data;
         if data1.len() != data2.len() {
             return false
         }
@@ -365,6 +366,16 @@ impl Serialize for BfpList {
     where
         S: Serializer,
     {
-        self.raw.read().expect("GIL Bound read").data.serialize(serializer)
+        self.inner().data.serialize(serializer)
+    }
+}
+
+impl Diffable for BfpList {
+    type DiffResult = Vec<(usize, Diff<ParseableType>)>;
+
+    fn diff(&self, other: &Self) -> Self::DiffResult {
+        let data1 = &self.inner().data;
+        let data2 = &other.inner().data;
+        data1.diff(data2)
     }
 }

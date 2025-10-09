@@ -20,6 +20,8 @@ use crate::retrievers::retriever_combiner::RetrieverCombiner;
 use crate::retrievers::retriever_ref::RetrieverRef;
 use crate::types::byte_stream::ByteStream;
 use crate::types::context::{Context, ContextPtr};
+use crate::types::diff::Diffable;
+use crate::types::diff::struct_diffable::StructDiffable;
 use crate::types::parseable::Parseable;
 use crate::types::parseable_type::ParseableType;
 use crate::types::serial::struct_deserializer::StructDeserializer;
@@ -50,8 +52,8 @@ pub struct BaseStruct {
 
 impl PartialEq for BaseStruct {
     fn eq(&self, other: &Self) -> bool {
-        let data1 = &self.raw.read().expect("GIL bound read").data;
-        let data2 = &other.raw.read().expect("GIL bound read").data;
+        let data1 = &self.inner().data;
+        let data2 = &other.inner().data;
 
         if data1.len() != data2.len() {
             return false
@@ -386,5 +388,34 @@ impl BaseStruct {
 
         let val = deserializer.deserialize(&mut de).map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
         BaseStruct::with_cls(val, cls)
+    }
+
+    fn diff(slf: Bound<Self>, other: Bound<Self>) -> PyResult<()> {
+        let value1 = slf.extract()?;
+        let value2 = other.extract()?;
+
+        let slf = slf.into_any();
+        let cls1 = slf.get_type();
+        let other = other.into_any();
+        let cls2 = other.get_type();
+
+        let struct1 = StructBuilder::get_struct(&cls1)?;
+        let struct2 = StructBuilder::get_struct(&cls2)?;
+
+        if struct1 != struct2 {
+            return Err(
+                PyTypeError::new_err(format!(
+                    "Cannot diff structs of two different classes '{}' and '{}'",
+                    struct1.raw.fully_qualified_name,
+                    struct2.raw.fully_qualified_name,
+                )))
+        }
+        
+        let diff = StructDiffable(&struct1, &value1).diff(&StructDiffable(&struct2, &value2));
+        for (i, val_diff) in diff {
+            println!("idx {:?}, diff {:?}", i, val_diff)
+        }
+        
+        Ok(())
     }
 }

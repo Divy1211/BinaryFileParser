@@ -13,3 +13,4 @@ pub mod ref_info;
 pub mod struct_builder;
 pub mod context;
 mod serial;
+mod diff;

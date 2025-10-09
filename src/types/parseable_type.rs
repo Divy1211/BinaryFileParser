@@ -6,8 +6,10 @@ use crate::{impl_from_for_parseable_type, impl_try_into_for_parseable_type};
 use crate::types::base_struct::BaseStruct;
 use crate::types::bfp_list::BfpList;
 use crate::types::bfp_type::BfpType;
+use crate::types::diff::{Diff, Diffable};
 use crate::types::r#struct::Struct;
 use crate::types::serial::struct_serializer::StructSerializer;
+use crate::types::diff::struct_diffable::StructDiffable;
 
 // todo: change to structural enum
 #[derive(Debug, Clone)]
@@ -257,6 +259,64 @@ impl Serialize for ParseableType {
             ParseableType::Struct { val, struct_, .. } => {
                 StructSerializer(struct_, val).serialize(serializer)
             }
+        }
+    }
+}
+
+impl Diffable for ParseableType {
+    type DiffResult = Option<Diff<ParseableType>>;
+    fn diff(&self, other: &ParseableType) -> Self::DiffResult {
+        match (self, other) {
+            (ParseableType::None, ParseableType::None) => None,
+
+            (ParseableType::UInt8(v1),     ParseableType::UInt8(v2))   => if v1 == v2 { None } else { Some(Diff::Changed(other.clone())) },
+            (ParseableType::UInt16(v1),    ParseableType::UInt16(v2))  => if v1 == v2 { None } else { Some(Diff::Changed(other.clone())) },
+            (ParseableType::UInt32(v1),    ParseableType::UInt32(v2))  => if v1 == v2 { None } else { Some(Diff::Changed(other.clone())) },
+            (ParseableType::UInt64(v1),    ParseableType::UInt64(v2))  => if v1 == v2 { None } else { Some(Diff::Changed(other.clone())) },
+            (ParseableType::UInt128(v1),   ParseableType::UInt128(v2)) => if v1 == v2 { None } else { Some(Diff::Changed(other.clone())) },
+
+            (ParseableType::Int8(v1),      ParseableType::Int8(v2))    => if v1 == v2 { None } else { Some(Diff::Changed(other.clone())) },
+            (ParseableType::Int16(v1),     ParseableType::Int16(v2))   => if v1 == v2 { None } else { Some(Diff::Changed(other.clone())) },
+            (ParseableType::Int32(v1),     ParseableType::Int32(v2))   => if v1 == v2 { None } else { Some(Diff::Changed(other.clone())) },
+            (ParseableType::Int64(v1),     ParseableType::Int64(v2))   => if v1 == v2 { None } else { Some(Diff::Changed(other.clone())) },
+            (ParseableType::Int128(v1),    ParseableType::Int128(v2))  => if v1 == v2 { None } else { Some(Diff::Changed(other.clone())) },
+
+            (ParseableType::Float32(v1),   ParseableType::Float32(v2)) => if v1 == v2 { None } else { Some(Diff::Changed(other.clone())) },
+            (ParseableType::Float64(v1),   ParseableType::Float64(v2)) => if v1 == v2 { None } else { Some(Diff::Changed(other.clone())) },
+
+            (ParseableType::Bool(v1),      ParseableType::Bool(v2))    => if v1 == v2 { None } else { Some(Diff::Changed(other.clone())) },
+
+            (ParseableType::Str(v1),       ParseableType::Str(v2))     => if v1 == v2 { None } else { Some(Diff::Changed(other.clone())) },
+
+            (ParseableType::Array(arr1),   ParseableType::Array(arr2)) => {
+                let diff = arr1.diff(arr2);
+                if diff.len() > 0 {
+                    Some(Diff::Nested(diff))
+                } else {
+                    None
+                }
+            },
+
+            // this is a bytestring, no recursive diff needed
+            (ParseableType::Bytes(bytes1), ParseableType::Bytes(bytes2)) => if bytes1 == bytes2 { None } else { Some(Diff::Changed(other.clone())) },
+
+            (ParseableType::Option(opt1), ParseableType::Option(opt2)) => {
+                match (opt1, opt2) {
+                    (None, None) => None,
+                    (Some(v1), Some(v2)) if v1 == v2 => None,
+                    _ => Some(Diff::Changed(other.clone())),
+                }
+            },
+
+            (ParseableType::Struct { val: val1, struct_: struct1, .. }, ParseableType::Struct { val: val2, struct_: struct2, .. }) => {
+                let diff = StructDiffable(struct1, val1).diff(&StructDiffable(struct2, val2));
+                if diff.len() > 0 {
+                    Some(Diff::Nested(diff))
+                } else {
+                    None
+                }
+            }
+            _ => unreachable!("BFP Internal Error: unhandled types or diffing two different types"),
         }
     }
 }
