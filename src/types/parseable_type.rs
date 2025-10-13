@@ -1,4 +1,5 @@
 use std::cmp::Ordering;
+use std::hash::{Hash, Hasher};
 use pyo3::{Bound, IntoPy, PyAny, PyResult, Python};
 use pyo3::types::PyBytes;
 use serde::{Serialize, Serializer};
@@ -263,58 +264,85 @@ impl Serialize for ParseableType {
     }
 }
 
-impl Diffable for ParseableType {
-    type DiffResult = Option<Diff<ParseableType>>;
-    fn diff(&self, other: &ParseableType) -> Self::DiffResult {
+impl Hash for ParseableType {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        std::mem::discriminant(self).hash(state);
+
+        match self {
+            ParseableType::None => {}
+            ParseableType::UInt8(v) => v.hash(state),
+            ParseableType::UInt16(v) => v.hash(state),
+            ParseableType::UInt32(v) => v.hash(state),
+            ParseableType::UInt64(v) => v.hash(state),
+            ParseableType::UInt128(v) => v.hash(state),
+
+            ParseableType::Int8(v) => v.hash(state),
+            ParseableType::Int16(v) => v.hash(state),
+            ParseableType::Int32(v) => v.hash(state),
+            ParseableType::Int64(v) => v.hash(state),
+            ParseableType::Int128(v) => v.hash(state),
+
+            ParseableType::Float32(v) => {
+                v.to_bits().hash(state);
+            }
+            ParseableType::Float64(v) => {
+                v.to_bits().hash(state);
+            }
+
+            ParseableType::Bool(v) => v.hash(state),
+            ParseableType::Str(s) => s.hash(state),
+            ParseableType::Array(arr) => arr.hash(state),
+            ParseableType::Bytes(bytes) => bytes.hash(state),
+            ParseableType::Option(opt) => opt.hash(state),
+            ParseableType::Struct { val, .. } => {
+                val.hash(state);
+            }
+        }
+    }
+}
+
+
+impl Diffable<ParseableType> for ParseableType {
+    fn diff(&self, other: &ParseableType) -> Diff<ParseableType> {
         match (self, other) {
-            (ParseableType::None, ParseableType::None) => None,
+            (ParseableType::None, ParseableType::None) => Diff::None,
 
-            (ParseableType::UInt8(v1),     ParseableType::UInt8(v2))   => if v1 == v2 { None } else { Some(Diff::Changed(other.clone())) },
-            (ParseableType::UInt16(v1),    ParseableType::UInt16(v2))  => if v1 == v2 { None } else { Some(Diff::Changed(other.clone())) },
-            (ParseableType::UInt32(v1),    ParseableType::UInt32(v2))  => if v1 == v2 { None } else { Some(Diff::Changed(other.clone())) },
-            (ParseableType::UInt64(v1),    ParseableType::UInt64(v2))  => if v1 == v2 { None } else { Some(Diff::Changed(other.clone())) },
-            (ParseableType::UInt128(v1),   ParseableType::UInt128(v2)) => if v1 == v2 { None } else { Some(Diff::Changed(other.clone())) },
+            (ParseableType::UInt8(v1),     ParseableType::UInt8(v2))   => if v1 == v2 { Diff::None } else { Diff::Changed(other.clone()) },
+            (ParseableType::UInt16(v1),    ParseableType::UInt16(v2))  => if v1 == v2 { Diff::None } else { Diff::Changed(other.clone()) },
+            (ParseableType::UInt32(v1),    ParseableType::UInt32(v2))  => if v1 == v2 { Diff::None } else { Diff::Changed(other.clone()) },
+            (ParseableType::UInt64(v1),    ParseableType::UInt64(v2))  => if v1 == v2 { Diff::None } else { Diff::Changed(other.clone()) },
+            (ParseableType::UInt128(v1),   ParseableType::UInt128(v2)) => if v1 == v2 { Diff::None } else { Diff::Changed(other.clone()) },
 
-            (ParseableType::Int8(v1),      ParseableType::Int8(v2))    => if v1 == v2 { None } else { Some(Diff::Changed(other.clone())) },
-            (ParseableType::Int16(v1),     ParseableType::Int16(v2))   => if v1 == v2 { None } else { Some(Diff::Changed(other.clone())) },
-            (ParseableType::Int32(v1),     ParseableType::Int32(v2))   => if v1 == v2 { None } else { Some(Diff::Changed(other.clone())) },
-            (ParseableType::Int64(v1),     ParseableType::Int64(v2))   => if v1 == v2 { None } else { Some(Diff::Changed(other.clone())) },
-            (ParseableType::Int128(v1),    ParseableType::Int128(v2))  => if v1 == v2 { None } else { Some(Diff::Changed(other.clone())) },
+            (ParseableType::Int8(v1),      ParseableType::Int8(v2))    => if v1 == v2 { Diff::None } else { Diff::Changed(other.clone()) },
+            (ParseableType::Int16(v1),     ParseableType::Int16(v2))   => if v1 == v2 { Diff::None } else { Diff::Changed(other.clone()) },
+            (ParseableType::Int32(v1),     ParseableType::Int32(v2))   => if v1 == v2 { Diff::None } else { Diff::Changed(other.clone()) },
+            (ParseableType::Int64(v1),     ParseableType::Int64(v2))   => if v1 == v2 { Diff::None } else { Diff::Changed(other.clone()) },
+            (ParseableType::Int128(v1),    ParseableType::Int128(v2))  => if v1 == v2 { Diff::None } else { Diff::Changed(other.clone()) },
 
-            (ParseableType::Float32(v1),   ParseableType::Float32(v2)) => if v1 == v2 { None } else { Some(Diff::Changed(other.clone())) },
-            (ParseableType::Float64(v1),   ParseableType::Float64(v2)) => if v1 == v2 { None } else { Some(Diff::Changed(other.clone())) },
+            (ParseableType::Float32(v1),   ParseableType::Float32(v2)) => if v1 == v2 { Diff::None } else { Diff::Changed(other.clone()) },
+            (ParseableType::Float64(v1),   ParseableType::Float64(v2)) => if v1 == v2 { Diff::None } else { Diff::Changed(other.clone()) },
 
-            (ParseableType::Bool(v1),      ParseableType::Bool(v2))    => if v1 == v2 { None } else { Some(Diff::Changed(other.clone())) },
+            (ParseableType::Bool(v1),      ParseableType::Bool(v2))    => if v1 == v2 { Diff::None } else { Diff::Changed(other.clone()) },
 
-            (ParseableType::Str(v1),       ParseableType::Str(v2))     => if v1 == v2 { None } else { Some(Diff::Changed(other.clone())) },
+            (ParseableType::Str(v1),       ParseableType::Str(v2))     => if v1 == v2 { Diff::None } else { Diff::Changed(other.clone()) },
 
             (ParseableType::Array(arr1),   ParseableType::Array(arr2)) => {
-                let diff = arr1.diff(arr2);
-                if diff.len() > 0 {
-                    Some(Diff::Nested(diff))
-                } else {
-                    None
-                }
+                arr1.diff(arr2)
             },
 
             // this is a bytestring, no recursive diff needed
-            (ParseableType::Bytes(bytes1), ParseableType::Bytes(bytes2)) => if bytes1 == bytes2 { None } else { Some(Diff::Changed(other.clone())) },
+            (ParseableType::Bytes(bytes1), ParseableType::Bytes(bytes2)) => if bytes1 == bytes2 { Diff::None } else { Diff::Changed(other.clone()) },
 
             (ParseableType::Option(opt1), ParseableType::Option(opt2)) => {
                 match (opt1, opt2) {
-                    (None, None) => None,
-                    (Some(v1), Some(v2)) if v1 == v2 => None,
-                    _ => Some(Diff::Changed(other.clone())),
+                    (None, None) => Diff::None,
+                    (Some(v1), Some(v2)) if v1 == v2 => Diff::None,
+                    _ => Diff::Changed(other.clone()),
                 }
             },
 
             (ParseableType::Struct { val: val1, struct_: struct1, .. }, ParseableType::Struct { val: val2, struct_: struct2, .. }) => {
-                let diff = StructDiffable(struct1, val1).diff(&StructDiffable(struct2, val2));
-                if diff.len() > 0 {
-                    Some(Diff::Nested(diff))
-                } else {
-                    None
-                }
+                StructDiffable(struct1, val1).diff(&StructDiffable(struct2, val2))
             }
             _ => unreachable!("BFP Internal Error: unhandled types or diffing two different types"),
         }

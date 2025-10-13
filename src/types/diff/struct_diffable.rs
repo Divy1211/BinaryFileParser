@@ -9,10 +9,8 @@ fn expect_err<'a>(val: Option<&'a ParseableType>, name: &str) -> &'a ParseableTy
     val.expect(&format!("Diffing uninitialized value '{name}'"))
 }
 
-impl Diffable for StructDiffable<'_, '_> {
-    type DiffResult = Vec<(usize, Diff<ParseableType>)>;
-
-    fn diff(&self, other: &Self) -> Self::DiffResult {
+impl Diffable<ParseableType> for StructDiffable<'_, '_> {
+    fn diff(&self, other: &Self) -> Diff<ParseableType> {
         let struct1 = self.0;
 
         let inner1 = self.1.inner();
@@ -36,15 +34,17 @@ impl Diffable for StructDiffable<'_, '_> {
                 (true, true) => {
                     let val1 = expect_err(inner1.data[i].as_ref(), &retriever.name);
                     let val2 = expect_err(inner2.data[i].as_ref(), &retriever.name);
-                    
-                    let Some(val_diff) = val1.diff(val2) else {
+                    let result = val1.diff(val2);
+                    if let Diff::None = result {
                         continue;
                     };
-                    diff.push((i, val_diff));
+                    diff.push((i, result));
                 },
             };
         }
-        
-        diff
+        if diff.len() == 0 {
+            return Diff::None;
+        }
+        Diff::Nested(diff)
     }
 }

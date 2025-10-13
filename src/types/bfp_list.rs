@@ -1,4 +1,5 @@
 use std::cmp::Ordering;
+use std::hash::{Hash, Hasher};
 use std::sync::{Arc, RwLockReadGuard, RwLockWriteGuard};
 use std::sync::RwLock;
 
@@ -370,10 +371,15 @@ impl Serialize for BfpList {
     }
 }
 
-impl Diffable for BfpList {
-    type DiffResult = Vec<(usize, Diff<ParseableType>)>;
+impl Hash for BfpList {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.inner().data.hash(state);
+    }
+}
 
-    fn diff(&self, other: &Self) -> Self::DiffResult {
+impl Diffable<ParseableType> for BfpList {
+
+    fn diff(&self, other: &Self) -> Diff<ParseableType> {
         let data1 = &self.inner().data;
         let data2 = &other.inner().data;
         data1.diff(data2)

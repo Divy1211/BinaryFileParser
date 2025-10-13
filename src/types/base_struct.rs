@@ -1,4 +1,5 @@
 use std::fs::File;
+use std::hash::{Hash, Hasher};
 use std::io::{BufReader, BufWriter, Write};
 use std::sync::{Arc, OnceLock, RwLock, RwLockReadGuard, RwLockWriteGuard};
 use std::time::Duration;
@@ -412,10 +413,14 @@ impl BaseStruct {
         }
         
         let diff = StructDiffable(&struct1, &value1).diff(&StructDiffable(&struct2, &value2));
-        for (i, val_diff) in diff {
-            println!("idx {:?}, diff {:?}", i, val_diff)
-        }
+        println!("diff = {:?}", diff);
         
         Ok(())
+    }
+}
+
+impl Hash for BaseStruct {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.inner().data.hash(state);
     }
 }
