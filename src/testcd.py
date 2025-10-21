@@ -20,8 +20,8 @@ class Test(BaseStruct):
 
 # t1 = Test(points = [Point(x = i, y = i) for i in range(2)])
 # t2 = Test(points = [Point(x = i+1, y = i+1) for i in range(2)])
-t1 = Test(points = [Point(x = i, y = i + 1) for i in range(2)])
-t2 = Test(points = [Point(x = i + 1, y = i + 1 + 1) for i in range(2)])
+t1 = Test(points = [Point(x = i, y = i + 1) for i in range(3)])
+t2 = Test(points = [Point(), Point(x = 1, y = 2), Point()])
 
 print(t1.points, t2.points)
 

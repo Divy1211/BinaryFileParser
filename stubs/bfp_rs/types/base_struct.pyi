@@ -83,12 +83,13 @@ class BaseStruct:
 
 
     @classmethod
-    def from_bytes(cls, bytes_: bytes) -> Self:
+    def from_bytes(cls, bytes_: bytes, ver: Version = Version(0)) -> Self:
         """
         Deserialize and create an instance of this struct from bytes
 
         Args:
             bytes_: The bytes to use for deserialization
+            ver: The version whose bytes are being deserialized
 
         Returns:
             An instance of this struct

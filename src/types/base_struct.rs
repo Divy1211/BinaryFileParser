@@ -308,9 +308,21 @@ impl BaseStruct {
     }
 
     #[classmethod]
-    fn from_bytes<'py>(cls: &Bound<'py, PyType>, bytes: &[u8]) -> PyResult<Bound<'py, PyAny>> {
+    #[pyo3(signature = (bytes, ver = Version::new(vec![0, ]), strict = false))]
+    fn from_bytes<'py>(cls: &Bound<'py, PyType>, bytes: &[u8], ver: Version, strict: bool) -> PyResult<Bound<'py, PyAny>> {
         let mut stream = ByteStream::from_bytes(bytes);
-        BaseStruct::from_stream(cls, &mut stream, Version::new(vec![0, ]))
+        let struct_ = BaseStruct::from_stream(cls, &mut stream, ver)?;
+
+        if !strict {
+            return Ok(struct_);
+        }
+
+        let rem = stream.remaining().len();
+        if rem > 0 {
+            return Err(ParsingError::new_err(format!("{rem} bytes are left after parsing all retrievers successfully")))
+        }
+
+        Ok(struct_)
     }
 
     #[classmethod]
@@ -416,6 +428,10 @@ impl BaseStruct {
         println!("diff = {:?}", diff);
         
         Ok(())
+    }
+
+    fn diff(slf: Bound<Self>, other: Bound<Self>) -> PyResult<()> {
+        
     }
 }
 
