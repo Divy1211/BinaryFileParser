@@ -1,16 +1,20 @@
 use std::cmp::Ordering;
 use std::hash::{Hash, Hasher};
+
 use pyo3::{Bound, IntoPy, PyAny, PyResult, Python};
 use pyo3::types::PyBytes;
 use serde::{Serialize, Serializer};
+
 use crate::{impl_from_for_parseable_type, impl_try_into_for_parseable_type};
 use crate::types::base_struct::BaseStruct;
 use crate::types::bfp_list::BfpList;
 use crate::types::bfp_type::BfpType;
-use crate::types::diff::{Diff, Diffable};
+use crate::types::diff::diff::{Diff, Diffable, IDiff};
+use crate::types::diff::merge::{Conflict, Mergeable};
 use crate::types::r#struct::Struct;
 use crate::types::serial::struct_serializer::StructSerializer;
 use crate::types::diff::struct_diffable::StructDiffable;
+use crate::types::diff::struct_mergeable::StructMergeable;
 
 // todo: change to structural enum
 #[derive(Debug, Clone)]
@@ -345,6 +349,60 @@ impl Diffable<ParseableType> for ParseableType {
                 StructDiffable(struct1, val1).diff(&StructDiffable(struct2, val2))
             }
             _ => unreachable!("BFP Internal Error: unhandled types or diffing two different types"),
+        }
+    }
+}
+
+impl Mergeable<ParseableType> for ParseableType {
+    fn patch(&mut self, change: IDiff<ParseableType>, off: isize) -> isize {
+        match self {
+            ParseableType::Array(ls) => {
+                ls.patch(change, off)
+            }
+            ParseableType::Option(val) => {
+                match val.as_mut() {
+                    None => {
+                        *val = change.1.value().map(Box::new);
+                        off
+                    }
+                    Some(val) => {
+                        val.patch(change, off)
+                    }
+                }
+            }
+            ParseableType::Struct { val, struct_ } => {
+                StructMergeable(struct_, val).patch(change, isize::MIN);
+                off
+            }
+            _ => { unreachable!("BFP Internal Error: patch called on trivial ParseableType") }
+        }
+    }
+
+    fn merge(&mut self, _slf: &Self, _other: &Self) -> Vec<Conflict<ParseableType>> {
+        unreachable!("BFP Internal Error: merge called on ParseableType")
+    }
+}
+
+impl ParseableType {
+    pub fn merge_rec(
+        &mut self,
+        changes1: Vec<IDiff<ParseableType>>,
+        changes2: Vec<IDiff<ParseableType>>,
+        conflicts: &mut Vec<Conflict<ParseableType>>,
+    ) {
+        match self {
+            ParseableType::Array(ls) => {
+                ls.merge_rec(changes1, changes2, conflicts);
+            }
+            ParseableType::Option(val) => {
+                val.as_mut().map(|val| {
+                    val.merge_rec(changes1, changes2, conflicts)
+                });
+            }
+            ParseableType::Struct { val, struct_ } => {
+                StructMergeable(struct_, val).merge_rec(changes1, changes2, conflicts);
+            }
+            _ => { unreachable!("BFP Internal Error: merge_rec called on trivial ParseableType") }
         }
     }
 }

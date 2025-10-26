@@ -17,12 +17,13 @@ class Test(BaseStruct):
     # points: list[Point] = Retriever(Array16[Point], default_factory = lambda _ver: [])
     points: list[Point] = Retriever(Array16[Point], default_factory = lambda _ver: [])
 
+    def __str__(self) -> str:
+        return f"Test({self.points})"
 
-# t1 = Test(points = [Point(x = i, y = i) for i in range(2)])
-# t2 = Test(points = [Point(x = i+1, y = i+1) for i in range(2)])
-t1 = Test(points = [Point(x = i, y = i + 1) for i in range(3)])
-t2 = Test(points = [Point(), Point(x = 1, y = 2), Point()])
+t1 = Test(points = [Point(x = 0, y = 0), Point(x = 1, y = 1)])
+t2 = Test(points = [Point(x = 1, y = 0), Point(x = 1, y = 4)])
+t3 = Test(points = [Point(x = 2, y = 2), Point(x = 3, y = 1), Point(x = 2, y = 2)])
 
-print(t1.points, t2.points)
+t1.merge(t2, t3)
 
-t1.diff(t2)
+print(t1)

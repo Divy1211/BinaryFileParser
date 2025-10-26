@@ -10,7 +10,8 @@ use pyo3::{pyclass, pymethods, Bound, IntoPy, PyAny, PyRef, PyRefMut, PyResult};
 use serde::{Serialize, Serializer};
 use crate::errors::mutability_error::MutabilityError;
 use crate::types::bfp_type::BfpType;
-use crate::types::diff::{Diff, Diffable};
+use crate::types::diff::diff::{Diff, Diffable, IDiff};
+use crate::types::diff::merge::{Conflict, Mergeable};
 use crate::types::parseable_type::ParseableType;
 
 #[derive(Debug)]
@@ -383,5 +384,95 @@ impl Diffable<ParseableType> for BfpList {
         let data1 = &self.inner().data;
         let data2 = &other.inner().data;
         data1.diff(data2)
+    }
+}
+
+impl Mergeable<ParseableType> for BfpList {
+    fn patch(&mut self, (idx, change): IDiff<ParseableType>, off: isize) -> isize {
+        let mut inner = self.inner_mut();
+        let ls = &mut inner.data;
+        let idx = (idx as isize - off) as usize;
+
+        match change {
+            Diff::None => { off }
+            Diff::Inserted(val) => { ls.insert(idx, val); off - 1 }
+            Diff::Deleted(_val) => { ls.remove(idx); off + 1 }
+            Diff::Changed(val) => { ls[idx] = val; off }
+            Diff::Nested(changes) => {
+                let val = &mut ls[idx];
+                let mut off2 = 0;
+                for change in changes {
+                    off2 = val.patch(change, off2);
+                }
+                off
+            }
+        }
+    }
+
+    fn merge(&mut self, _slf: &Self, _other: &Self) -> Vec<Conflict<ParseableType>> {
+        unreachable!("BFP Internal Error: merge called on BfpList")
+    }
+}
+
+impl BfpList {
+    pub fn merge_rec(
+        &mut self,
+        changes1: Vec<IDiff<ParseableType>>,
+        changes2: Vec<IDiff<ParseableType>>,
+        conflicts: &mut Vec<Conflict<ParseableType>>,
+    ) {
+        let (mut it1, mut it2) = (changes1.into_iter(), changes2.into_iter());
+        let (mut e1, mut e2) = (it1.next(), it2.next());
+        
+        let mut off = 0;
+        loop { match (e1, e2) { (None, None) => break,
+            (Some(diff), None) | (None, Some(diff)) => {
+                off = self.patch(diff, off);
+                (e1, e2) = (it1.next(), it2.next());
+            }
+            (Some(diff1), Some(diff2)) => {
+                if diff1.0 == diff2.0 {
+                    let (idx, change1) = diff1;
+                    let change2 = diff2.1;
+                    match (change1, change2) {
+                        (Diff::Nested(sub_changes1), Diff::Nested(sub_changes2)) => {
+                            let mut inner = self.inner_mut();
+                            let ls = &mut inner.data;
+
+                            let val = &mut ls[idx];
+
+                            let mut sub_conflicts = vec![];
+                            val.merge_rec(sub_changes1, sub_changes2, &mut sub_conflicts);
+                            if sub_conflicts.len() > 0 {
+                                conflicts.push(Conflict::Nested(idx, sub_conflicts));
+                            }
+                        }
+                        (change1 @ Diff::Deleted(_), Diff::Deleted(_)) => {
+                            off = self.patch((idx, change1), off);
+                        }
+                        (Diff::Changed(v1), Diff::Changed(v2)) if v1 == v2 => {
+                            off = self.patch((idx, Diff::Changed(v1)), off);
+                        }
+                        (
+                            change1 @ (Diff::Deleted(_) | Diff::Changed(_) | Diff::Nested(_)),
+                            change2 @ (Diff::Deleted(_) | Diff::Changed(_) | Diff::Nested(_))
+                        ) => {
+                            conflicts.push(Conflict::Basic(idx, change1, change2));
+                        }
+                        (change1, change2) => {
+                            off = self.patch((idx, change1), off);
+                            off = self.patch((idx, change2), off);
+                        }
+                    }
+                    (e1, e2) = (it1.next(), it2.next());
+                } else if diff1.0 < diff2.0 {
+                    off = self.patch(diff1, off);
+                    (e1, e2) = (it1.next(), Some(diff2));
+                } else {
+                    off = self.patch(diff2, off);
+                    (e1, e2) = (Some(diff1), it2.next());
+                }
+            }
+        }}
     }
 }

@@ -1,5 +1,5 @@
 use crate::types::base_struct::BaseStruct;
-use crate::types::diff::{Diff, Diffable};
+use crate::types::diff::diff::{Diff, Diffable};
 use crate::types::parseable_type::ParseableType;
 use crate::types::r#struct::Struct;
 

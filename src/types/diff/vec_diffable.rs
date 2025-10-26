@@ -1,8 +1,9 @@
-use std::cmp::{min};
+use std::cmp::min;
 use std::fmt::Debug;
-use crate::types::diff::{Diff, Diffable};
 
-use itertools::{Itertools, EitherOrBoth::*};
+use itertools::{EitherOrBoth::*, Itertools};
+
+use crate::types::diff::diff::{Diff, Diffable};
 
 impl<T> Diffable<T> for Vec<T>
 where

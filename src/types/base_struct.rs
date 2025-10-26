@@ -21,8 +21,10 @@ use crate::retrievers::retriever_combiner::RetrieverCombiner;
 use crate::retrievers::retriever_ref::RetrieverRef;
 use crate::types::byte_stream::ByteStream;
 use crate::types::context::{Context, ContextPtr};
-use crate::types::diff::Diffable;
+use crate::types::diff::diff::Diffable;
+use crate::types::diff::merge::Mergeable;
 use crate::types::diff::struct_diffable::StructDiffable;
+use crate::types::diff::struct_mergeable::StructMergeable;
 use crate::types::parseable::Parseable;
 use crate::types::parseable_type::ParseableType;
 use crate::types::serial::struct_deserializer::StructDeserializer;
@@ -418,7 +420,7 @@ impl BaseStruct {
         if struct1 != struct2 {
             return Err(
                 PyTypeError::new_err(format!(
-                    "Cannot diff structs of two different classes '{}' and '{}'",
+                    "Cannot diff structs of different classes '{}' and '{}'",
                     struct1.raw.fully_qualified_name,
                     struct2.raw.fully_qualified_name,
                 )))
@@ -430,8 +432,41 @@ impl BaseStruct {
         Ok(())
     }
 
-    fn diff(slf: Bound<Self>, other: Bound<Self>) -> PyResult<()> {
+    fn merge(base: Bound<Self>, slf: Bound<Self>, other: Bound<Self>) -> PyResult<()> {
+        let mut value0 = base.extract()?;
+        let mut value1 = slf.extract()?;
+        let mut value2 = other.extract()?;
+
+        let base = base.into_any();
+        let cls0 = base.get_type();
+        let slf = slf.into_any();
+        let cls1 = slf.get_type();
+        let other = other.into_any();
+        let cls2 = other.get_type();
+
+        let struct0 = StructBuilder::get_struct(&cls0)?;
+        let struct1 = StructBuilder::get_struct(&cls1)?;
+        let struct2 = StructBuilder::get_struct(&cls2)?;
+
+        if struct0 != struct1 || struct1 != struct2 {
+            return Err(
+                PyTypeError::new_err(format!(
+                    "Cannot merge structs of different classes '{}', '{}', and {}",
+                    struct0.raw.fully_qualified_name,
+                    struct1.raw.fully_qualified_name,
+                    struct2.raw.fully_qualified_name,
+                )))
+        }
+
+        let mut merge0 = StructMergeable(&struct0, &mut value0);
+        let merge1 = StructMergeable(&struct1, &mut value1);
+        let merge2 = StructMergeable(&struct2, &mut value2);
         
+        let conflicts = merge0.merge(&merge1, &merge2);
+        
+        println!("{:?}", conflicts);
+        
+        Ok(())
     }
 }
 
