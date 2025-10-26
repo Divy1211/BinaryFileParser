@@ -21,10 +21,10 @@ where
                         diff.push((idx1, Diff::Inserted(right.clone())))
                     }
                     Left((i, left)) => {
-                        diff.push((i, Diff::Deleted(left.clone())))
+                        diff.push((i + start1, Diff::Deleted(left.clone())))
                     }
                     Both((i, left), right) => {
-                        diff.push((i, left.diff(right)))
+                        diff.push((i + start1, left.diff(right)))
                     }
                 }
             }
@@ -37,10 +37,10 @@ where
                     diff.push((idx1, Diff::Inserted(right.clone())))
                 }
                 Left((i, left)) => {
-                    diff.push((i, Diff::Deleted(left.clone())))
+                    diff.push((i + start1, Diff::Deleted(left.clone())))
                 }
                 Both((i, left), right) => {
-                    diff.push((i, left.diff(right)))
+                    diff.push((i + start1, left.diff(right)))
                 }
             }
         }
