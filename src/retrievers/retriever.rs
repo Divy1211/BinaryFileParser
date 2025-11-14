@@ -28,21 +28,30 @@ pub enum RetState {
 #[pyclass(module = "bfp_rs")]
 #[derive(Debug, Clone)]
 pub struct Retriever {
+    #[pyo3(get)]
     pub idx: usize,
-    
+
+    #[pyo3(get)]
     pub data_type: BfpType,
 
+    #[pyo3(get)]
     min_ver: Version,
+
+    #[pyo3(get)]
     max_ver: Version,
 
+    #[pyo3(get)]
     pub repeat: isize,
+
+    #[pyo3(get)]
     pub remaining_compressed: bool,
 
+    #[pyo3(get)]
     pub name: String,
     
     on_read: Option<Arc<Vec<CombinatorType>>>,
     on_write: Option<Arc<Vec<CombinatorType>>>,
-    
+
     default: Option<Arc<PyObject>>,
     default_factory: Option<Arc<PyObject>>,
 

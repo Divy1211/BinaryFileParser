@@ -8,7 +8,7 @@ use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 use pyo3::exceptions::{PyAttributeError, PyTypeError};
 use pyo3::intern;
 use pyo3::prelude::*;
-use pyo3::types::{PyBytes, PyDict, PyTuple, PyType};
+use pyo3::types::{PyBytes, PyDict, PyList, PyTuple, PyType};
 use serde::de::DeserializeSeed;
 use serde_json::Deserializer;
 
@@ -220,6 +220,15 @@ impl BaseStruct {
         slf.raw.read().expect("GIL bound read").ver.clone()
     }
     
+    #[classmethod]
+    fn retrievers<'py>(cls: &Bound<'py, PyType>) -> PyResult<Bound<'py, PyList>> {
+        let struct_ = StructBuilder::get_struct(&cls)?;
+        Ok(PyList::new_bound(
+            cls.py(),
+            struct_.retrievers().iter().map(|x| x.clone().into_py(cls.py()))
+        ))
+    }
+
     #[new]
     #[classmethod]
     #[pyo3(signature = (*_args, ver = Version::new(vec![-1]), ctx = ContextPtr::new(), init_defaults = true, **retriever_inits))]

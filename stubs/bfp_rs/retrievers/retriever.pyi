@@ -13,6 +13,14 @@ class Retriever:
     allowing setting constraints and hooks
     """
 
+    idx: int
+    data_type: Any
+    min_ver: Version
+    max_ver: Version
+    repeat: int
+    remaining_compressed: bool
+    name: str
+
     def __new__(
         cls,
         data_type: Any,

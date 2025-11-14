@@ -1,5 +1,6 @@
 from typing import Any, Self
 
+from bfp_rs.retrievers import Retriever
 from bfp_rs.types.byte_stream import ByteStream
 from bfp_rs.types.context import Context
 from bfp_rs.types.version import Version
@@ -12,6 +13,10 @@ class BaseStruct:
     """
     ver: Version
     "The version of the struct"
+
+    @classmethod
+    def retrievers(cls) -> list[Retriever]:
+        ...
 
     def __new__(cls, *args, ver: Version = Version(-1), ctx: Context = Context(), init_defaults: bool = True, **retriever_inits: Any) -> Self:
         """

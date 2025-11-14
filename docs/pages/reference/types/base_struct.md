@@ -4,6 +4,7 @@
             "ver",
             "__new__",
             "__reconstruct__",
+            "retrievers",
             "from_stream",
             "to_bytes",
             "from_base",
