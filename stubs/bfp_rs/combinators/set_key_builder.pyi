@@ -21,6 +21,17 @@ class SetKeyBuilder:
             A combinator that encodes the setter logic defined by the ``SetKeyBuilder`` chain
         """
 
+    def to(self, data_type: Any, source: Any) -> Combinator:
+        """
+        Set this key to the given type from the given value
+
+        Args:
+            data_type: The type of the key
+            source: The value to set this key to
+
+        Returns:
+            A combinator that encodes the setter logic defined by the ``SetKeyBuilder`` chain
+        """
 
     def from_(self, *source: Retriever | int) -> Combinator:
         """
