@@ -22,4 +22,7 @@ class Changed(Diff):
 class NestedDiff(Diff):
     __match_args__ = ("nested",)
 
-    nested: dict[str, Diff] | dict[int, Diff]
+    children: dict[str, Diff] | dict[int, Diff]
+
+    def __getitem__(self, item: Any) -> Diff:
+        pass

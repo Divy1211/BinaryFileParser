@@ -5,7 +5,7 @@ use std::sync::{Arc, OnceLock, RwLock, RwLockReadGuard, RwLockWriteGuard};
 use std::time::Duration;
 
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
-use pyo3::exceptions::{PyAttributeError, PyTypeError};
+use pyo3::exceptions::{PyAttributeError, PyTypeError, PyValueError};
 use pyo3::intern;
 use pyo3::prelude::*;
 use pyo3::types::{PyBytes, PyDict, PyList, PyTuple, PyType};
@@ -444,9 +444,9 @@ impl BaseStruct {
     }
 
     fn merge<'py>(base: Bound<'py, Self>, slf: Bound<Self>, other: Bound<Self>) -> PyResult<Bound<'py, PyDict>> {
-        let mut value0 = base.extract()?;
-        let mut value1 = slf.extract()?;
-        let mut value2 = other.extract()?;
+        let mut value0 = base.extract::<BaseStruct>()?;
+        let mut value1 = slf.extract::<BaseStruct>()?;
+        let mut value2 = other.extract::<BaseStruct>()?;
 
         let base = base.into_any();
         let cls0 = base.get_type();
@@ -469,15 +469,23 @@ impl BaseStruct {
                 )))
         }
 
+        if value0.inner().ver != value1.inner().ver || value1.inner().ver != value2.inner().ver {
+            return Err(
+                PyValueError::new_err(format!(
+                    "Cannot merge structs of different versions '{}', '{}', and {}",
+                    value0.inner().ver,
+                    value1.inner().ver,
+                    value2.inner().ver,
+                )))
+        }
+        
         let mut merge0 = StructMergeable(&struct0, &mut value0);
         let merge1 = StructMergeable(&struct1, &mut value1);
         let merge2 = StructMergeable(&struct2, &mut value2);
         
         let conflicts = merge0.merge(&merge1, &merge2);
         
-        println!("{:?}", conflicts);
-        
-        Ok(merge0.to_dict(conflicts, base.py()))
+        merge0.to_dict(conflicts, base.py())
     }
 }
 

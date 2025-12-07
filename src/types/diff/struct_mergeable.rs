@@ -1,4 +1,5 @@
-use pyo3::{Bound, Python};
+use pyo3::{Bound, PyResult, Python};
+use pyo3::prelude::PyDictMethods;
 use pyo3::types::PyDict;
 
 use crate::types::base_struct::BaseStruct;
@@ -107,7 +108,7 @@ impl StructMergeable<'_, '_> {
                                 conflicts.push(Conflict::Nested(idx, sub_conflicts));
                             }
                         }
-                        // Diff::Deleted, Diff::Inserted - never occur.
+                        // Diff::Deleted, Diff::Inserted - never occur. merging structs of different versions is not allowed
                         // Diff::None - no op
                         _ => {}
                     }
@@ -126,7 +127,22 @@ impl StructMergeable<'_, '_> {
 
 
 impl StructMergeable<'_, '_> {
-    pub fn to_dict<'py>(&self, conflicts: Vec<Conflict<ParseableType>>, py: Python<'py>) -> Bound<'py, PyDict> {
-        PyDict::new_bound(py)
+    pub fn to_dict<'py>(&self, conflicts: Vec<Conflict<ParseableType>>, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+        let retrievers = self.0.retrievers();
+        let mut inner = self.1.inner_mut();
+
+        let di = PyDict::new_bound(py);
+        if conflicts.len() == 0 {
+            return Ok(di);
+        }
+        for conflict in conflicts {
+            let idx = conflict.idx();
+            PyDictMethods::set_item(
+                &di,
+                &retrievers[idx].name,
+                conflict.to_pyobj(inner.data[idx].as_mut(), py)?
+            )?;
+        }
+        Ok(di)
     }
 }

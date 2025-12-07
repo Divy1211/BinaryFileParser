@@ -12,8 +12,6 @@ use crate::errors::mutability_error::MutabilityError;
 use crate::types::bfp_type::BfpType;
 use crate::types::diff::diff::{Diff, Diffable, IDiff};
 use crate::types::diff::merge::{Conflict, Mergeable};
-use crate::types::diff::struct_diffable::StructDiffable;
-use crate::types::diff_py::{ChangedPy, DeletedPy, InsertedPy, NestedDiffPy};
 use crate::types::parseable_type::ParseableType;
 
 #[derive(Debug)]
@@ -484,57 +482,25 @@ impl BfpList {
         let di = PyDict::new_bound(py);
         let inner = self.inner();
         for (idx, change) in changes {
-            match change {
-                Diff::None => {}
-                Diff::Inserted(val) => {
-                    PyDictMethods::set_item(
-                        &di,
-                        idx,
-                        InsertedPy { value: val.to_bound(py)?.unbind() }.into_py(py)
-                    )?;
-                }
-                Diff::Deleted(val) => {
-                    PyDictMethods::set_item(
-                        &di,
-                        idx,
-                        DeletedPy { value: val.to_bound(py)?.unbind() }.into_py(py)
-                    )?;
-                }
-                Diff::Changed(val) => {
-                    PyDictMethods::set_item(
-                        &di,
-                        idx,
-                        ChangedPy {
-                            old: inner.data[idx].clone()
-                                .to_bound(py)?.unbind(),
-                            new: val.to_bound(py)?.unbind()
-                        }.into_py(py)
-                    )?;
-                }
-                Diff::Nested(changes) => {
-                    match &inner.data[idx] {
-                        ParseableType::Struct { val, struct_ } => {
-                            PyDictMethods::set_item(
-                                &di,
-                                idx,
-                                NestedDiffPy {
-                                    children: StructDiffable(struct_, val).to_dict(Diff::Nested(changes), py)?.unbind()
-                                }.into_py(py)
-                            )?;
-                        }
-                        ParseableType::Array(ls) => {
-                            PyDictMethods::set_item(
-                                &di,
-                                idx,
-                                NestedDiffPy {
-                                    children: ls.diffs_to_dict(changes, py)?.unbind()
-                                }.into_py(py)
-                            )?;
-                        }
-                        _ => { unreachable!("Diff::Nested cannot be created with non-nested data") }
-                    }
-                }
-            }
+            PyDictMethods::set_item(
+                &di,
+                idx,
+                change.to_pyobj(Some(&inner.data[idx]), py)?
+            )?;
+        }
+        Ok(di)
+    }
+
+    pub fn conflicts_to_dict<'py>(&self, conflicts: Vec<Conflict<ParseableType>>, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+        let di = PyDict::new_bound(py);
+        let mut inner = self.inner_mut();
+        for conflict in conflicts {
+            let idx = conflict.idx();
+            PyDictMethods::set_item(
+                &di,
+                idx,
+                conflict.to_pyobj(Some(&mut inner.data[idx]), py)?
+            )?;
         }
         Ok(di)
     }

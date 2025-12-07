@@ -22,7 +22,7 @@ macro_rules! match_args_type {
 
 #[macro_export]
 macro_rules! make_struct {
-    ($name:ident($base:ident) as $py_name:literal { $($field:ident: $ty:ty),* $(,)? }) => {
+    ($name:ident($base:ident) as $py_name:literal { $($field:ident: $ty:ty),* $(,)? } impl { $($extra:tt)* } ) => {
         #[pyclass(name = $py_name, extends = $base)]
         pub struct $name {
             $(
@@ -36,6 +36,8 @@ macro_rules! make_struct {
             #[classattr]
             #[allow(non_upper_case_globals)]
             const __match_args__: match_args_type!($($field),*) = ($(stringify!($field),)*);
+
+           $($extra)*
         }
 
         impl_into_pyobj!($name, $base);

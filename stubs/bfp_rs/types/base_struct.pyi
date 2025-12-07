@@ -1,6 +1,6 @@
 from typing import Any, Self
 
-from bfp_rs.diff import Diff
+from bfp_rs.diff import Diff, Conflict
 from bfp_rs.retrievers import Retriever
 from bfp_rs.types.byte_stream import ByteStream
 from bfp_rs.types.context import Context
@@ -210,7 +210,7 @@ class BaseStruct:
         changes as values
         """
 
-    def merge(self, branch1: BaseStruct, branch2: BaseStruct) -> dict[str]:
+    def merge(self, branch1: BaseStruct, branch2: BaseStruct) -> dict[str, Conflict]:
         """
         Safe merges the changes of branch1 and branch2 into self
 
