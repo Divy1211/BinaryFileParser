@@ -1,7 +1,6 @@
 ## Diff Types
 
 ::: bfp_rs.diff.diff_py.Diff
-::: bfp_rs.diff.diff_py.None_
 ::: bfp_rs.diff.diff_py.Inserted
 ::: bfp_rs.diff.diff_py.Deleted
 ::: bfp_rs.diff.diff_py.Changed
