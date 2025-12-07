@@ -42,6 +42,7 @@ nav:
           - BaseStruct:             "reference/types/base_struct.md"
           - ByteStream:             "reference/types/byte_stream.md"
           - Context:                "reference/types/context.md"
+          - Diff & Merge:           "reference/types/diff.md"
           - RefStruct:              "reference/types/ref_struct.md"
           - Version:                "reference/types/version.md"
           - Little Endian:
@@ -101,6 +102,8 @@ plugins:
       handlers:
         python:
           options:
+            filters:
+              - "!^__match_args__$"
             docstring_style: google
             paths: [ stubs ]
 #            backlinks: tree

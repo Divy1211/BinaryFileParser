@@ -1,7 +1,6 @@
 use pyo3::prelude::*;
 
 use crate::combinators::combinator::Combinator;
-use crate::combinators::utils::{get_rec};
 use crate::retrievers::retriever::{Retriever};
 use crate::types::context::Context;
 use crate::types::parseable_type::ParseableType;

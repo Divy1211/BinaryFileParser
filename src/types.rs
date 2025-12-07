@@ -14,3 +14,5 @@ pub mod struct_builder;
 pub mod context;
 mod serial;
 mod diff;
+
+pub use diff::{diff_py, merge_py};

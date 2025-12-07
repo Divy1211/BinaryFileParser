@@ -1,5 +1,6 @@
 from typing import Any, Self
 
+from bfp_rs.diff import Diff
 from bfp_rs.retrievers import Retriever
 from bfp_rs.types.byte_stream import ByteStream
 from bfp_rs.types.context import Context
@@ -203,3 +204,16 @@ class BaseStruct:
               The decompressed bytes
         """
 
+    def diff(self, other: BaseStruct) -> dict[str, Diff]:
+        """
+        Returns a dictionary with retriever names that are different from self in other as keys, and the respective
+        changes as values
+        """
+
+    def merge(self, branch1: BaseStruct, branch2: BaseStruct) -> dict[str]:
+        """
+        Safe merges the changes of branch1 and branch2 into self
+
+        Returns:
+            A dictionary with retriever names that are modified in both branches, resulting in a conflict
+        """

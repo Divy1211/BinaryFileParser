@@ -26,6 +26,7 @@ use crate::types::base_struct::BaseStruct;
 use crate::types::bfp_type::BfpType;
 use crate::types::byte_stream::ByteStream;
 use crate::types::context::ContextPtr;
+use crate::types::diff_py::{ChangedPy, DeletedPy, DiffPy, InsertedPy, NestedDiffPy};
 use crate::types::le::array::{Array, ArrayBuilder};
 use crate::types::le::bool::{Bool128, Bool16, Bool32, Bool64, Bool8};
 use crate::types::le::bytes::Bytes;
@@ -40,6 +41,7 @@ use crate::types::le::stacked_attr_array::{StackedAttrArray, StackedAttrArrayBui
 use crate::types::le::str::Str;
 use crate::types::le::str_array::StrArray;
 use crate::types::le::tail::Tail;
+use crate::types::merge_py::{BasicPy, NestedConflictPy};
 use crate::types::ref_struct::RefStruct;
 use crate::types::version::Version;
 
@@ -180,6 +182,24 @@ fn errors(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
     Ok(())
 }
 
+fn diff(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
+    let diff = PyModule::new_bound(bfp.py(), "bfp_rs.diff")?;
+    py_run!(py, diff, "import sys; sys.modules['bfp_rs.diff'] = diff");
+    bfp.add_submodule(&diff)?;
+
+    diff.add_class::<DiffPy>()?;
+    diff.add_class::<InsertedPy>()?;
+    diff.add_class::<DeletedPy>()?;
+    diff.add_class::<ChangedPy>()?;
+    diff.add_class::<NestedDiffPy>()?;
+
+    diff.add_class::<BasicPy>()?;
+    diff.add_class::<NestedConflictPy>()?;
+    
+    Ok(())
+}
+
+
 #[pymodule]
 #[pyo3(name = "bfp_rs")]
 fn binary_file_parser(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
@@ -198,6 +218,7 @@ fn binary_file_parser(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
 
     errors(py, bfp)?;
     types(py, bfp)?;
+    diff(py, bfp)?;
     combinators(py, bfp)?;
 
     Ok(())

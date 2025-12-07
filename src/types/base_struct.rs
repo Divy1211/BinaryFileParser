@@ -414,7 +414,7 @@ impl BaseStruct {
         BaseStruct::with_cls(val, cls)
     }
 
-    fn diff(slf: Bound<Self>, other: Bound<Self>) -> PyResult<()> {
+    fn diff<'py>(slf: Bound<'py, Self>, other: Bound<Self>) -> PyResult<Bound<'py, PyDict>> {
         let value1 = slf.extract()?;
         let value2 = other.extract()?;
 
@@ -434,14 +434,16 @@ impl BaseStruct {
                     struct2.raw.fully_qualified_name,
                 )))
         }
+
+        let diff1 = StructDiffable(&struct1, &value1);
+        let diff2 = StructDiffable(&struct2, &value2);
         
-        let diff = StructDiffable(&struct1, &value1).diff(&StructDiffable(&struct2, &value2));
-        println!("diff = {:?}", diff);
+        let result = diff1.diff(&diff2);
         
-        Ok(())
+        diff1.to_dict(result, slf.py())
     }
 
-    fn merge(base: Bound<Self>, slf: Bound<Self>, other: Bound<Self>) -> PyResult<()> {
+    fn merge<'py>(base: Bound<'py, Self>, slf: Bound<Self>, other: Bound<Self>) -> PyResult<Bound<'py, PyDict>> {
         let mut value0 = base.extract()?;
         let mut value1 = slf.extract()?;
         let mut value2 = other.extract()?;
@@ -475,7 +477,7 @@ impl BaseStruct {
         
         println!("{:?}", conflicts);
         
-        Ok(())
+        Ok(merge0.to_dict(conflicts, base.py()))
     }
 }
 

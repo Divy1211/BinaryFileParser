@@ -13,6 +13,8 @@
             "to_file",
             "from_json",
             "to_json",
+            "diff",
+            "merge",
             "_get_version",
             "_compress",
             "_decompress",

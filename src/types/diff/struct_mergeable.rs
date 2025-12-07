@@ -1,3 +1,6 @@
+use pyo3::{Bound, Python};
+use pyo3::types::PyDict;
+
 use crate::types::base_struct::BaseStruct;
 use crate::types::diff::diff::{Diff, Diffable, IDiff};
 use crate::types::diff::merge::{Conflict, Mergeable};
@@ -118,5 +121,12 @@ impl StructMergeable<'_, '_> {
                 }
             }
         }}
+    }
+}
+
+
+impl StructMergeable<'_, '_> {
+    pub fn to_dict<'py>(&self, conflicts: Vec<Conflict<ParseableType>>, py: Python<'py>) -> Bound<'py, PyDict> {
+        PyDict::new_bound(py)
     }
 }

@@ -4,14 +4,16 @@ use std::sync::{Arc, RwLockReadGuard, RwLockWriteGuard};
 use std::sync::RwLock;
 
 use pyo3::exceptions::{PyIndexError, PyTypeError, PyValueError};
-use pyo3::prelude::{PyAnyMethods, PyTypeMethods};
-use pyo3::types::{PyInt, PySlice, PySliceIndices, PySliceMethods};
-use pyo3::{pyclass, pymethods, Bound, IntoPy, PyAny, PyRef, PyRefMut, PyResult};
+use pyo3::prelude::{PyAnyMethods, PyDictMethods, PyTypeMethods};
+use pyo3::types::{PyDict, PyInt, PySlice, PySliceIndices, PySliceMethods};
+use pyo3::{pyclass, pymethods, Bound, IntoPy, PyAny, PyRef, PyRefMut, PyResult, Python};
 use serde::{Serialize, Serializer};
 use crate::errors::mutability_error::MutabilityError;
 use crate::types::bfp_type::BfpType;
 use crate::types::diff::diff::{Diff, Diffable, IDiff};
 use crate::types::diff::merge::{Conflict, Mergeable};
+use crate::types::diff::struct_diffable::StructDiffable;
+use crate::types::diff_py::{ChangedPy, DeletedPy, InsertedPy, NestedDiffPy};
 use crate::types::parseable_type::ParseableType;
 
 #[derive(Debug)]
@@ -474,5 +476,66 @@ impl BfpList {
                 }
             }
         }}
+    }
+}
+
+impl BfpList {
+    pub fn diffs_to_dict<'py>(&self, changes: Vec<IDiff<ParseableType>>, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+        let di = PyDict::new_bound(py);
+        let inner = self.inner();
+        for (idx, change) in changes {
+            match change {
+                Diff::None => {}
+                Diff::Inserted(val) => {
+                    PyDictMethods::set_item(
+                        &di,
+                        idx,
+                        InsertedPy { value: val.to_bound(py)?.unbind() }.into_py(py)
+                    )?;
+                }
+                Diff::Deleted(val) => {
+                    PyDictMethods::set_item(
+                        &di,
+                        idx,
+                        DeletedPy { value: val.to_bound(py)?.unbind() }.into_py(py)
+                    )?;
+                }
+                Diff::Changed(val) => {
+                    PyDictMethods::set_item(
+                        &di,
+                        idx,
+                        ChangedPy {
+                            old: inner.data[idx].clone()
+                                .to_bound(py)?.unbind(),
+                            new: val.to_bound(py)?.unbind()
+                        }.into_py(py)
+                    )?;
+                }
+                Diff::Nested(changes) => {
+                    match &inner.data[idx] {
+                        ParseableType::Struct { val, struct_ } => {
+                            PyDictMethods::set_item(
+                                &di,
+                                idx,
+                                NestedDiffPy {
+                                    children: StructDiffable(struct_, val).to_dict(Diff::Nested(changes), py)?.unbind()
+                                }.into_py(py)
+                            )?;
+                        }
+                        ParseableType::Array(ls) => {
+                            PyDictMethods::set_item(
+                                &di,
+                                idx,
+                                NestedDiffPy {
+                                    children: ls.diffs_to_dict(changes, py)?.unbind()
+                                }.into_py(py)
+                            )?;
+                        }
+                        _ => { unreachable!("Diff::Nested cannot be created with non-nested data") }
+                    }
+                }
+            }
+        }
+        Ok(di)
     }
 }
