@@ -41,7 +41,7 @@ use crate::types::le::stacked_attr_array::{StackedAttrArray, StackedAttrArrayBui
 use crate::types::le::str::Str;
 use crate::types::le::str_array::StrArray;
 use crate::types::le::tail::Tail;
-use crate::types::merge_py::{BasicPy, NestedConflictPy};
+use crate::types::merge_py::{BasicPy, ConflictPy, NestedConflictPy};
 use crate::types::ref_struct::RefStruct;
 use crate::types::version::Version;
 
@@ -193,6 +193,7 @@ fn diff(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
     diff.add_class::<ChangedPy>()?;
     diff.add_class::<NestedDiffPy>()?;
 
+    diff.add_class::<ConflictPy>()?;
     diff.add_class::<BasicPy>()?;
     diff.add_class::<NestedConflictPy>()?;
     

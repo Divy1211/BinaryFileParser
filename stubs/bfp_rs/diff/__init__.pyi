@@ -8,6 +8,7 @@ __all__ = [
     "Changed",
     "NestedDiff",
 
+    "Conflict",
     "Basic",
     "NestedConflict",
 ]
