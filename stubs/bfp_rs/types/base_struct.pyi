@@ -88,13 +88,14 @@ class BaseStruct:
 
 
     @classmethod
-    def from_bytes(cls, bytes_: bytes, ver: Version = Version(0)) -> Self:
+    def from_bytes(cls, bytes_: bytes, ver: Version = Version(0), strict: bool = False) -> Self:
         """
         Deserialize and create an instance of this struct from bytes
 
         Args:
             bytes_: The bytes to use for deserialization
             ver: The version whose bytes are being deserialized
+            strict: Raise an error if the complete file is not consumed after deserialization is complete
 
         Returns:
             An instance of this struct
@@ -106,12 +107,13 @@ class BaseStruct:
 
 
     @classmethod
-    def from_file(cls, filepath: str, strict: bool = True) -> Self:
+    def from_file(cls, filepath: str, ver: Version = Version(0), strict: bool = True) -> Self:
         """
         Deserialize and create an instance of this struct from the given file
 
         Args:
             filepath: The file to use for deserialization
+            ver: The version whose bytes are being deserialized
             strict: Raise an error if the complete file is not consumed after deserialization is complete
 
         Returns:

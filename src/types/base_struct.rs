@@ -337,10 +337,10 @@ impl BaseStruct {
     }
 
     #[classmethod]
-    #[pyo3(signature = (filepath, strict = true))]
-    fn from_file<'py>(cls: &Bound<'py, PyType>, filepath: &str, strict: bool) -> PyResult<Bound<'py, PyAny>> {
+    #[pyo3(signature = (filepath, ver = Version::new(vec![0, ]), strict = true))]
+    fn from_file<'py>(cls: &Bound<'py, PyType>, filepath: &str, ver: Version, strict: bool) -> PyResult<Bound<'py, PyAny>> {
         let mut stream = ByteStream::from_file(filepath)?;
-        let struct_ = BaseStruct::from_stream_(cls, &mut stream, Version::new(vec![0, ]), Some(filepath))?;
+        let struct_ = BaseStruct::from_stream_(cls, &mut stream, ver, Some(filepath))?;
         
         if !strict {
             return Ok(struct_);
