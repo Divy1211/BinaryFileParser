@@ -20,7 +20,7 @@ class Changed(Diff):
     new: Any
 
 class NestedDiff(Diff):
-    __match_args__ = ("nested",)
+    __match_args__ = ("children", )
 
     children: dict[str, Diff] | dict[int, Diff]
 

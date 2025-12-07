@@ -14,7 +14,7 @@ class Basic(Conflict):
     change2: Diff
 
 class NestedConflict(Conflict):
-    __match_args__ = ("nested", )
+    __match_args__ = ("children", )
 
     children: dict[str, Conflict] | dict[int, Conflict]
 
