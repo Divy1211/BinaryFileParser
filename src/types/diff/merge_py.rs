@@ -10,7 +10,16 @@ make_struct!(BasicPy(ConflictPy) as "Basic" {
     old: Option<PyObject>,
     change1: PyObject,
     change2: PyObject,
-} impl {});
+} impl {
+    fn __repr__(&self) -> String {
+        format!(
+            "Basic(old: {}, change1: {}, change2: {})",
+            self.old.as_ref().map(|value| value.to_string()).unwrap_or(String::from("None")),
+            self.change1,
+            self.change2,
+        )
+    }
+});
 
 make_struct!(NestedConflictPy(ConflictPy) as "NestedConflict" {
     children: Py<PyDict>,
@@ -18,5 +27,9 @@ make_struct!(NestedConflictPy(ConflictPy) as "NestedConflict" {
     fn __getitem__<'py>(slf: Bound<'py, Self>, key: Bound<'py, PyAny>) -> PyResult<Bound<'py, PyAny>> {
         let slf = slf.borrow();
         PyAnyMethods::get_item(slf.children.as_any().bind(slf.py()), key)
+    }
+    
+    fn __repr__(&self) -> String {
+        format!("NestedConflict(children: {})", self.children)
     }
 });

@@ -19,4 +19,4 @@ class NestedConflict(Conflict):
     children: dict[str, Conflict] | dict[int, Conflict]
 
     def __getitem__(self, item: Any) -> Diff:
-        pass
+        ...
