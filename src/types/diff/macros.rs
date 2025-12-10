@@ -2,7 +2,7 @@
 macro_rules! impl_into_pyobj {
     ($variant:ident, $base:ident) => {
         impl $variant {
-            pub fn into_pyany(self, py: Python) -> PyObject {
+            pub fn into_pyany(self, py: Python) -> Py<PyAny> {
                 Py::new(
                     py,
                     PyClassInitializer::from($base).add_subclass(self)

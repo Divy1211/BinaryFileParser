@@ -82,7 +82,7 @@ impl RetrieverRef {
             ref_struct = Some(instance);
             instance = inner;
         }
-        let borrow = instance.downcast::<BaseStruct>()?.borrow();
+        let borrow = instance.cast::<BaseStruct>()?.borrow();
         let inner = borrow.inner();
         
         let target = &slf.borrow().target;
@@ -155,7 +155,7 @@ impl RetrieverRef {
             instance = inner;
         }
 
-        let borrow = instance.downcast::<BaseStruct>()?.borrow();
+        let borrow = instance.cast::<BaseStruct>()?.borrow();
         let inner = borrow.inner();
         let ver = inner.ver.clone();
         drop(inner);
@@ -227,16 +227,16 @@ impl RetrieverRef {
             .into_iter().map(|val| {
             val.extract::<isize>()
                 .map(|num| Ref::Item(num))
-                .or_else(|_err| val.downcast::<Retriever>()
+                .or_else(|_err| val.cast::<Retriever>()
                     .map(|r| Ref::Attr(r.borrow().name.clone()))
                 )
-                .or_else(|_err| val.downcast::<RetrieverRef>()
+                .or_else(|_err| val.cast::<RetrieverRef>()
                     .map(|r| Ref::Attr(r.borrow().name.clone()))
                 )
-                .or_else(|_err| val.downcast::<RetrieverCombiner>()
+                .or_else(|_err| val.cast::<RetrieverCombiner>()
                     .map(|r| Ref::Attr(r.borrow().name.clone()))
                 )
-                .or_else(|_err| val.downcast::<Get>()
+                .or_else(|_err| val.cast::<Get>()
                     .map_err(|err| PyErr::from(err))
                     .and_then(|r| Ok(Ref::Get(r.extract()?))))
                 .map_err(|_err| {

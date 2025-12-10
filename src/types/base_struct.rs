@@ -106,7 +106,7 @@ impl BaseStruct {
         if cls.hasattr(name)? {
             cls.call_method(name, (&obj,), None)?;
         }
-        *(obj.downcast::<BaseStruct>().expect("always a BaseStruct subclass").borrow_mut()) = val;
+        *(obj.cast::<BaseStruct>().expect("always a BaseStruct subclass").borrow_mut()) = val;
         Ok(obj)
     }
     
@@ -117,7 +117,7 @@ impl BaseStruct {
             ))
         }
         let mut struct_ = match cls.getattr(intern!(cls.py(), "__struct_builder__")) {
-            Ok(struct_) => struct_.downcast_into::<StructBuilder>()?,
+            Ok(struct_) => struct_.cast_into::<StructBuilder>()?,
             Err(_) => {
                 let struct_ = Bound::new(cls.py(), StructBuilder::new())?;
                 cls.setattr("__struct_builder__", &struct_)?;
@@ -131,7 +131,7 @@ impl BaseStruct {
     
     pub fn add_comb(cls: &Bound<PyType>, retriever: &Bound<RetrieverCombiner>) -> PyResult<()> {
         let mut struct_ = match cls.getattr(intern!(cls.py(), "__struct_builder__")) {
-            Ok(struct_) => struct_.downcast_into::<StructBuilder>()?,
+            Ok(struct_) => struct_.cast_into::<StructBuilder>()?,
             Err(_) => {
                 return Err(PyTypeError::new_err(
                     "Cannot create combiners in classes that do not subclass BaseStruct. Note that the first retriever in a BaseStruct cannot be a ref or a combiner"
@@ -143,7 +143,7 @@ impl BaseStruct {
     
     pub fn add_ref(cls: &Bound<PyType>, retriever: &Bound<RetrieverRef>) -> PyResult<()> {
         let mut struct_ = match cls.getattr(intern!(cls.py(), "__struct_builder__")) {
-            Ok(struct_) => struct_.downcast_into::<StructBuilder>()?,
+            Ok(struct_) => struct_.cast_into::<StructBuilder>()?,
             Err(_) => {
                 return Err(PyTypeError::new_err(
                     "Cannot create refs in classes that do not subclass BaseStruct or RefStruct. Note that the first retriever in a BaseStruct cannot be a ref or a combiner"

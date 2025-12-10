@@ -252,7 +252,7 @@ impl BfpList {
                 .to_bound(slf.py());
         }
         if item.is_instance_of::<PySlice>() {
-            let item = item.downcast_into::<PySlice>().expect("infallible");
+            let item = item.cast_into::<PySlice>().expect("infallible");
             let idxes = slice(item.indices(inner.data.len() as isize)?)?;
             
             return Ok(
@@ -283,7 +283,7 @@ impl BfpList {
             return Ok(())
         }
         if item.is_instance_of::<PySlice>() {
-            let item = item.downcast_into::<PySlice>().expect("infallible");
+            let item = item.cast_into::<PySlice>().expect("infallible");
             let idxes = slice(item.indices(inner.data.len() as isize)?)?;
 
             let vals = val.try_iter()?
@@ -321,7 +321,7 @@ impl BfpList {
             return Ok(())
         }
         if item.is_instance_of::<PySlice>() {
-            let item = item.downcast_into::<PySlice>().expect("infallible");
+            let item = item.cast_into::<PySlice>().expect("infallible");
             let idxes = slice(item.indices(inner.data.len() as isize)?)?;
             
             for i in idxes.into_iter().rev() {

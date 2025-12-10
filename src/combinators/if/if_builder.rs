@@ -125,7 +125,7 @@ impl IfBuilder {
 
         if len == 1 {
             let item = unsafe { source.get_item_unchecked(0) };
-            if let Ok(_ret) = item.downcast::<Retriever>() {
+            if let Ok(_ret) = item.cast::<Retriever>() {
                 self.cmp_path(source, ord)
             } else if let Ok(get) = item.extract::<Get>() {
                 self.cmp_get(get, ord)

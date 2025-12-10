@@ -64,7 +64,7 @@ impl Array {
                 ls
             },
             Err(_) => {
-                let ls = ls.downcast::<PyList>()?.iter()
+                let ls = ls.cast::<PyList>()?.iter()
                     .map(|value| self.data_type.to_parseable(&value))
                     .collect::<PyResult<Vec<_>>>()?;
                 BfpList::new(ls, *self.data_type.clone())

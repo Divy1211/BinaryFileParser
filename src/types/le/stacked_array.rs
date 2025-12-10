@@ -82,7 +82,7 @@ impl StackedArray {
             },
             Err(_) => {
                 let array_type = Array::from_stacked(self);
-                let ls = ls.downcast::<PyList>()?.iter()
+                let ls = ls.cast::<PyList>()?.iter()
                     .map(|value| array_type.get_bfp_ls(&value).map(ParseableType::from))
                     .collect::<PyResult<Vec<_>>>()?;
                 BfpList::new(ls, BfpType::Array(array_type))

@@ -59,7 +59,7 @@ impl ContextPtr {
         let mut ctx = Context::new();
         for (key, value) in keys {
             let key = key.extract::<String>().expect("kwarg");
-            let value = value.downcast::<PyTuple>()?;
+            let value = value.cast::<PyTuple>()?;
             if <Bound<PyTuple> as PyTupleMethods>::len(&value) != 2 {
                 return Err(PyValueError::new_err(format!(
                     "Could not create key from argument '{}'. Context keys must be a (data_type, value) pair",

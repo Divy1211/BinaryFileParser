@@ -88,7 +88,7 @@ impl BfpType {
         Ok(match value.extract::<BfpType>() {
             Ok(type_) => type_,
             Err(_) => {
-                let cls = value.downcast::<PyType>()?;
+                let cls = value.cast::<PyType>()?;
                 if !cls.is_subclass_of::<BaseStruct>()? {
                     return Err(PyTypeError::new_err(
                         "Cannot create a BfpType from a class that does not subclass BaseStruct"

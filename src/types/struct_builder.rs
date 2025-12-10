@@ -1,4 +1,4 @@
-use pyo3::{intern, pyclass, Bound, PyObject, PyResult};
+use pyo3::{intern, pyclass, Bound, Py, PyAny, PyErr, PyResult};
 use pyo3::types::{PyBytes, PyString, PyType};
 use pyo3::prelude::{PyAnyMethods, PyTypeMethods};
 
@@ -52,7 +52,7 @@ impl StructBuilder {
         if builder.is_none() {
             return cls
                 .getattr(intern!(cls.py(), "__struct__")).expect("always a BaseStruct subclass")
-                .extract();
+                .extract().map_err(PyErr::from);
         }
         
         let mut builder = builder.extract::<StructBuilder>().expect("infallible");
@@ -93,7 +93,7 @@ impl StructBuilder {
     }
 }
 
-fn get_if_impl(cls: &Bound<PyType>, attr: &Bound<PyString>) -> Option<PyObject> {
+fn get_if_impl(cls: &Bound<PyType>, attr: &Bound<PyString>) -> Option<Py<PyAny>> {
     let py = cls.py();
     let obj = cls.getattr(attr).expect("always a BaseStruct subclass");
     if attr == "_get_version" {

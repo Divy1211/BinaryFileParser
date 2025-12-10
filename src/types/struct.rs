@@ -30,9 +30,9 @@ pub struct StructRaw {
     
     pub is_compressed: bool,
     
-    pub get_ver: Option<PyObject>,
-    pub compress: Option<PyObject>,
-    pub decompress: Option<PyObject>,
+    pub get_ver: Option<Py<PyAny>>,
+    pub compress: Option<Py<PyAny>>,
+    pub decompress: Option<Py<PyAny>>,
 }
 
 #[pyclass(module = "bfp_rs", eq)]
@@ -75,9 +75,9 @@ impl Struct {
             return Ok(ver.clone())
         };
         
-        Python::with_gil(|py| {
+        Python::attach(|py| {
             let ver = fn_.call(py, (stream.clone(), ver.clone()), None)?;
-            ver.extract::<Version>(py)
+            ver.extract::<Version>(py).map_err(PyErr::from)
         })
     }
 
@@ -88,7 +88,7 @@ impl Struct {
             ))
         };
 
-        Python::with_gil(|py| {
+        Python::attach(|py| {
             let bytes = fn_.call(py, (PyBytes::new(py, bytes),), None)?;
             Ok(ByteStream::from_bytes(bytes.extract::<&[u8]>(py)?))
         })
@@ -101,7 +101,7 @@ impl Struct {
             ))
         };
 
-        Python::with_gil(|py| {
+        Python::attach(|py| {
             let py_bytes = fn_.call(py, (PyBytes::new(py, &bytes[idx..]),), None)?;
             bytes.truncate(idx);
             bytes.extend_from_slice(py_bytes.extract::<&[u8]>(py)?);
@@ -151,7 +151,7 @@ impl Struct {
                 RetState::NoneValue | RetState::NoneList => { ParseableType::None }
                 RetState::Value => {
                     retriever.from_stream_ctx(stream, &ver, ctx)
-                        .map_err(|e| { Python::with_gil(|py| {
+                        .map_err(|e| { Python::attach(|py| {
                             let err = ParsingError::new_err(format!("Error occurred while reading '{}'", retriever.name));
                             err.set_cause(py, Some(e));
                             err
@@ -163,7 +163,7 @@ impl Struct {
                         ctx.idxes.push(i as usize);
                         ls.push(
                             retriever.from_stream_ctx(stream, &ver, ctx)
-                                .map_err(|e| { Python::with_gil(|py| {
+                                .map_err(|e| { Python::attach(|py| {
                                     let err = ParsingError::new_err(format!("Error occurred while reading '{}'", retriever.name));
                                     err.set_cause(py, Some(e));
                                     err

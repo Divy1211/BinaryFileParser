@@ -180,7 +180,7 @@ impl Get {
                     stack.push(*num)
                 },
                 Item::Ref(source) => {
-                    let borrow = struct_.downcast::<BaseStruct>()?.borrow();
+                    let borrow = struct_.cast::<BaseStruct>()?.borrow();
                     let struct_ = StructBuilder::get_struct(&struct_.get_type())?;
                     let inner = borrow.inner();
 
@@ -191,7 +191,7 @@ impl Get {
                     stack.push(val);
                 },
                 Item::RefLen(source) => {
-                    let borrow = struct_.downcast::<BaseStruct>()?.borrow();
+                    let borrow = struct_.cast::<BaseStruct>()?.borrow();
                     let struct_ = StructBuilder::get_struct(&struct_.get_type())?;
                     let inner = borrow.inner();
 

@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use pyo3::prelude::*;
 use pyo3::types::PyType;
-use pyo3::{pyclass, PyObject};
+use pyo3::{pyclass};
 use pyo3::exceptions::{PyTypeError, PyValueError};
 use crate::combinators::combinator::Combinator;
 use crate::combinators::combinator_type::CombinatorType;
@@ -52,11 +52,11 @@ pub struct Retriever {
     on_read: Option<Arc<Vec<CombinatorType>>>,
     on_write: Option<Arc<Vec<CombinatorType>>>,
 
-    default: Option<Arc<PyObject>>,
-    default_factory: Option<Arc<PyObject>>,
+    default: Option<Arc<Py<PyAny>>>,
+    default_factory: Option<Arc<Py<PyAny>>>,
 
-    tmp_on_read: Option<Arc<PyObject>>,
-    tmp_on_write: Option<Arc<PyObject>>,
+    tmp_on_read: Option<Arc<Py<PyAny>>>,
+    tmp_on_write: Option<Arc<Py<PyAny>>>,
 }
 
 #[pymethods]
@@ -77,14 +77,14 @@ impl Retriever {
         min_ver: Version,
         max_ver: Version,
 
-        default: Option<PyObject>,
-        default_factory: Option<PyObject>,
+        default: Option<Py<PyAny>>,
+        default_factory: Option<Py<PyAny>>,
 
         repeat: isize,
         remaining_compressed: bool,
 
-        on_read: Option<PyObject>,
-        on_write: Option<PyObject>,
+        on_read: Option<Py<PyAny>>,
+        on_write: Option<Py<PyAny>>,
     ) -> PyResult<Self> {
         let tmp_on_read = match on_read {
             None => { None }
@@ -138,7 +138,7 @@ impl Retriever {
             return Ok(slf.into_any())
         }
         let slf = slf.borrow();
-        let instance = instance.downcast::<BaseStruct>()?.borrow();
+        let instance = instance.cast::<BaseStruct>()?.borrow();
         let inner = instance.inner();
         if !slf.supported(&inner.ver) {
             return Err(VersionError::new_err(format!(

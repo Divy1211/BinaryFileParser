@@ -154,7 +154,7 @@ impl StrArray {
                 enc2: None
             }));
         }
-        let Ok(tup) = len_or_encodings.downcast::<PyTuple>() else {
+        let Ok(tup) = len_or_encodings.cast::<PyTuple>() else {
             return Err(PyTypeError::new_err("Only encodings may be specified as arguments to string types"))
         };
         if tup.len() != 2 {

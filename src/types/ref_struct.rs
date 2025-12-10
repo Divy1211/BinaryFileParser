@@ -17,7 +17,7 @@ pub struct RefStruct {
 impl RefStruct {
     pub fn add_ref(cls: &Bound<PyType>, ref_: &Bound<RetrieverRef>) -> PyResult<()> {
         let info = match cls.getattr(intern!(cls.py(), "info")) {
-            Ok(info) => info.downcast_into::<RefInfo>()?,
+            Ok(info) => info.cast_into::<RefInfo>()?,
             Err(_) => {
                 let info = Bound::new(cls.py(), RefInfo::new())?;
                 cls.setattr("info", &info)?;

@@ -1,4 +1,4 @@
-use pyo3::{PyObject, PyResult, Python};
+use pyo3::{Py, PyAny, PyResult, Python};
 use crate::types::diff::diff::{Diff, Diffable, IDiff};
 use crate::types::diff::struct_mergeable::StructMergeable;
 use crate::types::merge_py::{BasicPy, NestedConflictPy};
@@ -25,7 +25,7 @@ impl<T> Conflict<T> {
 }
 
 impl Conflict<ParseableType> {
-    pub fn to_pyobj(self, old: Option<&mut ParseableType>, py: Python<'_>) -> PyResult<PyObject> {
+    pub fn to_pyobj(self, old: Option<&mut ParseableType>, py: Python<'_>) -> PyResult<Py<PyAny>> {
         match self {
             Conflict::Basic(_, change1, change2) => {
                 let old = old.as_deref();

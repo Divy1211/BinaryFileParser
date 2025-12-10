@@ -7,9 +7,9 @@ use crate::{make_struct, impl_into_pyobj, match_args_type};
 pub struct ConflictPy;
 
 make_struct!(BasicPy(ConflictPy) as "Basic" {
-    old: Option<PyObject>,
-    change1: PyObject,
-    change2: PyObject,
+    old: Option<Py<PyAny>>,
+    change1: Py<PyAny>,
+    change2: Py<PyAny>,
 } impl {
     fn __repr__(&self) -> String {
         format!(

@@ -7,7 +7,7 @@ use crate::{make_struct, impl_into_pyobj, match_args_type};
 pub struct DiffPy;
 
 make_struct!(InsertedPy(DiffPy) as "Inserted" {
-    value: PyObject
+    value: Py<PyAny>
 } impl {
     fn __repr__(&self) -> String {
         format!("Diff(value: {})", self.value)
@@ -15,7 +15,7 @@ make_struct!(InsertedPy(DiffPy) as "Inserted" {
 });
 
 make_struct!(DeletedPy(DiffPy) as "Deleted" {
-    value: PyObject
+    value: Py<PyAny>
 } impl {
     fn __repr__(&self) -> String {
         format!("Deleted(value: {})", self.value)
@@ -23,8 +23,8 @@ make_struct!(DeletedPy(DiffPy) as "Deleted" {
 });
 
 make_struct!(ChangedPy(DiffPy) as "Changed" {
-    old: PyObject,
-    new: PyObject
+    old: Py<PyAny>,
+    new: Py<PyAny>
 } impl {
     fn __repr__(&self) -> String {
         format!("Changed(old: {}, new: {})", self.old, self.new)

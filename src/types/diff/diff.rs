@@ -1,4 +1,4 @@
-use pyo3::{Python, PyObject, PyResult};
+use pyo3::{Python, PyResult, PyAny, Py};
 use crate::types::diff::struct_diffable::StructDiffable;
 use crate::types::diff_py::{ChangedPy, DeletedPy, InsertedPy, NestedDiffPy};
 use crate::types::parseable_type::ParseableType;
@@ -29,7 +29,7 @@ pub trait Diffable<T> : Sized {
 pub type IDiff<T> = (usize, Diff<T>);
 
 impl Diff<ParseableType> {
-    pub fn to_pyobj(self, old: Option<&ParseableType>, py: Python<'_>) -> PyResult<PyObject> {
+    pub fn to_pyobj(self, old: Option<&ParseableType>, py: Python<'_>) -> PyResult<Py<PyAny>> {
         match self {
             Diff::None => { Ok(py.None()) }
             Diff::Inserted(val) => {

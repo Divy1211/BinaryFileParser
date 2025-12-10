@@ -94,7 +94,7 @@ impl Str {
         if let Ok(enc1) = encodings.extract::<Encoding>() {
             return Ok(BfpType::Str(Str { len_type: self.len_type.clone(), enc1, enc2: None }));
         }
-        let Ok(tup) = encodings.downcast::<PyTuple>() else {
+        let Ok(tup) = encodings.cast::<PyTuple>() else {
             return Err(PyTypeError::new_err("Only encodings may be specified as arguments to string types"))
         };
         if tup.len() != 2 {
