@@ -1,4 +1,4 @@
-use pyo3::{IntoPy, PyObject, PyResult, Python};
+use pyo3::{PyObject, PyResult, Python};
 use crate::types::diff::diff::{Diff, Diffable, IDiff};
 use crate::types::diff::struct_mergeable::StructMergeable;
 use crate::types::merge_py::{BasicPy, NestedConflictPy};
@@ -36,7 +36,7 @@ impl Conflict<ParseableType> {
                         .map(|val| val.unbind()),
                     change1: change1.to_pyobj(old, py)?,
                     change2: change2.to_pyobj(old, py)?,
-                }.into_py(py))
+                }.into_pyany(py))
             }
             Conflict::Nested(_, conflicts) => {
                 let val = old.expect("Conflict::Nested: Merging structs of different versions is not allowed");
@@ -44,12 +44,12 @@ impl Conflict<ParseableType> {
                     ParseableType::Struct { val, struct_ } => {
                         Ok(NestedConflictPy {
                             children: StructMergeable(struct_, val).to_dict(conflicts, py)?.unbind()
-                        }.into_py(py))
+                        }.into_pyany(py))
                     }
                     ParseableType::Array(ls) => {
                         Ok(NestedConflictPy {
                             children: ls.conflicts_to_dict(conflicts, py)?.unbind()
-                        }.into_py(py))
+                        }.into_pyany(py))
                     }
                     _ => { unreachable!("Conflict::Nested cannot be created with non-nested data") }
                 }

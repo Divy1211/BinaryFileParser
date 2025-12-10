@@ -69,7 +69,7 @@ impl Str {
     #[pyo3(name = "to_bytes")]
     fn to_bytes_py(slf: PyRef<Self>, value: <Self as Parseable>::Type) -> PyResult<Bound<PyBytes>> {
         let bytes = slf.to_bytes(&value)?;
-        Ok(PyBytes::new_bound(slf.py(), &bytes))
+        Ok(PyBytes::new(slf.py(), &bytes))
     }
 
     #[pyo3(name = "from_stream", signature = (stream, ver = Version::new(vec![0,])))]

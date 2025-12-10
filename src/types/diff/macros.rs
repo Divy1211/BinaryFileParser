@@ -1,8 +1,8 @@
 #[macro_export]
 macro_rules! impl_into_pyobj {
     ($variant:ident, $base:ident) => {
-        impl IntoPy<PyObject> for $variant {
-            fn into_py(self, py: Python<'_>) -> PyObject {
+        impl $variant {
+            pub fn into_pyany(self, py: Python) -> PyObject {
                 Py::new(
                     py,
                     PyClassInitializer::from($base).add_subclass(self)

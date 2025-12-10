@@ -1,7 +1,7 @@
 use std::cmp::Ordering;
 use std::hash::{Hash, Hasher};
 
-use pyo3::{Bound, IntoPy, PyAny, PyResult, Python};
+use pyo3::{Bound, IntoPyObjectExt, PyAny, PyResult, Python};
 use pyo3::types::PyBytes;
 use serde::{Serialize, Serializer};
 
@@ -63,28 +63,28 @@ impl ParseableType {
     pub fn to_bound(self, py: Python) -> PyResult<Bound<'_, PyAny>> {
         match self {
             ParseableType::None                         => Ok(py.None().into_bound(py)),
-            ParseableType::UInt8(val)                   => Ok(val.into_py(py).into_bound(py)),
-            ParseableType::UInt16(val)                  => Ok(val.into_py(py).into_bound(py)),
-            ParseableType::UInt32(val)                  => Ok(val.into_py(py).into_bound(py)),
-            ParseableType::UInt64(val)                  => Ok(val.into_py(py).into_bound(py)),
-            ParseableType::UInt128(val)                 => Ok(val.into_py(py).into_bound(py)),
+            ParseableType::UInt8(val)                   => Ok(val.into_bound_py_any(py)?),
+            ParseableType::UInt16(val)                  => Ok(val.into_bound_py_any(py)?),
+            ParseableType::UInt32(val)                  => Ok(val.into_bound_py_any(py)?),
+            ParseableType::UInt64(val)                  => Ok(val.into_bound_py_any(py)?),
+            ParseableType::UInt128(val)                 => Ok(val.into_bound_py_any(py)?),
 
-            ParseableType::Int8(val)                    => Ok(val.into_py(py).into_bound(py)),
-            ParseableType::Int16(val)                   => Ok(val.into_py(py).into_bound(py)),
-            ParseableType::Int32(val)                   => Ok(val.into_py(py).into_bound(py)),
-            ParseableType::Int64(val)                   => Ok(val.into_py(py).into_bound(py)),
-            ParseableType::Int128(val)                  => Ok(val.into_py(py).into_bound(py)),
+            ParseableType::Int8(val)                    => Ok(val.into_bound_py_any(py)?),
+            ParseableType::Int16(val)                   => Ok(val.into_bound_py_any(py)?),
+            ParseableType::Int32(val)                   => Ok(val.into_bound_py_any(py)?),
+            ParseableType::Int64(val)                   => Ok(val.into_bound_py_any(py)?),
+            ParseableType::Int128(val)                  => Ok(val.into_bound_py_any(py)?),
 
-            ParseableType::Float32(val)                 => Ok(val.into_py(py).into_bound(py)),
-            ParseableType::Float64(val)                 => Ok(val.into_py(py).into_bound(py)),
+            ParseableType::Float32(val)                 => Ok(val.into_bound_py_any(py)?),
+            ParseableType::Float64(val)                 => Ok(val.into_bound_py_any(py)?),
 
-            ParseableType::Bool(val)                    => Ok(val.into_py(py).into_bound(py)),
+            ParseableType::Bool(val)                    => Ok(val.into_bound_py_any(py)?),
 
-            ParseableType::Str(val)                     => Ok(val.into_py(py).into_bound(py)),
+            ParseableType::Str(val)                     => Ok(val.into_bound_py_any(py)?),
 
-            ParseableType::Array(val)                   => Ok(val.into_py(py).into_bound(py)),
+            ParseableType::Array(val)                   => Ok(val.into_bound_py_any(py)?),
 
-            ParseableType::Bytes(val)                   => Ok(PyBytes::new_bound(py, &val).into_any()),
+            ParseableType::Bytes(val)                   => Ok(PyBytes::new(py, &val).into_any()),
 
             ParseableType::Option(val)                  => { 
                 match val {

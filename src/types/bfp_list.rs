@@ -6,7 +6,7 @@ use std::sync::RwLock;
 use pyo3::exceptions::{PyIndexError, PyTypeError, PyValueError};
 use pyo3::prelude::{PyAnyMethods, PyDictMethods, PyTypeMethods};
 use pyo3::types::{PyDict, PyInt, PySlice, PySliceIndices, PySliceMethods};
-use pyo3::{pyclass, pymethods, Bound, IntoPy, PyAny, PyRef, PyRefMut, PyResult, Python};
+use pyo3::{pyclass, pymethods, Bound, IntoPyObjectExt, PyAny, PyRef, PyRefMut, PyResult, Python};
 use serde::{Serialize, Serializer};
 use crate::errors::mutability_error::MutabilityError;
 use crate::types::bfp_type::BfpType;
@@ -93,7 +93,7 @@ impl BfpList {
             return Err(MutabilityError::new_err("This list is set as immutable by it's API designer"));
         }
 
-        let mut vals = val.iter()?
+        let mut vals = val.try_iter()?
             .map(|v| {
                 inner.data_type.to_parseable(&v.expect("obtained from python"))
             })
@@ -259,8 +259,7 @@ impl BfpList {
                 idxes.into_iter()
                     .map(|idx| inner.data[idx].clone().to_bound(slf.py()))
                     .collect::<PyResult<Vec<_>>>()?
-                    .into_py(slf.py())
-                    .into_bound(slf.py())
+                    .into_bound_py_any(slf.py())?
             )
         }
         Err(PyIndexError::new_err(
@@ -287,7 +286,7 @@ impl BfpList {
             let item = item.downcast_into::<PySlice>().expect("infallible");
             let idxes = slice(item.indices(inner.data.len() as isize)?)?;
 
-            let vals = val.iter()?
+            let vals = val.try_iter()?
                 .map(|v| v.expect("obtained from python"))
                 .collect::<Vec<_>>();
             if idxes.len() != vals.len() {
@@ -479,7 +478,7 @@ impl BfpList {
 
 impl BfpList {
     pub fn diffs_to_dict<'py>(&self, changes: Vec<IDiff<ParseableType>>, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
-        let di = PyDict::new_bound(py);
+        let di = PyDict::new(py);
         let inner = self.inner();
         for (idx, change) in changes {
             PyDictMethods::set_item(
@@ -492,7 +491,7 @@ impl BfpList {
     }
 
     pub fn conflicts_to_dict<'py>(&self, conflicts: Vec<Conflict<ParseableType>>, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
-        let di = PyDict::new_bound(py);
+        let di = PyDict::new(py);
         let mut inner = self.inner_mut();
         for conflict in conflicts {
             let idx = conflict.idx();

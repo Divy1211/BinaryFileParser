@@ -53,7 +53,7 @@ pub mod combinators;
 pub mod help;
 
 fn le(py: Python, types: &Bound<PyModule>) -> PyResult<()> {
-    let le = PyModule::new_bound(types.py(), "bfp_rs.types.le")?;
+    let le = PyModule::new(types.py(), "bfp_rs.types.le")?;
     py_run!(py, le, "import sys; sys.modules['bfp_rs.types.le'] = le");
     types.add_submodule(&le)?;
 
@@ -136,7 +136,7 @@ fn le(py: Python, types: &Bound<PyModule>) -> PyResult<()> {
 }
 
 fn types(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
-    let types = PyModule::new_bound(bfp.py(), "bfp_rs.types")?;
+    let types = PyModule::new(bfp.py(), "bfp_rs.types")?;
     py_run!(py, types, "import sys; sys.modules['bfp_rs.types'] = types");
     bfp.add_submodule(&types)?;
 
@@ -146,7 +146,7 @@ fn types(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
 }
 
 fn combinators(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
-    let combinators = &PyModule::new_bound(bfp.py(), "bfp_rs.combinators")?;
+    let combinators = &PyModule::new(bfp.py(), "bfp_rs.combinators")?;
     py_run!(py, combinators, "import sys; sys.modules['bfp_rs.combinators'] = combinators");
     bfp.add_submodule(combinators)?;
 
@@ -170,20 +170,20 @@ fn combinators(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
 }
 
 fn errors(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
-    let errors = PyModule::new_bound(bfp.py(), "bfp_rs.errors")?;
+    let errors = PyModule::new(bfp.py(), "bfp_rs.errors")?;
     py_run!(py, errors, "import sys; sys.modules['bfp_rs.errors'] = errors");
     bfp.add_submodule(&errors)?;
-    errors.add("ParsingError", py.get_type_bound::<ParsingError>())?;
-    errors.add("CompressionError", py.get_type_bound::<CompressionError>())?;
-    errors.add("DefaultValueError", py.get_type_bound::<DefaultAttributeError>())?;
-    errors.add("VersionError", py.get_type_bound::<VersionError>())?;
-    errors.add("MutabilityError", py.get_type_bound::<MutabilityError>())?;
+    errors.add("ParsingError", py.get_type::<ParsingError>())?;
+    errors.add("CompressionError", py.get_type::<CompressionError>())?;
+    errors.add("DefaultValueError", py.get_type::<DefaultAttributeError>())?;
+    errors.add("VersionError", py.get_type::<VersionError>())?;
+    errors.add("MutabilityError", py.get_type::<MutabilityError>())?;
 
     Ok(())
 }
 
 fn diff(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
-    let diff = PyModule::new_bound(bfp.py(), "bfp_rs.diff")?;
+    let diff = PyModule::new(bfp.py(), "bfp_rs.diff")?;
     py_run!(py, diff, "import sys; sys.modules['bfp_rs.diff'] = diff");
     bfp.add_submodule(&diff)?;
 

@@ -102,7 +102,7 @@ fn get_if_impl(cls: &Bound<PyType>, attr: &Bound<PyString>) -> Option<PyObject> 
             _ => Some(obj.unbind())
         }
     } else {
-        match obj.call1((PyBytes::new_bound(py, &[]),)) {
+        match obj.call1((PyBytes::new(py, &[]),)) {
             Err(err) if err.is_instance_of::<CompressionError>(py) => None,
             _ => Some(obj.unbind())
         }

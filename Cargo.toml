@@ -1,6 +1,6 @@
 [package]
 name = "bfp-rs"
-version = "0.3.0-alpha17"
+version = "0.3.0-alpha18"
 edition = "2021"
 
 [profile.release]
@@ -23,7 +23,7 @@ name = "bfp_rs"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = "0.22.0"
+pyo3 = "0.24.2"
 encoding_rs = "0.8.35"
 indicatif = "0.17.11"
 serde = "1.0.219"

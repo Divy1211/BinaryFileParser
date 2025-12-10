@@ -1,4 +1,5 @@
 use std::cell::OnceCell;
+use std::ffi::CString;
 use std::sync::Arc;
 use pyo3::exceptions::{PyTypeError, PyValueError};
 use pyo3::intern;
@@ -45,8 +46,8 @@ impl RetrieverRef {
         let enum_ = match r#enum {
             None => None,
             Some(cls) => {
-                let globals = PyDict::new_bound(cls.py());
-                cls.py().run_bound("from enum import Enum", Some(&globals), None)?;
+                let globals = PyDict::new(cls.py());
+                cls.py().run(&CString::new("from enum import Enum")?, Some(&globals), None)?;
                 let enum_cls = globals.get_item("Enum")?.expect("infallible");
 
                 if !cls.is_subclass(&enum_cls)? {
@@ -132,10 +133,10 @@ impl RetrieverRef {
         Ok(current)
     }
 
-    fn __set__(
-        slf: Bound<Self>,
-        mut instance: Bound<PyAny>,
-        mut value: Bound<PyAny>,
+    fn __set__<'py>(
+        slf: Bound<'py, Self>,
+        mut instance: Bound<'py, PyAny>,
+        mut value: Bound<'py, PyAny>,
     ) -> PyResult<()> {
         let this = slf.borrow();
         if let Some(cls) = &this.enum_ {

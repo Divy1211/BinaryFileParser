@@ -398,7 +398,7 @@ impl BfpType {
     #[pyo3(name = "to_bytes")]
     fn to_bytes_py<'py>(slf: PyRef<'py, Self>, value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyBytes>> {
         let bytes = slf.to_bytes(&slf.to_parseable(value)?)?;
-        Ok(PyBytes::new_bound(slf.py(), &bytes))
+        Ok(PyBytes::new(slf.py(), &bytes))
     }
 
     #[pyo3(name = "from_stream", signature = (stream, ver = Version::new(vec![0,])))]

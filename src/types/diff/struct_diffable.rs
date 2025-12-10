@@ -57,7 +57,7 @@ impl StructDiffable<'_, '_> {
         let retrievers = self.0.retrievers();
         let inner = self.1.inner();
 
-        let di = PyDict::new_bound(py);
+        let di = PyDict::new(py);
         let Diff::Nested(diff) = diff else {
             return Ok(di);
         };

@@ -131,7 +131,7 @@ impl StructMergeable<'_, '_> {
         let retrievers = self.0.retrievers();
         let mut inner = self.1.inner_mut();
 
-        let di = PyDict::new_bound(py);
+        let di = PyDict::new(py);
         if conflicts.len() == 0 {
             return Ok(di);
         }

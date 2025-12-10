@@ -76,7 +76,7 @@ impl Struct {
         };
         
         Python::with_gil(|py| {
-            let ver = fn_.call_bound(py, (stream.clone(), ver.clone()), None)?;
+            let ver = fn_.call(py, (stream.clone(), ver.clone()), None)?;
             ver.extract::<Version>(py)
         })
     }
@@ -89,7 +89,7 @@ impl Struct {
         };
 
         Python::with_gil(|py| {
-            let bytes = fn_.call_bound(py, (PyBytes::new_bound(py, bytes),), None)?;
+            let bytes = fn_.call(py, (PyBytes::new(py, bytes),), None)?;
             Ok(ByteStream::from_bytes(bytes.extract::<&[u8]>(py)?))
         })
     }
@@ -102,7 +102,7 @@ impl Struct {
         };
 
         Python::with_gil(|py| {
-            let py_bytes = fn_.call_bound(py, (PyBytes::new_bound(py, &bytes[idx..]),), None)?;
+            let py_bytes = fn_.call(py, (PyBytes::new(py, &bytes[idx..]),), None)?;
             bytes.truncate(idx);
             bytes.extend_from_slice(py_bytes.extract::<&[u8]>(py)?);
             Ok(())

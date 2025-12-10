@@ -190,7 +190,7 @@ impl Retriever {
                         "List length mismatch for '{}' which is a retriever of fixed repeat. Expected: {repeat}, Actual: {len}", slf.name
                     )))
                 }
-                let value = value.iter()?
+                let value = value.try_iter()?
                     .map(|v| {
                         slf.data_type.to_parseable(&v.expect("obtained from python"))
                     }).collect::<PyResult<Vec<_>>>()?;
@@ -231,9 +231,9 @@ impl Retriever {
 
         if let Some(default_factory) = self.default_factory.as_ref() {
             let first_default = default_factory
-                .call_bound(py, (ver.clone(),) , None)
+                .call(py, (ver.clone(),) , None)
                 .or_else(|_err| {
-                    default_factory.call_bound(py, (ver.clone(), ctx.clone()) , None)
+                    default_factory.call(py, (ver.clone(), ctx.clone()) , None)
                 })?
                 .into_bound(py);
             if state == RetState::Value {
@@ -260,9 +260,9 @@ impl Retriever {
 
             for _ in 1..repeat {
                 let default = default_factory
-                    .call_bound(py, (ver.clone(),), None)
+                    .call(py, (ver.clone(),), None)
                     .or_else(|_err| {
-                        default_factory.call_bound(py, (ver.clone(), ctx.clone()) , None)
+                        default_factory.call(py, (ver.clone(), ctx.clone()) , None)
                     })?
                     .into_bound(py);
                 ls.push(self.data_type.to_parseable(&default)?);

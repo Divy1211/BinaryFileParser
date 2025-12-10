@@ -1,4 +1,4 @@
-use pyo3::{Python, PyObject, PyResult, IntoPy};
+use pyo3::{Python, PyObject, PyResult};
 use crate::types::diff::struct_diffable::StructDiffable;
 use crate::types::diff_py::{ChangedPy, DeletedPy, InsertedPy, NestedDiffPy};
 use crate::types::parseable_type::ParseableType;
@@ -33,10 +33,10 @@ impl Diff<ParseableType> {
         match self {
             Diff::None => { Ok(py.None()) }
             Diff::Inserted(val) => {
-                Ok(InsertedPy { value: val.to_bound(py)?.unbind() }.into_py(py))
+                Ok(InsertedPy { value: val.to_bound(py)?.unbind() }.into_pyany(py))
             }
             Diff::Deleted(val) => {
-                Ok(DeletedPy { value: val.to_bound(py)?.unbind() }.into_py(py))
+                Ok(DeletedPy { value: val.to_bound(py)?.unbind() }.into_pyany(py))
             }
             Diff::Changed(val) => {
                 Ok(ChangedPy {
@@ -44,7 +44,7 @@ impl Diff<ParseableType> {
                         .expect("Diff::Changed cannot be created with unsupported attributes")
                         .to_bound(py)?.unbind(),
                     new: val.to_bound(py)?.unbind()
-                }.into_py(py))
+                }.into_pyany(py))
             }
             Diff::Nested(changes) => {
                 let val = old.expect("Diff::Changed cannot be created with unsupported attributes");
@@ -52,12 +52,12 @@ impl Diff<ParseableType> {
                     ParseableType::Struct { val, struct_ } => {
                         Ok(NestedDiffPy {
                             children: StructDiffable(struct_, val).to_dict(Diff::Nested(changes), py)?.unbind()
-                        }.into_py(py))
+                        }.into_pyany(py))
                     }
                     ParseableType::Array(ls) => {
                         Ok(NestedDiffPy {
                             children: ls.diffs_to_dict(changes, py)?.unbind()
-                        }.into_py(py))
+                        }.into_pyany(py))
                     }
                     _ => { unreachable!("Diff::Nested cannot be created with non-nested data") }
                 }

@@ -100,7 +100,7 @@ impl ByteStream {
         let mut slf = slf.borrow_mut();
         let py = slf.py();
         let bytes = slf.get(n)?;
-        Ok(PyBytes::new_bound(py, &bytes))
+        Ok(PyBytes::new(py, &bytes))
     }
 
     #[pyo3(name = "peek")]
@@ -108,14 +108,14 @@ impl ByteStream {
         let slf = slf.borrow();
         let py = slf.py();
         let bytes = slf.peek(n)?;
-        Ok(PyBytes::new_bound(py, &bytes))
+        Ok(PyBytes::new(py, &bytes))
     }
 
     #[pyo3(name = "remaining")]
     fn remaining_py<'py>(slf: Bound<'py, Self>) -> PyResult<Bound<'py, PyBytes>> {
         let mut slf = slf.borrow_mut();
         let py = slf.py();
-        Ok(PyBytes::new_bound(py, slf.remaining()))
+        Ok(PyBytes::new(py, slf.remaining()))
     }
 
     #[pyo3(name = "is_empty")]

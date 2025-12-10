@@ -1,5 +1,5 @@
 use pyo3::prelude::*;
-use pyo3::types::PyDict;
+use pyo3::types::{PyDict};
 
 use crate::{make_struct, impl_into_pyobj, match_args_type};
 

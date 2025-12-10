@@ -97,9 +97,9 @@ impl BaseStruct {
 
     // todo: figure out unsafe allocations
     pub fn with_cls<'py>(val: BaseStruct, cls: &Bound<'py, PyType>) -> PyResult<Bound<'py, PyAny>> {
-        let kwargs = PyDict::new_bound(cls.py());
-        kwargs.set_item("ver", Version::new(vec![-1]).into_py(cls.py()))?;
-        kwargs.set_item("ctx", ContextPtr::new().into_py(cls.py()))?;
+        let kwargs = PyDict::new(cls.py());
+        kwargs.set_item("ver", Version::new(vec![-1]).into_pyobject(cls.py())?)?;
+        kwargs.set_item("ctx", ContextPtr::new().into_pyobject(cls.py())?)?;
         kwargs.set_item("init_defaults", false)?;
         let obj = cls.call_method(intern!(cls.py(), "__new__"), (cls,), Some(&kwargs))?;
         let name = intern!(cls.py(), "__reconstruct__");
@@ -223,10 +223,13 @@ impl BaseStruct {
     #[classmethod]
     fn retrievers<'py>(cls: &Bound<'py, PyType>) -> PyResult<Bound<'py, PyList>> {
         let struct_ = StructBuilder::get_struct(&cls)?;
-        Ok(PyList::new_bound(
+        PyList::new(
             cls.py(),
-            struct_.retrievers().iter().map(|x| x.clone().into_py(cls.py()))
-        ))
+            struct_.retrievers()
+                .iter()
+                .map(|x| x.clone().into_pyobject(cls.py()))
+                .collect::<Result<Vec<_>, _>>()?
+        )
     }
 
     #[new]
@@ -315,7 +318,7 @@ impl BaseStruct {
         if struct_.is_compressed() {
             struct_.compress(&mut bytes, 0)?;
         }
-        Ok(PyBytes::new_bound(cls.py(), &bytes).into_any())
+        Ok(PyBytes::new(cls.py(), &bytes).into_any())
     }
 
     #[classmethod]
