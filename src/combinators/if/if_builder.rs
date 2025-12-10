@@ -99,7 +99,7 @@ impl IfBuilder {
             }
             self.source = Some(vec![val2 as usize]);
         } else {
-            self.source_const = Some(self.target_data_type.to_parseable(&source)?)
+            self.source_const = Some(self.target_data_type.to_parseable(source)?)
         };
         self.ord = Some(ord);
         self.state = State::HasSourceConst;
@@ -140,7 +140,7 @@ impl IfBuilder {
 
 #[pymethods]
 impl IfBuilder {
-    fn is_none<'py>(slf: Bound<'py, Self>) -> Bound<'py, Self> {
+    fn is_none(slf: Bound<'_, Self>) -> Bound<'_, Self> {
         slf.borrow_mut().none_check = true;
         slf
     }

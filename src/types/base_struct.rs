@@ -63,8 +63,7 @@ impl PartialEq for BaseStruct {
         }
         
         data1.iter().zip(data2.iter())
-            .map(|(a, b)| a == b)
-            .all(|x| x)
+            .all(|(a, b)| a == b)
     }
 }
 
@@ -153,7 +152,7 @@ impl BaseStruct {
         struct_.add_ref(retriever)
     }
 
-    fn to_bytes<'py>(cls: &Bound<'py, PyType>, value: &BaseStruct, filepath: &str) -> PyResult<Vec<u8>> {
+    fn to_bytes(cls: &Bound<'_, PyType>, value: &BaseStruct, filepath: &str) -> PyResult<Vec<u8>> {
         let struct_ = StructBuilder::get_struct(cls)?;
         let bar = MultiProgress::new();
         
@@ -222,7 +221,7 @@ impl BaseStruct {
     
     #[classmethod]
     fn retrievers<'py>(cls: &Bound<'py, PyType>) -> PyResult<Bound<'py, PyList>> {
-        let struct_ = StructBuilder::get_struct(&cls)?;
+        let struct_ = StructBuilder::get_struct(cls)?;
         PyList::new(
             cls.py(),
             struct_.retrievers()
@@ -291,7 +290,7 @@ impl BaseStruct {
             data[ret.idx] = init;
             
             let mut ctx = ctx.inner.write().expect("GIL bound write");
-            ret.call_on_reads(retrievers, &mut data, &mut repeats, &ver, &mut *ctx)?;
+            ret.call_on_reads(retrievers, &mut data, &mut repeats, &ver, &mut ctx)?;
         }
         Ok(BaseStruct::new(ver, data, repeats))
     }
@@ -308,7 +307,7 @@ impl BaseStruct {
     }
     
     #[pyo3(name = "to_bytes")]
-    fn to_bytes_py<'py>(slf: Bound<'py, Self>) -> PyResult<Bound<'py, PyAny>> {
+    fn to_bytes_py(slf: Bound<'_, Self>) -> PyResult<Bound<'_, PyAny>> {
         let value = slf.extract()?;
         let slf = slf.into_any();
         let cls = slf.get_type();
@@ -404,7 +403,7 @@ impl BaseStruct {
 
     #[classmethod]
     fn from_json<'py>(cls: &Bound<'py, PyType>, filepath: &str) -> PyResult<Bound<'py, PyAny>> {
-        let struct_ = StructBuilder::get_struct(&cls)?;
+        let struct_ = StructBuilder::get_struct(cls)?;
         let mut ctx = Context::new();
         let deserializer = StructDeserializer(&struct_, &mut ctx);
 

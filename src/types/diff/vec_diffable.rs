@@ -10,7 +10,7 @@ where
     T: Eq + Clone + Debug + Diffable<T>,
 {
     fn diff(&self, other: &Self) -> Diff<T> {
-        let ls_lcs = lcs(&self, &other);
+        let ls_lcs = lcs(self, other);
 
         let (mut start1, mut start2) = (0, 0);
         let mut diff = vec![];
@@ -46,7 +46,7 @@ where
             }
         }
 
-        if diff.len() == 0 {
+        if diff.is_empty() {
             return Diff::None;
         }
 
@@ -160,7 +160,7 @@ fn lcs_rec<'c, 'a: 'c, 'b: 'c, T: Eq + Debug>(a: &'a [T], b: &'b [T], i: usize, 
             let kd = ki as isize - delta;
 
             if delta%2 != 0
-                && delta-d+1 <= k && k <= delta+d-1
+                && delta-d < k && k < delta+d
                 && 0 <= kd && kd < (size+3) as isize
                 && vf[ki] >= vb[kd as usize] {
 

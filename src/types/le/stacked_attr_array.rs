@@ -160,7 +160,7 @@ impl StackedAttrArray {
         let inner = value.inner();
         
         self.len_type.to_bytes_in(&inner.data.len(), buffer)?;
-        if inner.data.len() == 0 {
+        if inner.data.is_empty() {
             return Ok(());
         }
 
@@ -234,7 +234,7 @@ impl StackedAttrArray {
     }
     #[pyo3(name = "to_file")]
     fn to_file_py(slf: PyRef<Self>, filepath: &str, value: &Bound<PyAny>) -> PyResult<()> {
-        Ok(slf.to_file(filepath, &slf.get_bfp_ls(value)?)?)
+        slf.to_file(filepath, &slf.get_bfp_ls(value)?)
     }
     
     #[classmethod]

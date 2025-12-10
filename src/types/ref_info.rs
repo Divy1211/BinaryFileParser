@@ -11,6 +11,12 @@ pub struct RefInfo {
     refs: Arc<RwLock<Vec<RetrieverRef>>>,
 }
 
+impl Default for RefInfo {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl RefInfo {
     pub fn new() -> Self {
         Self {

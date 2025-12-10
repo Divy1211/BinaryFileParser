@@ -11,20 +11,20 @@ macro_rules! wrap_py {
         
             #[pyo3(name = "from_stream", signature = (stream, ver = Version::new(vec![0,])))]
             fn from_stream_py(slf: PyRef<Self>, stream: &mut ByteStream, ver: Version) -> PyResult<<Self as Parseable>::Type> {
-                Ok(slf.from_stream(stream, &ver)?)
+                slf.from_stream(stream, &ver)
             }
         
             #[pyo3(name = "from_file")]
             fn from_file_py(slf: PyRef<Self>, filepath: &str) -> PyResult<<Self as Parseable>::Type> {
-                Ok(slf.from_file(filepath)?)
+                slf.from_file(filepath)
             }
             #[pyo3(name = "from_bytes", signature = (bytes, ver = Version::new(vec![0,])))]
             fn from_bytes_py(slf: PyRef<Self>, bytes: &[u8], ver: Version) -> PyResult<<Self as Parseable>::Type> {
-                Ok(slf.from_bytes(bytes, &ver)?)
+                slf.from_bytes(bytes, &ver)
             }
             #[pyo3(name = "to_file")]
             fn to_file_py(slf: PyRef<Self>, filepath: &str, value: <Self as Parseable>::Type) -> PyResult<()> {
-                Ok(slf.to_file(filepath, &value)?)
+                slf.to_file(filepath, &value)
             }
         }
     };

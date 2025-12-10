@@ -103,7 +103,7 @@ impl RetrieverRef {
                     let Some(ref_struct) = &ref_struct else {
                         return Err(PyValueError::new_err("A get_attr can only be used in a RefStruct"));
                     };
-                    let mut idx = get.eval_ref(ref_struct, &instance.get().expect("Get is never first"))?;
+                    let mut idx = get.eval_ref(ref_struct, instance.get().expect("Get is never first"))?;
                     if idx < 0 {
                         idx += current.len()? as i128;
                     }
@@ -117,7 +117,7 @@ impl RetrieverRef {
                         inner.ver,
                     ))
                 }
-                return err;
+                err
             })?;
             instance.get_or_init(|| current);
             current = item;
@@ -178,7 +178,7 @@ impl RetrieverRef {
                     let Some(ref_struct) = &ref_struct else {
                         return Err(PyValueError::new_err("A get_attr can only be used in a RefStruct"));
                     };
-                    let mut idx = get.eval_ref(ref_struct, &instance.get().expect("Get is never first"))?;
+                    let mut idx = get.eval_ref(ref_struct, instance.get().expect("Get is never first"))?;
                     if idx < 0 {
                         idx += current.len()? as i128;
                     }
@@ -192,7 +192,7 @@ impl RetrieverRef {
                         ver
                     ))
                 }
-                return err;
+                err
             })?;
             instance.get_or_init(|| current);
             current = item;
@@ -205,7 +205,7 @@ impl RetrieverRef {
                 let Some(ref_struct) = &ref_struct else {
                     return Err(PyValueError::new_err("A get_attr can only be used in a RefStruct"));
                 };
-                current.set_item(get.eval_ref(ref_struct, &instance.get().expect("Get is never first"))?, value)
+                current.set_item(get.eval_ref(ref_struct, instance.get().expect("Get is never first"))?, value)
             },
         }) else {
             return Err(VersionError::new_err(format!(
@@ -226,7 +226,7 @@ impl RetrieverRef {
             .bind(slf.py())
             .into_iter().map(|val| {
             val.extract::<isize>()
-                .map(|num| Ref::Item(num))
+                .map(Ref::Item)
                 .or_else(|_err| val.cast::<Retriever>()
                     .map(|r| Ref::Attr(r.borrow().name.clone()))
                 )
@@ -237,7 +237,7 @@ impl RetrieverRef {
                     .map(|r| Ref::Attr(r.borrow().name.clone()))
                 )
                 .or_else(|_err| val.cast::<Get>()
-                    .map_err(|err| PyErr::from(err))
+                    .map_err(PyErr::from)
                     .and_then(|r| Ok(Ref::Get(r.extract()?))))
                 .map_err(|_err| {
                     PyValueError::new_err("Ref targets must be retrievers, indexes, or get_attrs")

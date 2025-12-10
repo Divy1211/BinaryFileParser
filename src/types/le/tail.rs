@@ -95,7 +95,7 @@ impl Tail {
     }
     #[pyo3(name = "to_file")]
     fn to_file_py(slf: PyRef<Self>, filepath: &str, value: &Bound<PyAny>) -> PyResult<()> {
-        Ok(slf.to_file(filepath, &slf.get_bfp_ls(value)?)?)
+        slf.to_file(filepath, &slf.get_bfp_ls(value)?)
     }
 
     #[classmethod]

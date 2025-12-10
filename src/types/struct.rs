@@ -70,7 +70,7 @@ impl Struct {
         self.raw.py_type.bind(py)
     }
     
-    pub fn get_ver<'a>(&self, stream: &mut ByteStream, ver: &'a Version) -> PyResult<Version> {
+    pub fn get_ver(&self, stream: &mut ByteStream, ver: &Version) -> PyResult<Version> {
         let Some(fn_) = &self.raw.get_ver else {
             return Ok(ver.clone())
         };
@@ -175,7 +175,7 @@ impl Struct {
                 }
             }));
 
-            retriever.call_on_reads(&retrievers, &mut data, &mut repeats, &ver, ctx)?;
+            retriever.call_on_reads(retrievers, &mut data, &mut repeats, &ver, ctx)?;
 
             if let Some(progress) = progress.as_ref() {
                 progress.set_message("");
@@ -219,7 +219,7 @@ impl Struct {
 
             let (data, repeats, ver) = inner.split();
             
-            retriever.call_on_writes(&retrievers, data, repeats, ver)?;
+            retriever.call_on_writes(retrievers, data, repeats, ver)?;
 
             let value = inner.data[retriever.idx].as_ref().expect("supported check done above");
 

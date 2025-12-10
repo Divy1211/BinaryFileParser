@@ -66,8 +66,7 @@ impl PartialEq for BfpList {
             return false
         }
         data1.iter().zip(data2.iter())
-            .map(|(a, b)| a == b)
-            .all(|x| x)
+            .all(|(a, b)| a == b)
     }
 }
 
@@ -141,7 +140,7 @@ impl BfpList {
     }
 
     #[pyo3(signature = (item = -1))]
-    fn pop<'py>(slf: PyRefMut<'py, BfpList>, mut item: isize) -> PyResult<Bound<'py, PyAny>> {
+    fn pop(slf: PyRefMut<'_, BfpList>, mut item: isize) -> PyResult<Bound<'_, PyAny>> {
         let mut inner = slf.inner_mut();
         
         if inner.immutable {
@@ -158,7 +157,7 @@ impl BfpList {
         inner.data.remove(item as usize).to_bound(slf.py())
     }
 
-    fn clear<'py>(slf: PyRefMut<'py, BfpList>) -> PyResult<()> {
+    fn clear(slf: PyRefMut<'_, BfpList>) -> PyResult<()> {
         let mut inner = slf.inner_mut();
         
         if inner.immutable {
@@ -255,15 +254,13 @@ impl BfpList {
             let item = item.cast_into::<PySlice>().expect("infallible");
             let idxes = slice(item.indices(inner.data.len() as isize)?)?;
             
-            return Ok(
-                idxes.into_iter()
+            return idxes.into_iter()
                     .map(|idx| inner.data[idx].clone().to_bound(slf.py()))
                     .collect::<PyResult<Vec<_>>>()?
-                    .into_bound_py_any(slf.py())?
-            )
+                    .into_bound_py_any(slf.py())
         }
         Err(PyIndexError::new_err(
-            format!("list indices must be integers or slices, not '{}'", item.get_type().fully_qualified_name()?.to_string())
+            format!("list indices must be integers or slices, not '{}'", item.get_type().fully_qualified_name()?)
         ))
     }
 
@@ -301,7 +298,7 @@ impl BfpList {
             return Ok(())
         }
         Err(PyIndexError::new_err(
-            format!("list indices must be integers or slices, not '{}'", item.get_type().fully_qualified_name()?.to_string())
+            format!("list indices must be integers or slices, not '{}'", item.get_type().fully_qualified_name()?)
         ))
     }
 
@@ -331,7 +328,7 @@ impl BfpList {
             return Ok(())
         }
         Err(PyIndexError::new_err(
-            format!("list indices must be integers or slices, not '{}'", item.get_type().fully_qualified_name()?.to_string())
+            format!("list indices must be integers or slices, not '{}'", item.get_type().fully_qualified_name()?)
         ))
     }
 
@@ -442,7 +439,7 @@ impl BfpList {
 
                             let mut sub_conflicts = vec![];
                             val.merge_rec(sub_changes1, sub_changes2, &mut sub_conflicts);
-                            if sub_conflicts.len() > 0 {
+                            if !sub_conflicts.is_empty() {
                                 conflicts.push(Conflict::Nested(idx, sub_conflicts));
                             }
                         }

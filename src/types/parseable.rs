@@ -32,7 +32,7 @@ pub trait Parseable {
 
     fn from_file(&self, filepath: &str) -> PyResult<Self::Type> {
         let mut stream = ByteStream::from_file(filepath)?;
-        Ok(self.from_stream(&mut stream, &Version::new(vec![0]))?)
+        self.from_stream(&mut stream, &Version::new(vec![0]))
     }
     
     fn to_file(&self, filepath: &str, value: &Self::Type) -> PyResult<()> {

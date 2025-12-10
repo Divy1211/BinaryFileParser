@@ -69,7 +69,7 @@ impl Parseable for OptionType {
             return self.len_type.to_bytes_in(&0, buffer);
         };
         self.len_type.to_bytes_in(&1, buffer)?;
-        self.data_type.to_bytes_in(&value, buffer)?;
+        self.data_type.to_bytes_in(value, buffer)?;
         Ok(())
     }
 }
@@ -101,6 +101,6 @@ impl OptionType {
     }
     #[pyo3(name = "to_file")]
     fn to_file_py(slf: PyRef<Self>, filepath: &str, value: &Bound<PyAny>) -> PyResult<()> {
-        Ok(slf.to_file(filepath, &slf.get_option(value)?)?)
+        slf.to_file(filepath, &slf.get_option(value)?)
     }
 }

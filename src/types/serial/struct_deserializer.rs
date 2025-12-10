@@ -50,7 +50,7 @@ impl<'de, 'a, 'b> Visitor<'de> for StructDeserializer<'a, 'b> {
         let Some(ver) = values.get("ver") else {
             return Err(Error::custom("Invalid Object: Version not found"));
         };
-        let ver = Version::deserialize(ver).map_err(|e| Error::custom(e))?;
+        let ver = Version::deserialize(ver).map_err(Error::custom)?;
         
         for (i, retriever) in retrievers.iter().enumerate() {
             if !retriever.supported(&ver) {
@@ -98,7 +98,7 @@ impl<'de, 'a, 'b> Visitor<'de> for StructDeserializer<'a, 'b> {
                     ParseableType::Array(ls)
                 }
             }));
-            retriever.call_on_reads(&retrievers, &mut data, &mut repeats, &ver, ctx).map_err(|e| {
+            retriever.call_on_reads(retrievers, &mut data, &mut repeats, &ver, ctx).map_err(|e| {
                 Error::custom(e)
             })?;
         }

@@ -277,8 +277,8 @@ impl BfpType {
                     return Err(PyTypeError::new_err(
                         format!(
                             "'{}' object cannot be interpreted as a '{}'",
-                            value.get_type().fully_qualified_name()?.to_string(),
-                            py_type.fully_qualified_name()?.to_string()
+                            value.get_type().fully_qualified_name()?,
+                            py_type.fully_qualified_name()?
                         )
                     ))
                 }
@@ -416,7 +416,7 @@ impl BfpType {
     }
     #[pyo3(name = "to_file")]
     fn to_file_py(slf: PyRef<Self>, filepath: &str, value: &Bound<PyAny>) -> PyResult<()> {
-        Ok(slf.to_file(filepath, &slf.to_parseable(value)?)?)
+        slf.to_file(filepath, &slf.to_parseable(value)?)
     }
 }
 

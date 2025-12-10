@@ -18,6 +18,12 @@ pub struct StructBuilder {
     refs: Vec<RetrieverRef>,
 }
 
+impl Default for StructBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl StructBuilder {
     pub fn new() -> Self {
         Self {

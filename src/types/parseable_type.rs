@@ -160,11 +160,11 @@ impl PartialOrd for ParseableType {
 
         match (self, other) { // todo fix
             (ParseableType::None,          ParseableType::None)          => Some(Ordering::Equal),
-            (ParseableType::Bool(val1),    ParseableType::Bool(val2))    => val1.partial_cmp(&val2),
-            (ParseableType::Str(val1),     ParseableType::Str(val2))     => val1.partial_cmp(&val2),
-            (ParseableType::Array(val1),   ParseableType::Array(val2))   => val1.partial_cmp(&val2),
-            (ParseableType::Bytes(val1),   ParseableType::Bytes(val2))   => val1.partial_cmp(&val2),
-            (ParseableType::Option(val1),  ParseableType::Option(val2))  => val1.partial_cmp(&val2),
+            (ParseableType::Bool(val1),    ParseableType::Bool(val2))    => val1.partial_cmp(val2),
+            (ParseableType::Str(val1),     ParseableType::Str(val2))     => val1.partial_cmp(val2),
+            (ParseableType::Array(val1),   ParseableType::Array(val2))   => val1.partial_cmp(val2),
+            (ParseableType::Bytes(val1),   ParseableType::Bytes(val2))   => val1.partial_cmp(val2),
+            (ParseableType::Option(val1),  ParseableType::Option(val2))  => val1.partial_cmp(val2),
             (ParseableType::Struct { .. }, ParseableType::Struct { .. }) => None,
             _                                                            => None
         }
@@ -395,9 +395,9 @@ impl ParseableType {
                 ls.merge_rec(changes1, changes2, conflicts);
             }
             ParseableType::Option(val) => {
-                val.as_mut().map(|val| {
+                if let Some(val) = val.as_mut() {
                     val.merge_rec(changes1, changes2, conflicts)
-                });
+                }
             }
             ParseableType::Struct { val, struct_ } => {
                 StructMergeable(struct_, val).merge_rec(changes1, changes2, conflicts);

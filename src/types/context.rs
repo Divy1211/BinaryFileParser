@@ -13,6 +13,12 @@ pub struct IfTracker {
     break_flag: bool,
 }
 
+impl Default for IfTracker {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl IfTracker {
     pub fn new() -> IfTracker {
         IfTracker {
@@ -33,6 +39,12 @@ pub struct Context {
 #[derive(Clone)]
 pub struct ContextPtr {
     pub inner: Arc<RwLock<Context>>,
+}
+
+impl Default for ContextPtr {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ContextPtr {
@@ -60,7 +72,7 @@ impl ContextPtr {
         for (key, value) in keys {
             let key = key.extract::<String>().expect("kwarg");
             let value = value.cast::<PyTuple>()?;
-            if <Bound<PyTuple> as PyTupleMethods>::len(&value) != 2 {
+            if <Bound<PyTuple> as PyTupleMethods>::len(value) != 2 {
                 return Err(PyValueError::new_err(format!(
                     "Could not create key from argument '{}'. Context keys must be a (data_type, value) pair",
                     key
@@ -75,6 +87,12 @@ impl ContextPtr {
             ctx.set(&key, item);
         }
         Ok(ContextPtr::from(ctx))
+    }
+}
+
+impl Default for Context {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

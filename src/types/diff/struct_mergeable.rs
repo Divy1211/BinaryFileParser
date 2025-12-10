@@ -47,8 +47,8 @@ impl Mergeable<ParseableType> for StructMergeable<'_, '_> {
     }
 
     fn merge(&mut self, slf: &Self, other: &Self) -> Vec<Conflict<ParseableType>> {
-        let diff1 = self.diff(&slf);
-        let diff2 = self.diff(&other);
+        let diff1 = self.diff(slf);
+        let diff2 = self.diff(other);
 
         let (changes1, changes2) = match (diff1, diff2) {
             (Diff::None, Diff::None) => return vec![],
@@ -104,7 +104,7 @@ impl StructMergeable<'_, '_> {
                             
                             let mut sub_conflicts = vec![];
                             val.merge_rec(sub_changes1, sub_changes2, &mut sub_conflicts);
-                            if sub_conflicts.len() > 0 {
+                            if !sub_conflicts.is_empty() {
                                 conflicts.push(Conflict::Nested(idx, sub_conflicts));
                             }
                         }
@@ -132,7 +132,7 @@ impl StructMergeable<'_, '_> {
         let mut inner = self.1.inner_mut();
 
         let di = PyDict::new(py);
-        if conflicts.len() == 0 {
+        if conflicts.is_empty() {
             return Ok(di);
         }
         for conflict in conflicts {

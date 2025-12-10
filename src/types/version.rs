@@ -26,7 +26,7 @@ impl Version {
     #[classmethod]
     fn from_str(_cls: &Bound<PyType>, ver_str: &str) -> PyResult<Self> {
         let ver = ver_str
-            .split(".").into_iter()
+            .split(".")
             .map(|x| {x.parse()})
             .collect::<Result<Vec<i128>, _>>()?;
 

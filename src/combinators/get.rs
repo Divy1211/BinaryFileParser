@@ -90,14 +90,14 @@ impl Get {
                     stack.push(*num)
                 },
                 Item::Ref(source) => {
-                    let (name, val) = get_rec(&source, retrievers, data, ver)?;
+                    let (name, val) = get_rec(source, retrievers, data, ver)?;
                     let Some(val) = val.try_to_int() else {
                         return Err(PyValueError::new_err(format!("'{}' cannot be interpreted as an int", name)))
                     };
                     stack.push(val);
                 },
                 Item::RefLen(source) => {
-                    let (name, val) = get_rec(&source, retrievers, data, ver)?;
+                    let (name, val) = get_rec(source, retrievers, data, ver)?;
                     let Some(val) = val.try_len() else {
                         return Err(PyValueError::new_err(format!("'{}' cannot be interpreted as a list", name)))
                     };
@@ -184,7 +184,7 @@ impl Get {
                     let struct_ = StructBuilder::get_struct(&struct_.get_type())?;
                     let inner = borrow.inner();
 
-                    let (name, val) = get_rec(&source, struct_.retrievers(), &inner.data, &inner.ver)?;
+                    let (name, val) = get_rec(source, struct_.retrievers(), &inner.data, &inner.ver)?;
                     let Some(val) = val.try_to_int() else {
                         return Err(PyValueError::new_err(format!("'{}' cannot be interpreted as an int", name)))
                     };
@@ -195,7 +195,7 @@ impl Get {
                     let struct_ = StructBuilder::get_struct(&struct_.get_type())?;
                     let inner = borrow.inner();
 
-                    let (name, val) = get_rec(&source, struct_.retrievers(), &inner.data, &inner.ver)?;
+                    let (name, val) = get_rec(source, struct_.retrievers(), &inner.data, &inner.ver)?;
                     let Some(val) = val.try_len() else {
                         return Err(PyValueError::new_err(format!("'{}' cannot be interpreted as a list", name)))
                     };
@@ -339,11 +339,11 @@ impl Get {
         Ok(slf)
     }
 
-    pub fn __neg__<'py>(mut slf: PyRefMut<'py, Self>) -> PyResult<PyRefMut<'py, Self>> {
+    pub fn __neg__(mut slf: PyRefMut<'_, Self>) -> PyResult<PyRefMut<'_, Self>> {
         slf.rpn.push_back(Item::Neg);
         Ok(slf)
     }
-    pub fn __invert__<'py>(mut slf: PyRefMut<'py, Self>) -> PyResult<PyRefMut<'py, Self>> {
+    pub fn __invert__(mut slf: PyRefMut<'_, Self>) -> PyResult<PyRefMut<'_, Self>> {
         slf.rpn.push_back(Item::BitNeg);
         Ok(slf)
     }

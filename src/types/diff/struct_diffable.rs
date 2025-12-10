@@ -9,7 +9,7 @@ use crate::types::r#struct::Struct;
 pub struct StructDiffable<'a, 'b>(pub &'a Struct, pub &'b BaseStruct);
 
 fn expect_err<'a>(val: Option<&'a ParseableType>, name: &str) -> &'a ParseableType {
-    val.expect(&format!("Diffing uninitialized value '{name}'"))
+    val.unwrap_or_else(|| panic!("Diffing uninitialized value '{name}'"))
 }
 
 impl Diffable<ParseableType> for StructDiffable<'_, '_> {
@@ -45,7 +45,7 @@ impl Diffable<ParseableType> for StructDiffable<'_, '_> {
                 },
             };
         }
-        if diff.len() == 0 {
+        if diff.is_empty() {
             return Diff::None;
         }
         Diff::Nested(diff)

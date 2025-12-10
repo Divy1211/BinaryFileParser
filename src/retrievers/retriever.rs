@@ -71,6 +71,7 @@ impl Retriever {
         remaining_compressed = false,
         on_read = None, on_write = None
     ))]
+    #[allow(clippy::too_many_arguments)]
     fn new(
         data_type: &Bound<PyAny>,
 
@@ -86,15 +87,9 @@ impl Retriever {
         on_read: Option<Py<PyAny>>,
         on_write: Option<Py<PyAny>>,
     ) -> PyResult<Self> {
-        let tmp_on_read = match on_read {
-            None => { None }
-            Some(obj) => { Some(Arc::new(obj)) }
-        };
+        let tmp_on_read = on_read.map(Arc::new);
 
-        let tmp_on_write = match on_write {
-            None => { None }
-            Some(obj) => { Some(Arc::new(obj)) }
-        };
+        let tmp_on_write = on_write.map(Arc::new);
         
         if repeat < -2 {
             return Err(PyValueError::new_err("Repeat values cannot be less than -2"));
@@ -276,28 +271,22 @@ impl Retriever {
     }
 
     pub fn construct_fns(&mut self, py: Python) -> PyResult<()> {
-        match &self.tmp_on_read {
-            Some(obj) => {
-                self.on_read = Some(Arc::new(obj.call0(py)?.extract::<Vec<CombinatorType>>(py)?));
-                self.tmp_on_read = None;
-            }
-            _ => {}
+        if let Some(obj) = &self.tmp_on_read {
+            self.on_read = Some(Arc::new(obj.call0(py)?.extract::<Vec<CombinatorType>>(py)?));
+            self.tmp_on_read = None;
         };
 
-        match &self.tmp_on_write {
-            Some(obj) => {
-                let on_write = obj.call0(py)?.extract::<Vec<CombinatorType>>(py)?;
-                for combinator in on_write.iter() {
-                    if combinator.uses_keys() {
-                        return Err(PyTypeError::new_err(
-                            "Using context keys during writing is not supported."
-                        ))
-                    }
+        if let Some(obj) = &self.tmp_on_write {
+            let on_write = obj.call0(py)?.extract::<Vec<CombinatorType>>(py)?;
+            for combinator in on_write.iter() {
+                if combinator.uses_keys() {
+                    return Err(PyTypeError::new_err(
+                        "Using context keys during writing is not supported."
+                    ))
                 }
-                self.on_write = Some(Arc::new(on_write));
-                self.tmp_on_write = None;
             }
-            _ => {}
+            self.on_write = Some(Arc::new(on_write));
+            self.tmp_on_write = None;
         };
         
         Ok(())

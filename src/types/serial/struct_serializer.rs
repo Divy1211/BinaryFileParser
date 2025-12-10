@@ -28,7 +28,7 @@ impl Serialize for StructSerializer<'_, '_> {
 
             let (data, repeats, ver) = inner.split();
 
-            retriever.call_on_writes(&retrievers, data, repeats, ver).map_err(|py_err| {
+            retriever.call_on_writes(retrievers, data, repeats, ver).map_err(|py_err| {
                 serde::ser::Error::custom(format!(
                     "Python error during serialization: {}",
                     py_err
