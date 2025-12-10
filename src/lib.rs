@@ -1,5 +1,5 @@
 #![allow(unexpected_cfgs)]
-#![allow(mismatched_lifetime_syntaxes)]
+#![allow(unknown_lints, mismatched_lifetime_syntaxes)]
 #![allow(clippy::wrong_self_convention)]
 #![allow(clippy::comparison_chain)]
 #![allow(clippy::match_like_matches_macro)]
