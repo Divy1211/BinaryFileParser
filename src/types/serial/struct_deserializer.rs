@@ -15,7 +15,7 @@ use crate::types::version::Version;
 
 pub struct StructDeserializer<'a, 'b>(pub &'a Struct, pub &'b mut Context);
 
-impl<'de, 'a, 'b> DeserializeSeed<'de> for StructDeserializer<'a, 'b> {
+impl<'de> DeserializeSeed<'de> for StructDeserializer<'_, '_> {
     type Value = BaseStruct;
 
     fn deserialize<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
@@ -26,7 +26,7 @@ impl<'de, 'a, 'b> DeserializeSeed<'de> for StructDeserializer<'a, 'b> {
     }
 }
 
-impl<'de, 'a, 'b> Visitor<'de> for StructDeserializer<'a, 'b> {
+impl<'de> Visitor<'de> for StructDeserializer<'_, '_> {
     type Value = BaseStruct;
 
     fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {

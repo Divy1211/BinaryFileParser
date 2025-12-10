@@ -8,7 +8,7 @@ use crate::types::serial::type_deserializer::TypeDeserializer;
 
 pub struct OptionSeed<'a, 'b>(pub TypeDeserializer<'a, 'b>);
 
-impl<'de, 'a, 'b> Visitor<'de> for OptionSeed<'a, 'b> {
+impl<'de> Visitor<'de> for OptionSeed<'_, '_> {
     type Value = Option<ParseableType>;
 
     fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {

@@ -42,7 +42,7 @@ pub struct Get {
 }
 
 impl Get {
-    fn op<'py>(&mut self, other: Bound<PyAny>, op: Item, rev: bool) -> PyResult<()> {
+    fn op(&mut self, other: Bound<PyAny>, op: Item, rev: bool) -> PyResult<()> {
         if let Ok(other) = other.extract::<Self>() {
             self.rpn.reserve(other.rpn.len());
             if rev {

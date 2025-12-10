@@ -1,4 +1,10 @@
 #![allow(unexpected_cfgs)]
+#![allow(mismatched_lifetime_syntaxes)]
+#![allow(clippy::wrong_self_convention)]
+#![allow(clippy::comparison_chain)]
+#![allow(clippy::match_like_matches_macro)]
+#![allow(clippy::ptr_arg)]
+#![allow(clippy::only_used_in_recursion)]
 
 use pyo3::prelude::*;
 use pyo3::py_run;

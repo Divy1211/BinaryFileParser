@@ -120,8 +120,8 @@ fn lcs_rec<'c, 'a: 'c, 'b: 'c, T: Eq + Debug>(a: &'a [T], b: &'b [T], i: usize, 
             start_b as usize
         };
 
-        for k in 0..start_f {
-            result.push((&a[k], k, k));
+        for (k, v) in a.iter().enumerate().take(start_f) {
+            result.push((v, k, k));
         }
         lcs_rec(&a[start_f..n-start_b], &b[start_f..m-start_b], start_f, start_f, false, result);
         for k in (0..start_b).rev() {

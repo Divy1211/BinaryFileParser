@@ -89,7 +89,7 @@ impl IfBuilder {
         self.state = State::HasSource;
         Ok(())
     }
-    pub fn cmp_fix<'py>(&mut self, source: &Bound<PyAny>, ord: Vec<Ordering>) -> PyResult<()> {
+    pub fn cmp_fix(&mut self, source: &Bound<PyAny>, ord: Vec<Ordering>) -> PyResult<()> {
         if self.len {
             let val2 = source.extract::<isize>()?;
             if val2 < 0 {
@@ -107,7 +107,7 @@ impl IfBuilder {
         Ok(())
     }
     
-    pub fn cmp_get<'py>(&mut self, mut source: Get, ord: Vec<Ordering>) -> PyResult<()> {
+    pub fn cmp_get(&mut self, mut source: Get, ord: Vec<Ordering>) -> PyResult<()> {
         source.make_contiguous();
         self.source_get = Some(source);
         self.ord = Some(ord);

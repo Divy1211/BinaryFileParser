@@ -100,10 +100,7 @@ impl BfpType {
     }
     
     pub fn is_ord(&self) -> bool {
-        match self {
-            BfpType::Struct(_) => false,
-            _ => true,
-        }
+        !matches!(self, BfpType::Struct(_))
     }
 
     pub fn is_bool(&self) -> bool {
@@ -292,10 +289,7 @@ impl BfpType {
     }
 
     pub fn is_option(&self) -> bool {
-        match self {
-            BfpType::Option(_) => true,
-            _ => false,
-        }
+        matches!(self, BfpType::Option(_))
     }
 }
 

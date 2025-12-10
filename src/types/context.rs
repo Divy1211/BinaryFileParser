@@ -121,15 +121,21 @@ impl Context {
     }
 
     pub fn enter_if(&mut self) {
-        self.if_tracker.as_mut().map(|tracker| tracker.ifs_entered += 1);
+        if let Some(tracker) = self.if_tracker.as_mut() {
+            tracker.ifs_entered += 1;
+        }
     }
 
     pub fn run_if(&mut self) {
-        self.if_tracker.as_mut().map(|tracker| tracker.ifs_run += 1);
+        if let Some(tracker) = self.if_tracker.as_mut() {
+            tracker.ifs_run += 1
+        }
     }
 
     pub fn break_if(&mut self) {
-        self.if_tracker.as_mut().map(|tracker| tracker.break_flag = true);
+        if let Some(tracker) = self.if_tracker.as_mut() {
+            tracker.break_flag = true
+        }
     }
     
     pub fn do_break(&self) -> bool {

@@ -24,3 +24,5 @@ class Test(BaseStruct):
 test = Test.from_bytes(b"\x05\x01\x02\x03\x04\x05\x06")
 
 print(test.nums)
+
+ByteStream.from_bytes(b"\x05\x01\x02\x03\x04\x05\x06").get(-1)

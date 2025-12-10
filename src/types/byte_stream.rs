@@ -40,9 +40,6 @@ impl ByteStream {
     }
 
     pub fn get(&mut self, n: usize) -> PyResult<&[u8]> {
-        if n <= 0 {
-            return Ok(&[]);
-        }
         let len = self.bytes.len();
         if len < self.progress + n {
             return Err(ParsingError::new_err(format!(
@@ -56,9 +53,6 @@ impl ByteStream {
     }
 
     pub fn peek(&self, n: usize) -> PyResult<&[u8]> {
-        if n <= 0 {
-            return Ok(&[]);
-        }
         let len = self.bytes.len();
         if len < self.progress + n {
             return Err(ParsingError::new_err(format!(

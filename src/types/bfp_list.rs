@@ -43,7 +43,8 @@ impl BfpList {
     pub fn inner_mut(&self) -> RwLockWriteGuard<BfpListRaw> {
         self.raw.write().expect("GIL Bound read")
     }
-    
+
+    #[allow(clippy::len_without_is_empty)]
     pub fn len(&self) -> usize {
         self.inner().data.len()
     }
@@ -427,6 +428,7 @@ impl BfpList {
                 (e1, e2) = (it1.next(), it2.next());
             }
             (Some(diff1), Some(diff2)) => {
+                #[allow(clippy::comparison_chain)]
                 if diff1.0 == diff2.0 {
                     let (idx, change1) = diff1;
                     let change2 = diff2.1;

@@ -134,13 +134,13 @@ impl StackedAttrArray {
         
         for retriever in retrievers.iter() {
             if !retriever.supported(ver) {
-                for i in 0..len {
-                    data_lss[i].push(None);
+                for ls in data_lss.iter_mut().take(len) {
+                    ls.push(None);
                 }
                 continue;
             }
-            for i in 0..len {
-                data_lss[i].push(Some(retriever.from_stream_ctx(stream, ver, ctx)?));
+            for ls in data_lss.iter_mut().take(len) {
+                ls.push(Some(retriever.from_stream_ctx(stream, ver, ctx)?));
             }
         }
         
