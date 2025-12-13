@@ -38,7 +38,7 @@ impl Conflict<ParseableType> {
                     change2: change2.to_pyobj(old, py)?,
                 }.into_pyany(py))
             }
-            Conflict::Nested(_, conflicts) => {
+            Conflict::Nested(_i, conflicts) => {
                 let val = old.expect("Conflict::Nested: Merging structs of different versions is not allowed");
                 match val {
                     ParseableType::Struct { val, struct_ } => {
@@ -50,6 +50,9 @@ impl Conflict<ParseableType> {
                         Ok(NestedConflictPy {
                             children: ls.conflicts_to_dict(conflicts, py)?.unbind()
                         }.into_pyany(py))
+                    }
+                    ParseableType::Option(val) => {
+                        Conflict::Nested(_i, conflicts).to_pyobj(val.as_deref_mut(), py)
                     }
                     _ => { unreachable!("Conflict::Nested cannot be created with non-nested data") }
                 }

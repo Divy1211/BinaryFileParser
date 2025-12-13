@@ -341,6 +341,7 @@ impl Diffable<ParseableType> for ParseableType {
                 match (opt1, opt2) {
                     (None, None) => Diff::None,
                     (Some(v1), Some(v2)) if v1 == v2 => Diff::None,
+                    (Some(v1), Some(v2)) => v1.diff(v2),
                     _ => Diff::Changed(other.clone()),
                 }
             },

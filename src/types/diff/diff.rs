@@ -59,6 +59,9 @@ impl Diff<ParseableType> {
                             children: ls.diffs_to_dict(changes, py)?.unbind()
                         }.into_pyany(py))
                     }
+                    ParseableType::Option(val) => {
+                        Diff::Nested(changes).to_pyobj(val.as_deref(), py)
+                    }
                     _ => { unreachable!("Diff::Nested cannot be created with non-nested data") }
                 }
             }
