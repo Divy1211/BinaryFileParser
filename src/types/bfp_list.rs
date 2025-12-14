@@ -483,7 +483,7 @@ impl BfpList {
             PyDictMethods::set_item(
                 &di,
                 idx,
-                change.to_pyobj(Some(&inner.data[idx]), py)?
+                change.to_pyobj(inner.data.get(idx), py)?
             )?;
         }
         Ok(di)
@@ -497,7 +497,7 @@ impl BfpList {
             PyDictMethods::set_item(
                 &di,
                 idx,
-                conflict.to_pyobj(Some(&mut inner.data[idx]), py)?
+                conflict.to_pyobj(inner.data.get_mut(idx), py)?
             )?;
         }
         Ok(di)
