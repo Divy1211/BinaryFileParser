@@ -1,7 +1,7 @@
 use pyo3::{Bound, PyResult, Python};
 use pyo3::prelude::PyDictMethods;
 use pyo3::types::PyDict;
-
+use crate::retrievers::retriever::RetState;
 use crate::types::base_struct::BaseStruct;
 use crate::types::diff::diff::{Diff, Diffable, IDiff};
 use crate::types::diff::merge::{Conflict, Mergeable};
@@ -24,13 +24,35 @@ impl Mergeable<ParseableType> for StructMergeable<'_, '_> {
         _off: isize
     ) -> isize {
         let mut inner = self.1.inner_mut();
-        let data = &mut inner.data;
+        let (data, repeats, _) = inner.split();
         match change {
             Diff::None => _off,
             Diff::Inserted(_val) | Diff::Deleted(_val) => {
                 unreachable!("BFP Internal Error: merge called on structs of different versions")
             }
             Diff::Changed(val) => {
+                let retriever = &self.0.retrievers()[idx];
+                match retriever.state(repeats) {
+                    RetState::Value | RetState::NoneValue if val.is_none() => {
+                        repeats[idx] = Some(-1);
+                    }
+                    RetState::Value | RetState::NoneValue => {
+                        repeats[idx] = None;
+                    }
+                    RetState::List | RetState::NoneList if val.is_none() => {
+                        repeats[idx] = Some(-2);
+                    }
+                    RetState::List | RetState::NoneList => {
+                        let repeat = retriever.repeat(repeats);
+                        let len = val.try_len()
+                            .expect("non-null value coming from another struct must be of the correct type") as isize;
+                        if repeat == -2 {
+                            repeats[idx] = Some(len);
+                        } else if repeats[idx].is_none() && repeat != len {
+                            unreachable!("BFP Internal Error: Non-null value coming from another struct must be of the correct type")
+                        }
+                    }
+                };
                 data[idx] = Some(val);
                 _off
             }

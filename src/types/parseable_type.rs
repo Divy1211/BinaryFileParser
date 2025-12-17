@@ -49,6 +49,10 @@ pub enum ParseableType {
 }
 
 impl ParseableType {
+    pub fn is_none(&self) -> bool {
+        matches!(self, ParseableType::None)
+    }
+    
     pub fn is_ls_of(&self, bfp_type: &BfpType) -> bool {
         match self {
             ParseableType::Array(val) => {
@@ -310,8 +314,8 @@ impl Diffable<ParseableType> for ParseableType {
     fn diff(&self, other: &ParseableType) -> Diff<ParseableType> {
         match (self, other) {
             (ParseableType::None, ParseableType::None) => Diff::None,
-            (ParseableType::None, _)                   => Diff::Inserted(other.clone()),
-            (_, ParseableType::None)                   => Diff::Deleted(other.clone()),
+            (ParseableType::None, _)                   => Diff::Changed(other.clone()),
+            (_, ParseableType::None)                   => Diff::Changed(other.clone()),
             
             (ParseableType::UInt8(v1),     ParseableType::UInt8(v2))   => if v1 == v2 { Diff::None } else { Diff::Changed(other.clone()) },
             (ParseableType::UInt16(v1),    ParseableType::UInt16(v2))  => if v1 == v2 { Diff::None } else { Diff::Changed(other.clone()) },
