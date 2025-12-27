@@ -52,8 +52,23 @@ impl StructBuilder {
     }
     
     pub fn get_struct(cls: &Bound<PyType>) -> PyResult<Struct> {
-        let builder = cls
-            .getattr(intern!(cls.py(), "__struct_builder__")).expect("always a BaseStruct subclass");
+        let Ok(builder) = cls.getattr(intern!(cls.py(), "__struct_builder__")) else {
+            // For a retriever-less class
+            return Ok(Struct::from_raw( StructRaw {
+                retrievers: vec![],
+                combiners: vec![],
+                refs: vec![],
+
+                py_type: cls.extract()?,
+                fully_qualified_name: cls.fully_qualified_name()?.to_string(),
+
+                is_compressed: false,
+
+                get_ver: get_if_impl(cls, intern!(cls.py(), "_get_version")),
+                compress: get_if_impl(cls, intern!(cls.py(), "_compress")),
+                decompress: get_if_impl(cls, intern!(cls.py(), "_decompress")),
+            }));
+        };
 
         if builder.is_none() {
             return cls

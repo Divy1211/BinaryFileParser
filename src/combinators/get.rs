@@ -42,30 +42,33 @@ pub struct Get {
 }
 
 impl Get {
-    fn op(&mut self, other: Bound<PyAny>, op: Item, rev: bool) -> PyResult<()> {
+    fn op(&self, other: Bound<PyAny>, op: Item, rev: bool) -> PyResult<Self> {
+        let mut new = self.clone();
         if let Ok(other) = other.extract::<Self>() {
-            self.rpn.reserve(other.rpn.len());
+            new.rpn.reserve(other.rpn.len());
             if rev {
                 for item in other.rpn.into_iter().rev() {
-                    self.rpn.push_front(item);
+                    new.rpn.push_front(item);
                 }
             } else {
                 for item in other.rpn {
-                    self.rpn.push_back(item);
+                    new.rpn.push_back(item);
                 }
             }
-            self.rpn.push_back(op);
+            new.rpn.push_back(op);
         } else if let Ok(num) = other.extract::<i128>() {
             if rev {
-                self.rpn.push_front(Item::Int(num));
+                new.rpn.push_front(Item::Int(num));
             } else {
-                self.rpn.push_back(Item::Int(num));
+                new.rpn.push_back(Item::Int(num));
             }
-            self.rpn.push_back(op);
+            new.rpn.push_back(op);
         } else {
-            return Err(PyValueError::new_err("Cannot operate on values other than refs and ints"));
+            return Err(PyValueError::new_err(format!(
+                "Cannot operate on values other than refs and ints: '{}'", other
+            )));
         }
-        Ok(())
+        Ok(new)
     }
 
     pub fn new(target: Item) -> Self {
@@ -273,79 +276,65 @@ impl Get {
 // this is all boilerplate, refer to the op fn
 #[pymethods]
 impl Get {
-    pub fn __add__<'py>(mut slf: PyRefMut<'py, Self>, other: Bound<PyAny>) -> PyResult<PyRefMut<'py, Self>> {
-        slf.op(other, Item::Add, false)?;
-        Ok(slf)
+    pub fn __add__<'py>(slf: PyRefMut<'py, Self>, other: Bound<PyAny>) -> PyResult<Self> {
+        slf.op(other, Item::Add, false)
     }
-    pub fn __radd__<'py>(mut slf: PyRefMut<'py, Self>, other: Bound<PyAny>) -> PyResult<PyRefMut<'py, Self>> {
-        slf.op(other, Item::Add, true)?;
-        Ok(slf)
+    pub fn __radd__<'py>(slf: PyRefMut<'py, Self>, other: Bound<PyAny>) -> PyResult<Self> {
+        slf.op(other, Item::Add, true)
     }
-    pub fn __sub__<'py>(mut slf: PyRefMut<'py, Self>, other: Bound<PyAny>) -> PyResult<PyRefMut<'py, Self>> {
-        slf.op(other, Item::Sub, false)?;
-        Ok(slf)
+    pub fn __sub__<'py>(slf: PyRefMut<'py, Self>, other: Bound<PyAny>) -> PyResult<Self> {
+        slf.op(other, Item::Sub, false)
     }
-    pub fn __rsub__<'py>(mut slf: PyRefMut<'py, Self>, other: Bound<PyAny>) -> PyResult<PyRefMut<'py, Self>> {
-        slf.op(other, Item::Sub, true)?;
-        Ok(slf)
+    pub fn __rsub__<'py>(slf: PyRefMut<'py, Self>, other: Bound<PyAny>) -> PyResult<Self> {
+        slf.op(other, Item::Sub, true)
     }
-    pub fn __mul__<'py>(mut slf: PyRefMut<'py, Self>, other: Bound<PyAny>) -> PyResult<PyRefMut<'py, Self>> {
-        slf.op(other, Item::Mul, false)?;
-        Ok(slf)
+    pub fn __mul__<'py>(slf: PyRefMut<'py, Self>, other: Bound<PyAny>) -> PyResult<Self> {
+        slf.op(other, Item::Mul, false)
     }
-    pub fn __rmul__<'py>(mut slf: PyRefMut<'py, Self>, other: Bound<PyAny>) -> PyResult<PyRefMut<'py, Self>> {
-        slf.op(other, Item::Mul, true)?;
-        Ok(slf)
+    pub fn __rmul__<'py>(slf: PyRefMut<'py, Self>, other: Bound<PyAny>) -> PyResult<Self> {
+        slf.op(other, Item::Mul, true)
     }
-    pub fn __div__<'py>(mut slf: PyRefMut<'py, Self>, other: Bound<PyAny>) -> PyResult<PyRefMut<'py, Self>> {
-        slf.op(other, Item::Div, false)?;
-        Ok(slf)
+    pub fn __floordiv__<'py>(slf: PyRefMut<'py, Self>, other: Bound<PyAny>) -> PyResult<Self> {
+        slf.op(other, Item::Div, false)
     }
-    pub fn __rdiv__<'py>(mut slf: PyRefMut<'py, Self>, other: Bound<PyAny>) -> PyResult<PyRefMut<'py, Self>> {
-        slf.op(other, Item::Div, true)?;
-        Ok(slf)
+    pub fn __rfloordiv__<'py>(slf: PyRefMut<'py, Self>, other: Bound<PyAny>) -> PyResult<Self> {
+        slf.op(other, Item::Div, true)
     }
-    pub fn __mod__<'py>(mut slf: PyRefMut<'py, Self>, other: Bound<PyAny>) -> PyResult<PyRefMut<'py, Self>> {
-        slf.op(other, Item::Mod, false)?;
-        Ok(slf)
+    pub fn __mod__<'py>(slf: PyRefMut<'py, Self>, other: Bound<PyAny>) -> PyResult<Self> {
+        slf.op(other, Item::Mod, false)
     }
-    pub fn __rmod__<'py>(mut slf: PyRefMut<'py, Self>, other: Bound<PyAny>) -> PyResult<PyRefMut<'py, Self>> {
-        slf.op(other, Item::Mod, true)?;
-        Ok(slf)
+    pub fn __rmod__<'py>(slf: PyRefMut<'py, Self>, other: Bound<PyAny>) -> PyResult<Self> {
+        slf.op(other, Item::Mod, true)
     }
     
-    pub fn __and__<'py>(mut slf: PyRefMut<'py, Self>, other: Bound<PyAny>) -> PyResult<PyRefMut<'py, Self>> {
-        slf.op(other, Item::BitAnd, false)?;
-        Ok(slf)
+    pub fn __and__<'py>(slf: PyRefMut<'py, Self>, other: Bound<PyAny>) -> PyResult<Self> {
+        slf.op(other, Item::BitAnd, false)
     }
-    pub fn __rand__<'py>(mut slf: PyRefMut<'py, Self>, other: Bound<PyAny>) -> PyResult<PyRefMut<'py, Self>> {
-        slf.op(other, Item::BitAnd, true)?;
-        Ok(slf)
+    pub fn __rand__<'py>(slf: PyRefMut<'py, Self>, other: Bound<PyAny>) -> PyResult<Self> {
+        slf.op(other, Item::BitAnd, true)
     }
-    pub fn __or__<'py>(mut slf: PyRefMut<'py, Self>, other: Bound<PyAny>) -> PyResult<PyRefMut<'py, Self>> {
-        slf.op(other, Item::BitOr, false)?;
-        Ok(slf)
+    pub fn __or__<'py>(slf: PyRefMut<'py, Self>, other: Bound<PyAny>) -> PyResult<Self> {
+        slf.op(other, Item::BitOr, false)
     }
-    pub fn __ror__<'py>(mut slf: PyRefMut<'py, Self>, other: Bound<PyAny>) -> PyResult<PyRefMut<'py, Self>> {
-        slf.op(other, Item::BitOr, true)?;
-        Ok(slf)
+    pub fn __ror__<'py>(slf: PyRefMut<'py, Self>, other: Bound<PyAny>) -> PyResult<Self> {
+        slf.op(other, Item::BitOr, true)
     }
-    pub fn __xor__<'py>(mut slf: PyRefMut<'py, Self>, other: Bound<PyAny>) -> PyResult<PyRefMut<'py, Self>> {
-        slf.op(other, Item::BitXor, false)?;
-        Ok(slf)
+    pub fn __xor__<'py>(slf: PyRefMut<'py, Self>, other: Bound<PyAny>) -> PyResult<Self> {
+        slf.op(other, Item::BitXor, false)
     }
-    pub fn __rxor__<'py>(mut slf: PyRefMut<'py, Self>, other: Bound<PyAny>) -> PyResult<PyRefMut<'py, Self>> {
-        slf.op(other, Item::BitXor, true)?;
-        Ok(slf)
+    pub fn __rxor__<'py>(slf: PyRefMut<'py, Self>, other: Bound<PyAny>) -> PyResult<Self> {
+        slf.op(other, Item::BitXor, true)
     }
 
-    pub fn __neg__(mut slf: PyRefMut<'_, Self>) -> PyResult<PyRefMut<'_, Self>> {
-        slf.rpn.push_back(Item::Neg);
-        Ok(slf)
+    pub fn __neg__(&self) -> Self {
+        let mut new = self.clone();
+        new.rpn.push_back(Item::Neg);
+        new
     }
-    pub fn __invert__(mut slf: PyRefMut<'_, Self>) -> PyResult<PyRefMut<'_, Self>> {
-        slf.rpn.push_back(Item::BitNeg);
-        Ok(slf)
+    pub fn __invert__(&self) -> Self {
+        let mut new = self.clone();
+        new.rpn.push_back(Item::BitNeg);
+        new
     }
 }
 
