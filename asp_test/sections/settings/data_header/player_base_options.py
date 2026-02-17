@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from bfp_rs import BaseStruct, Retriever, Version, Context
-from bfp_rs.types.le import bool32, u32
+from bfp_rs.types.le import bool32, u32, str16, u16
 
 from asp_test.sections.settings.data_header.resources import Resources
 from asp_test.sections.scx_versions import DE_LATEST
@@ -9,12 +9,20 @@ from asp_test.sections.scx_versions import DE_LATEST
 
 class PlayerBaseOptions(BaseStruct):
     # @formatter:off
-    active: bool             = Retriever(bool32,                              default = False)
-    starting_resources: int  = Retriever(Resources, max_ver = Version(1, 13), default_factory = Resources)
-    human: bool              = Retriever(bool32,                              default = False)
-    civilization: int        = Retriever(u32,                                 default = 65537)
-    architecture: int        = Retriever(u32,       min_ver = Version(1, 40), default = 65537)
-    posture: int             = Retriever(u32,                                 default = 4)
+    active: bool             = Retriever(bool32,                                                        default = False)
+    starting_resources: int  = Retriever(Resources, max_ver = Version(1, 13),                           default_factory = Resources)
+    human: bool              = Retriever(bool32,                                                        default = False)
+
+    civilization_i: int      = Retriever(u32,                                 max_ver = Version(1, 55), default = 65537)
+    architecture_i: int      = Retriever(u32,       min_ver = Version(1, 40), max_ver = Version(1, 55), default = 65537)
+
+    _str_sign1: int          = Retriever(u16,       min_ver = Version(1, 56),                           default = 2656)
+    civilization_s: int      = Retriever(str16,     min_ver = Version(1, 56),                           default = 65537)
+
+    _str_sign2: int          = Retriever(u16,       min_ver = Version(1, 56),                           default = 2656)
+    architecture_s: int      = Retriever(str16,     min_ver = Version(1, 56),                           default = 65537)
+
+    posture: int             = Retriever(u32,                                                           default = 4)
 
     # _civilization_1_36: int = Retriever(u32, default = 36,                           max_ver = Version(1, 40))
     # _civilization_1_41: int = Retriever(u32, default = 38, min_ver = Version(1, 41), max_ver = Version(1, 42))
