@@ -8,8 +8,11 @@ pub mod bfp_type;
 pub mod r#struct;
 pub mod bfp_list;
 pub mod bfp_type_try_cast;
-pub mod manager;
-pub mod manager_info;
+pub mod ref_struct;
+pub mod ref_info;
 pub mod struct_builder;
 pub mod context;
 mod serial;
+mod diff;
+
+pub use diff::{diff_py, merge_py};

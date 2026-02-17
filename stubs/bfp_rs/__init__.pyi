@@ -13,7 +13,7 @@ __all__ = [
     "RetrieverCombiner",
 
     "Version",
-    "Manager",
+    "RefStruct",
 
     "borrow_mut", "set_mut",
 

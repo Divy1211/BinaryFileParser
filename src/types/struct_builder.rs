@@ -1,4 +1,4 @@
-use pyo3::{intern, pyclass, Bound, PyObject, PyResult};
+use pyo3::{intern, pyclass, Bound, Py, PyAny, PyErr, PyResult};
 use pyo3::types::{PyBytes, PyString, PyType};
 use pyo3::prelude::{PyAnyMethods, PyTypeMethods};
 
@@ -16,6 +16,12 @@ pub struct StructBuilder {
     retrievers: Vec<Retriever>,
     combiners: Vec<RetrieverCombiner>,
     refs: Vec<RetrieverRef>,
+}
+
+impl Default for StructBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl StructBuilder {
@@ -46,13 +52,28 @@ impl StructBuilder {
     }
     
     pub fn get_struct(cls: &Bound<PyType>) -> PyResult<Struct> {
-        let builder = cls
-            .getattr(intern!(cls.py(), "__struct_builder__")).expect("always a BaseStruct subclass");
+        let Ok(builder) = cls.getattr(intern!(cls.py(), "__struct_builder__")) else {
+            // For a retriever-less class
+            return Ok(Struct::from_raw( StructRaw {
+                retrievers: vec![],
+                combiners: vec![],
+                refs: vec![],
+
+                py_type: cls.extract()?,
+                fully_qualified_name: cls.fully_qualified_name()?.to_string(),
+
+                is_compressed: false,
+
+                get_ver: get_if_impl(cls, intern!(cls.py(), "_get_version")),
+                compress: get_if_impl(cls, intern!(cls.py(), "_compress")),
+                decompress: get_if_impl(cls, intern!(cls.py(), "_decompress")),
+            }));
+        };
 
         if builder.is_none() {
             return cls
                 .getattr(intern!(cls.py(), "__struct__")).expect("always a BaseStruct subclass")
-                .extract();
+                .extract().map_err(PyErr::from);
         }
         
         let mut builder = builder.extract::<StructBuilder>().expect("infallible");
@@ -93,7 +114,7 @@ impl StructBuilder {
     }
 }
 
-fn get_if_impl(cls: &Bound<PyType>, attr: &Bound<PyString>) -> Option<PyObject> {
+fn get_if_impl(cls: &Bound<PyType>, attr: &Bound<PyString>) -> Option<Py<PyAny>> {
     let py = cls.py();
     let obj = cls.getattr(attr).expect("always a BaseStruct subclass");
     if attr == "_get_version" {
@@ -102,7 +123,7 @@ fn get_if_impl(cls: &Bound<PyType>, attr: &Bound<PyString>) -> Option<PyObject> 
             _ => Some(obj.unbind())
         }
     } else {
-        match obj.call1((PyBytes::new_bound(py, &[]),)) {
+        match obj.call1((PyBytes::new(py, &[]),)) {
             Err(err) if err.is_instance_of::<CompressionError>(py) => None,
             _ => Some(obj.unbind())
         }

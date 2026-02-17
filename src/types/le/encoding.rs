@@ -70,24 +70,35 @@ impl Encoding {
     pub fn encode(&self, text: &String, buffer: &mut Vec<u8>) -> PyResult<()> {
         match self {
             Encoding::ASCII => {
-                if text.chars().all(|c| c.is_ascii()) {
-                    Ok(buffer.extend_from_slice(text.as_bytes()))
+                if text.is_ascii() {
+                    buffer.extend_from_slice(text.as_bytes());
+                    Ok(())
                 } else {
                     Err(PyValueError::new_err("String contains chars out of ASCII range"))
                 }
             }
-            Encoding::UTF8 => Ok(buffer.extend_from_slice(text.as_bytes())),
-            Encoding::UTF16 => Ok(buffer.extend(
-                text.encode_utf16()
-                    .flat_map(|c| c.to_le_bytes())
-            )),
-            Encoding::UTF32 => Ok(buffer.extend(
-                text.chars()
-                    .flat_map(|c| (c as u32).to_le_bytes())
-            )),
+            Encoding::UTF8 => {
+                buffer.extend_from_slice(text.as_bytes());
+                Ok(())
+            },
+            Encoding::UTF16 => {
+                buffer.extend(
+                    text.encode_utf16()
+                        .flat_map(|c| c.to_le_bytes())
+                );
+                Ok(())
+            },
+            Encoding::UTF32 => {
+                buffer.extend(
+                    text.chars()
+                        .flat_map(|c| (c as u32).to_le_bytes())
+                );
+                Ok(())
+            },
             Encoding::LATIN1 => {
                 if text.chars().all(|c| (c as u32) <= 0xFF) {
-                    Ok(buffer.extend(text.chars().map(|c| c as u8)))
+                    buffer.extend(text.chars().map(|c| c as u8));
+                    Ok(())
                 } else {
                     Err(PyValueError::new_err("String contains chars out of Latin-1 range"))
                 }
@@ -97,7 +108,8 @@ impl Encoding {
                 if had_errors {
                     Err(PyValueError::new_err("Windows-1252 Encoding Error"))
                 } else {
-                    Ok(buffer.extend_from_slice(&bytes))
+                    buffer.extend_from_slice(&bytes);
+                    Ok(())
                 }
             }
         }

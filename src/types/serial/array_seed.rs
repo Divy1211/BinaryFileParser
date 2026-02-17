@@ -8,7 +8,7 @@ use crate::types::serial::type_deserializer::TypeDeserializer;
 
 pub struct ArraySeed<'a, 'b>(pub TypeDeserializer<'a, 'b>);
 
-impl<'de, 'a, 'b> DeserializeSeed<'de> for ArraySeed<'a, 'b> {
+impl<'de> DeserializeSeed<'de> for ArraySeed<'_, '_> {
     type Value = BfpList;
 
     fn deserialize<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
@@ -19,7 +19,7 @@ impl<'de, 'a, 'b> DeserializeSeed<'de> for ArraySeed<'a, 'b> {
     }
 }
 
-impl<'de, 'a, 'b> Visitor<'de> for ArraySeed<'a, 'b> {
+impl<'de> Visitor<'de> for ArraySeed<'_, '_> {
     type Value = BfpList;
 
     fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {

@@ -24,6 +24,7 @@ use crate::combinators::set::set_to::SetTo;
 use crate::combinators::set_key::set_key_by::SetKeyBy;
 use crate::combinators::set_key::set_key_from::SetKeyFrom;
 use crate::combinators::set_key::set_key_from_len::SetKeyFromLen;
+use crate::combinators::set_key::set_key_to::SetKeyTo;
 use crate::combinators::set_repeat::set_repeat_by::SetRepeatBy;
 use crate::combinators::set_repeat::set_repeat_from::SetRepeatFrom;
 use crate::combinators::set_repeat::set_repeat_from_key::SetRepeatFromKey;
@@ -62,8 +63,9 @@ pub enum CombinatorType {
 
     IfElse(IfElse),
     IfBreak(IfBreak),
-    
+
     SetKeyFrom(SetKeyFrom),
+    SetKeyTo(SetKeyTo),
     SetKeyBy(SetKeyBy),
     SetKeyFromLen(SetKeyFromLen),
 
@@ -111,6 +113,7 @@ impl Combinator for CombinatorType {
             CombinatorType::SetKeyFrom(com)       => com.run(retrievers, data, repeats, ver, ctx),
             CombinatorType::SetKeyBy(com)         => com.run(retrievers, data, repeats, ver, ctx),
             CombinatorType::SetKeyFromLen(com)    => com.run(retrievers, data, repeats, ver, ctx),
+            CombinatorType::SetKeyTo(com)         => com.run(retrievers, data, repeats, ver, ctx),
 
             CombinatorType::SetFrom(com)          => com.run(retrievers, data, repeats, ver, ctx),
             CombinatorType::SetFromKey(com)       => com.run(retrievers, data, repeats, ver, ctx),
@@ -130,8 +133,9 @@ impl CombinatorType {
             CombinatorType::IfKeyIsNone(_)      => true,
             CombinatorType::IfCmpKey(_)         => true,
             CombinatorType::IfCmpKeyTo(_)       => true,
-            
+
             CombinatorType::SetKeyFrom(_)       => true,
+            CombinatorType::SetKeyTo(_)         => true,
             CombinatorType::SetKeyBy(_)         => true,
             CombinatorType::SetKeyFromLen(_)    => true,
             CombinatorType::SetFromKey(_)       => true,
@@ -166,6 +170,7 @@ impl_from_for_combinator_type!(IfElse, IfElse);
 impl_from_for_combinator_type!(IfBreak, IfBreak);
 
 impl_from_for_combinator_type!(SetKeyFrom, SetKeyFrom);
+impl_from_for_combinator_type!(SetKeyTo, SetKeyTo);
 impl_from_for_combinator_type!(SetKeyBy, SetKeyBy);
 impl_from_for_combinator_type!(SetKeyFromLen, SetKeyFromLen);
 

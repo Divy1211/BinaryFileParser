@@ -18,7 +18,7 @@ nav:
       - Compressed Files:           "tutorial/compressed_files.md"
       - Advanced Combinators:       "tutorial/advanced_combinators.md"
       - Advanced Retrievers:        "tutorial/advanced_retrievers.md"
-      - Using Managers:             "tutorial/using_managers.md"
+      - Using RefStructs:           "tutorial/using_ref_structs.md"
 
   - API Reference:
       - Combinators:
@@ -42,7 +42,8 @@ nav:
           - BaseStruct:             "reference/types/base_struct.md"
           - ByteStream:             "reference/types/byte_stream.md"
           - Context:                "reference/types/context.md"
-          - Manager:                "reference/types/manager.md"
+          - Diff & Merge:           "reference/types/diff.md"
+          - RefStruct:              "reference/types/ref_struct.md"
           - Version:                "reference/types/version.md"
           - Little Endian:
               - Array:              "reference/types/le/array.md"
@@ -101,6 +102,8 @@ plugins:
       handlers:
         python:
           options:
+            filters:
+              - "!^__match_args__$"
             docstring_style: google
             paths: [ stubs ]
 #            backlinks: tree

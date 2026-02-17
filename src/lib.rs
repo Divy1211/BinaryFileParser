@@ -1,4 +1,10 @@
 #![allow(unexpected_cfgs)]
+#![allow(unknown_lints, mismatched_lifetime_syntaxes)]
+#![allow(clippy::wrong_self_convention)]
+#![allow(clippy::comparison_chain)]
+#![allow(clippy::match_like_matches_macro)]
+#![allow(clippy::ptr_arg)]
+#![allow(clippy::only_used_in_recursion)]
 
 use pyo3::prelude::*;
 use pyo3::py_run;
@@ -13,7 +19,7 @@ use crate::combinators::set_repeat::set_repeat_builder::set_repeat;
 use crate::combinators::r#if::if_builder::{if_, if_not, if_len, if_ver, if_not_key, if_key, if_else, break_};
 use crate::combinators::set::set_builder::set;
 use crate::combinators::set_key::set_key_builder::set_key;
-use crate::combinators::get::{get_len, get, get_key};
+use crate::combinators::get::{get_len, get, get_key, get_attr};
 
 use crate::help::BorrowMutGuard;
 use crate::help::set_mut;
@@ -26,6 +32,7 @@ use crate::types::base_struct::BaseStruct;
 use crate::types::bfp_type::BfpType;
 use crate::types::byte_stream::ByteStream;
 use crate::types::context::ContextPtr;
+use crate::types::diff_py::{ChangedPy, DeletedPy, DiffPy, InsertedPy, NestedDiffPy};
 use crate::types::le::array::{Array, ArrayBuilder};
 use crate::types::le::bool::{Bool128, Bool16, Bool32, Bool64, Bool8};
 use crate::types::le::bytes::Bytes;
@@ -40,7 +47,8 @@ use crate::types::le::stacked_attr_array::{StackedAttrArray, StackedAttrArrayBui
 use crate::types::le::str::Str;
 use crate::types::le::str_array::StrArray;
 use crate::types::le::tail::Tail;
-use crate::types::manager::Manager;
+use crate::types::merge_py::{BasicPy, ConflictPy, NestedConflictPy};
+use crate::types::ref_struct::RefStruct;
 use crate::types::version::Version;
 
 pub mod retrievers;
@@ -51,7 +59,7 @@ pub mod combinators;
 pub mod help;
 
 fn le(py: Python, types: &Bound<PyModule>) -> PyResult<()> {
-    let le = PyModule::new_bound(types.py(), "bfp_rs.types.le")?;
+    let le = PyModule::new(types.py(), "bfp_rs.types.le")?;
     py_run!(py, le, "import sys; sys.modules['bfp_rs.types.le'] = le");
     types.add_submodule(&le)?;
 
@@ -134,7 +142,7 @@ fn le(py: Python, types: &Bound<PyModule>) -> PyResult<()> {
 }
 
 fn types(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
-    let types = PyModule::new_bound(bfp.py(), "bfp_rs.types")?;
+    let types = PyModule::new(bfp.py(), "bfp_rs.types")?;
     py_run!(py, types, "import sys; sys.modules['bfp_rs.types'] = types");
     bfp.add_submodule(&types)?;
 
@@ -144,7 +152,7 @@ fn types(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
 }
 
 fn combinators(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
-    let combinators = &PyModule::new_bound(bfp.py(), "bfp_rs.combinators")?;
+    let combinators = &PyModule::new(bfp.py(), "bfp_rs.combinators")?;
     py_run!(py, combinators, "import sys; sys.modules['bfp_rs.combinators'] = combinators");
     bfp.add_submodule(combinators)?;
 
@@ -161,23 +169,43 @@ fn combinators(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
     combinators.add_function(wrap_pyfunction!(set_key, combinators)?)?;
     combinators.add_function(wrap_pyfunction!(get, combinators)?)?;
     combinators.add_function(wrap_pyfunction!(get_key, combinators)?)?;
+    combinators.add_function(wrap_pyfunction!(get_attr, combinators)?)?;
     combinators.add_function(wrap_pyfunction!(get_len, combinators)?)?;
     
     Ok(())
 }
 
 fn errors(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
-    let errors = PyModule::new_bound(bfp.py(), "bfp_rs.errors")?;
+    let errors = PyModule::new(bfp.py(), "bfp_rs.errors")?;
     py_run!(py, errors, "import sys; sys.modules['bfp_rs.errors'] = errors");
     bfp.add_submodule(&errors)?;
-    errors.add("ParsingError", py.get_type_bound::<ParsingError>())?;
-    errors.add("CompressionError", py.get_type_bound::<CompressionError>())?;
-    errors.add("DefaultValueError", py.get_type_bound::<DefaultAttributeError>())?;
-    errors.add("VersionError", py.get_type_bound::<VersionError>())?;
-    errors.add("MutabilityError", py.get_type_bound::<MutabilityError>())?;
+    errors.add("ParsingError", py.get_type::<ParsingError>())?;
+    errors.add("CompressionError", py.get_type::<CompressionError>())?;
+    errors.add("DefaultValueError", py.get_type::<DefaultAttributeError>())?;
+    errors.add("VersionError", py.get_type::<VersionError>())?;
+    errors.add("MutabilityError", py.get_type::<MutabilityError>())?;
 
     Ok(())
 }
+
+fn diff(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
+    let diff = PyModule::new(bfp.py(), "bfp_rs.diff")?;
+    py_run!(py, diff, "import sys; sys.modules['bfp_rs.diff'] = diff");
+    bfp.add_submodule(&diff)?;
+
+    diff.add_class::<DiffPy>()?;
+    diff.add_class::<InsertedPy>()?;
+    diff.add_class::<DeletedPy>()?;
+    diff.add_class::<ChangedPy>()?;
+    diff.add_class::<NestedDiffPy>()?;
+
+    diff.add_class::<ConflictPy>()?;
+    diff.add_class::<BasicPy>()?;
+    diff.add_class::<NestedConflictPy>()?;
+    
+    Ok(())
+}
+
 
 #[pymodule]
 #[pyo3(name = "bfp_rs")]
@@ -189,7 +217,7 @@ fn binary_file_parser(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
     bfp.add_class::<RetrieverRef>()?;
     bfp.add_class::<RetrieverCombiner>()?;
     bfp.add_class::<Version>()?;
-    bfp.add_class::<Manager>()?;
+    bfp.add_class::<RefStruct>()?;
     
     bfp.add_class::<BorrowMutGuard>()?;
 
@@ -197,6 +225,7 @@ fn binary_file_parser(py: Python, bfp: &Bound<PyModule>) -> PyResult<()> {
 
     errors(py, bfp)?;
     types(py, bfp)?;
+    diff(py, bfp)?;
     combinators(py, bfp)?;
 
     Ok(())

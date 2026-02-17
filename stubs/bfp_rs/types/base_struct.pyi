@@ -1,5 +1,7 @@
 from typing import Any, Self
 
+from bfp_rs.diff import Diff, Conflict
+from bfp_rs.retrievers import Retriever
 from bfp_rs.types.byte_stream import ByteStream
 from bfp_rs.types.context import Context
 from bfp_rs.types.version import Version
@@ -13,11 +15,16 @@ class BaseStruct:
     ver: Version
     "The version of the struct"
 
-    def __new__(cls, ver: Version = Version(-1), ctx: Context = Context(), init_defaults: bool = True, **retriever_inits: Any) -> Self:
+    @classmethod
+    def retrievers(cls) -> list[Retriever]:
+        ...
+
+    def __new__(cls, *args, ver: Version = Version(-1), ctx: Context = Context(), init_defaults: bool = True, **retriever_inits: Any) -> Self:
         """
         Default initialise and create a new instance of this struct
 
         Args:
+            args: generic args receiver
             ver: The struct version to create
             ctx: Stores ctx key/values used by on_read/on_write combinators
 
@@ -27,6 +34,15 @@ class BaseStruct:
 
             **retriever_inits:
                 Specify overrides for the default values of retrievers for initialisation by name
+        """
+
+    def __reconstruct__(self):
+        """
+        An initialization method that is called when externally loaded structs are accessed for the first time, since
+        __init__ is skipped.
+
+        Note: This method is not called when structs are created directly by code. If required, __init__ should call
+              this function.
         """
 
     @classmethod
@@ -73,12 +89,14 @@ class BaseStruct:
 
 
     @classmethod
-    def from_bytes(cls, bytes_: bytes) -> Self:
+    def from_bytes(cls, bytes_: bytes, ver: Version = Version(0), strict: bool = False) -> Self:
         """
         Deserialize and create an instance of this struct from bytes
 
         Args:
             bytes_: The bytes to use for deserialization
+            ver: The version whose bytes are being deserialized
+            strict: Raise an error if the complete file is not consumed after deserialization is complete
 
         Returns:
             An instance of this struct
@@ -90,12 +108,13 @@ class BaseStruct:
 
 
     @classmethod
-    def from_file(cls, filepath: str, strict: bool = True) -> Self:
+    def from_file(cls, filepath: str, ver: Version = Version(0), strict: bool = True) -> Self:
         """
         Deserialize and create an instance of this struct from the given file
 
         Args:
             filepath: The file to use for deserialization
+            ver: The version whose bytes are being deserialized
             strict: Raise an error if the complete file is not consumed after deserialization is complete
 
         Returns:
@@ -185,3 +204,16 @@ class BaseStruct:
               The decompressed bytes
         """
 
+    def diff(self, other: BaseStruct) -> dict[str, Diff]:
+        """
+        Returns a dictionary with retriever names that are different from self in other as keys, and the respective
+        changes as values
+        """
+
+    def merge(self, branch1: BaseStruct, branch2: BaseStruct) -> dict[str, Conflict]:
+        """
+        Safe merges the changes of branch1 and branch2 into self
+
+        Returns:
+            A dictionary with retriever names that are modified in both branches, resulting in a conflict
+        """

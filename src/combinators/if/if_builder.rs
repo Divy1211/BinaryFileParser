@@ -89,7 +89,7 @@ impl IfBuilder {
         self.state = State::HasSource;
         Ok(())
     }
-    pub fn cmp_fix<'py>(&mut self, source: &Bound<PyAny>, ord: Vec<Ordering>) -> PyResult<()> {
+    pub fn cmp_fix(&mut self, source: &Bound<PyAny>, ord: Vec<Ordering>) -> PyResult<()> {
         if self.len {
             let val2 = source.extract::<isize>()?;
             if val2 < 0 {
@@ -99,7 +99,7 @@ impl IfBuilder {
             }
             self.source = Some(vec![val2 as usize]);
         } else {
-            self.source_const = Some(self.target_data_type.to_parseable(&source)?)
+            self.source_const = Some(self.target_data_type.to_parseable(source)?)
         };
         self.ord = Some(ord);
         self.state = State::HasSourceConst;
@@ -107,7 +107,7 @@ impl IfBuilder {
         Ok(())
     }
     
-    pub fn cmp_get<'py>(&mut self, mut source: Get, ord: Vec<Ordering>) -> PyResult<()> {
+    pub fn cmp_get(&mut self, mut source: Get, ord: Vec<Ordering>) -> PyResult<()> {
         source.make_contiguous();
         self.source_get = Some(source);
         self.ord = Some(ord);
@@ -125,7 +125,7 @@ impl IfBuilder {
 
         if len == 1 {
             let item = unsafe { source.get_item_unchecked(0) };
-            if let Ok(_ret) = item.downcast::<Retriever>() {
+            if let Ok(_ret) = item.cast::<Retriever>() {
                 self.cmp_path(source, ord)
             } else if let Ok(get) = item.extract::<Get>() {
                 self.cmp_get(get, ord)
@@ -140,7 +140,7 @@ impl IfBuilder {
 
 #[pymethods]
 impl IfBuilder {
-    fn is_none<'py>(slf: Bound<'py, Self>) -> Bound<'py, Self> {
+    fn is_none(slf: Bound<'_, Self>) -> Bound<'_, Self> {
         slf.borrow_mut().none_check = true;
         slf
     }

@@ -1,14 +1,17 @@
 use std::cmp::Ordering;
+use std::hash::{Hash, Hasher};
 use std::sync::{Arc, RwLockReadGuard, RwLockWriteGuard};
 use std::sync::RwLock;
 
 use pyo3::exceptions::{PyIndexError, PyTypeError, PyValueError};
-use pyo3::prelude::{PyAnyMethods, PyTypeMethods};
-use pyo3::types::{PyInt, PySlice, PySliceIndices, PySliceMethods};
-use pyo3::{pyclass, pymethods, Bound, IntoPy, PyAny, PyRef, PyRefMut, PyResult};
+use pyo3::prelude::{PyAnyMethods, PyDictMethods, PyTypeMethods};
+use pyo3::types::{PyDict, PyInt, PySlice, PySliceIndices, PySliceMethods};
+use pyo3::{pyclass, pymethods, Bound, IntoPyObjectExt, PyAny, PyRef, PyRefMut, PyResult, Python};
 use serde::{Serialize, Serializer};
 use crate::errors::mutability_error::MutabilityError;
 use crate::types::bfp_type::BfpType;
+use crate::types::diff::diff::{Diff, Diffable, IDiff};
+use crate::types::diff::merge::{Conflict, Mergeable};
 use crate::types::parseable_type::ParseableType;
 
 #[derive(Debug)]
@@ -40,16 +43,17 @@ impl BfpList {
     pub fn inner_mut(&self) -> RwLockWriteGuard<BfpListRaw> {
         self.raw.write().expect("GIL Bound read")
     }
-    
+
+    #[allow(clippy::len_without_is_empty)]
     pub fn len(&self) -> usize {
-        self.raw.read().expect("GIL Bound read").data.len()
+        self.inner().data.len()
     }
 }
 
 impl PartialOrd for BfpList {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        let data1 = &self.raw.read().expect("GIL bound read").data;
-        let data2 = &other.raw.read().expect("GIL bound read").data;
+        let data1 = &self.inner().data;
+        let data2 = &other.inner().data;
         
         data1.partial_cmp(data2)
     }
@@ -57,14 +61,13 @@ impl PartialOrd for BfpList {
 
 impl PartialEq for BfpList {
     fn eq(&self, other: &Self) -> bool {
-        let data1 = &self.raw.read().expect("GIL bound read").data;
-        let data2 = &other.raw.read().expect("GIL bound read").data;
+        let data1 = &self.inner().data;
+        let data2 = &other.inner().data;
         if data1.len() != data2.len() {
             return false
         }
         data1.iter().zip(data2.iter())
-            .map(|(a, b)| a == b)
-            .all(|x| x)
+            .all(|(a, b)| a == b)
     }
 }
 
@@ -90,7 +93,7 @@ impl BfpList {
             return Err(MutabilityError::new_err("This list is set as immutable by it's API designer"));
         }
 
-        let mut vals = val.iter()?
+        let mut vals = val.try_iter()?
             .map(|v| {
                 inner.data_type.to_parseable(&v.expect("obtained from python"))
             })
@@ -138,7 +141,7 @@ impl BfpList {
     }
 
     #[pyo3(signature = (item = -1))]
-    fn pop<'py>(slf: PyRefMut<'py, BfpList>, mut item: isize) -> PyResult<Bound<'py, PyAny>> {
+    fn pop(slf: PyRefMut<'_, BfpList>, mut item: isize) -> PyResult<Bound<'_, PyAny>> {
         let mut inner = slf.inner_mut();
         
         if inner.immutable {
@@ -152,10 +155,10 @@ impl BfpList {
             return Err(PyIndexError::new_err("list index out of range"))
         }
         
-        Ok(inner.data.remove(item as usize).to_bound(slf.py()))
+        inner.data.remove(item as usize).to_bound(slf.py())
     }
 
-    fn clear<'py>(slf: PyRefMut<'py, BfpList>) -> PyResult<()> {
+    fn clear(slf: PyRefMut<'_, BfpList>) -> PyResult<()> {
         let mut inner = slf.inner_mut();
         
         if inner.immutable {
@@ -244,26 +247,21 @@ impl BfpList {
                 return Err(PyIndexError::new_err("list index out of range"))
             }
             
-            return Ok(
-                inner.data[item]
-                    .clone()
-                    .to_bound(slf.py())
-            );
+            return inner.data[item]
+                .clone()
+                .to_bound(slf.py());
         }
         if item.is_instance_of::<PySlice>() {
-            let item = item.downcast_into::<PySlice>().expect("infallible");
+            let item = item.cast_into::<PySlice>().expect("infallible");
             let idxes = slice(item.indices(inner.data.len() as isize)?)?;
             
-            return Ok(
-                idxes.into_iter()
-                    .map(|idx| inner.data[idx].clone().to_bound(slf.py()) )
-                    .collect::<Vec<_>>()
-                    .into_py(slf.py())
-                    .into_bound(slf.py())
-            )
+            return idxes.into_iter()
+                    .map(|idx| inner.data[idx].clone().to_bound(slf.py()))
+                    .collect::<PyResult<Vec<_>>>()?
+                    .into_bound_py_any(slf.py())
         }
         Err(PyIndexError::new_err(
-            format!("list indices must be integers or slices, not '{}'", item.get_type().fully_qualified_name()?.to_string())
+            format!("list indices must be integers or slices, not '{}'", item.get_type().fully_qualified_name()?)
         ))
     }
 
@@ -283,10 +281,10 @@ impl BfpList {
             return Ok(())
         }
         if item.is_instance_of::<PySlice>() {
-            let item = item.downcast_into::<PySlice>().expect("infallible");
+            let item = item.cast_into::<PySlice>().expect("infallible");
             let idxes = slice(item.indices(inner.data.len() as isize)?)?;
 
-            let vals = val.iter()?
+            let vals = val.try_iter()?
                 .map(|v| v.expect("obtained from python"))
                 .collect::<Vec<_>>();
             if idxes.len() != vals.len() {
@@ -301,7 +299,7 @@ impl BfpList {
             return Ok(())
         }
         Err(PyIndexError::new_err(
-            format!("list indices must be integers or slices, not '{}'", item.get_type().fully_qualified_name()?.to_string())
+            format!("list indices must be integers or slices, not '{}'", item.get_type().fully_qualified_name()?)
         ))
     }
 
@@ -321,7 +319,7 @@ impl BfpList {
             return Ok(())
         }
         if item.is_instance_of::<PySlice>() {
-            let item = item.downcast_into::<PySlice>().expect("infallible");
+            let item = item.cast_into::<PySlice>().expect("infallible");
             let idxes = slice(item.indices(inner.data.len() as isize)?)?;
             
             for i in idxes.into_iter().rev() {
@@ -331,19 +329,19 @@ impl BfpList {
             return Ok(())
         }
         Err(PyIndexError::new_err(
-            format!("list indices must be integers or slices, not '{}'", item.get_type().fully_qualified_name()?.to_string())
+            format!("list indices must be integers or slices, not '{}'", item.get_type().fully_qualified_name()?)
         ))
     }
 
-    fn __repr__(slf: PyRef<BfpList>) -> String { // todo: implement this properly
+    fn __repr__(slf: PyRef<BfpList>) -> PyResult<String> { // todo: implement this properly
         let inner = slf.inner();
 
-        format!(
+        Ok(format!(
             "[{}]",
             inner.data.iter()
-                .map(|l| l.clone().to_bound(slf.py()).to_string())
-                .collect::<Vec<String>>().join(", ")
-        )
+                .map(|l| Ok(l.clone().to_bound(slf.py())?.to_string()))
+                .collect::<PyResult<Vec<_>>>()?.join(", ")
+        ))
     }
 }
 
@@ -367,6 +365,141 @@ impl Serialize for BfpList {
     where
         S: Serializer,
     {
-        self.raw.read().expect("GIL Bound read").data.serialize(serializer)
+        self.inner().data.serialize(serializer)
+    }
+}
+
+impl Hash for BfpList {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.inner().data.hash(state);
+    }
+}
+
+impl Diffable<ParseableType> for BfpList {
+
+    fn diff(&self, other: &Self) -> Diff<ParseableType> {
+        let data1 = &self.inner().data;
+        let data2 = &other.inner().data;
+        data1.diff(data2)
+    }
+}
+
+impl Mergeable<ParseableType> for BfpList {
+    fn patch(&mut self, (idx, change): IDiff<ParseableType>, off: isize) -> isize {
+        let mut inner = self.inner_mut();
+        let ls = &mut inner.data;
+        let idx = (idx as isize - off) as usize;
+
+        match change {
+            Diff::None => { off }
+            Diff::Inserted(val) => { ls.insert(idx, val); off - 1 }
+            Diff::Deleted(_val) => { ls.remove(idx); off + 1 }
+            Diff::Changed(val) => { ls[idx] = val; off }
+            Diff::Nested(changes) => {
+                let val = &mut ls[idx];
+                let mut off2 = 0;
+                for change in changes {
+                    off2 = val.patch(change, off2);
+                }
+                off
+            }
+        }
+    }
+
+    fn merge(&mut self, _slf: &Self, _other: &Self) -> Vec<Conflict<ParseableType>> {
+        unreachable!("BFP Internal Error: merge called on BfpList")
+    }
+}
+
+impl BfpList {
+    pub fn merge_rec(
+        &mut self,
+        changes1: Vec<IDiff<ParseableType>>,
+        changes2: Vec<IDiff<ParseableType>>,
+        conflicts: &mut Vec<Conflict<ParseableType>>,
+    ) {
+        let (mut it1, mut it2) = (changes1.into_iter(), changes2.into_iter());
+        let (mut e1, mut e2) = (it1.next(), it2.next());
+        
+        let mut off = 0;
+        loop { match (e1, e2) { (None, None) => break,
+            (Some(diff), None) | (None, Some(diff)) => {
+                off = self.patch(diff, off);
+                (e1, e2) = (it1.next(), it2.next());
+            }
+            (Some(diff1), Some(diff2)) => {
+                #[allow(clippy::comparison_chain)]
+                if diff1.0 == diff2.0 {
+                    let (idx, change1) = diff1;
+                    let change2 = diff2.1;
+                    match (change1, change2) {
+                        (Diff::Nested(sub_changes1), Diff::Nested(sub_changes2)) => {
+                            let mut inner = self.inner_mut();
+                            let ls = &mut inner.data;
+
+                            let val = &mut ls[idx];
+
+                            let mut sub_conflicts = vec![];
+                            val.merge_rec(sub_changes1, sub_changes2, &mut sub_conflicts);
+                            if !sub_conflicts.is_empty() {
+                                conflicts.push(Conflict::Nested(idx, sub_conflicts));
+                            }
+                        }
+                        (change1 @ Diff::Deleted(_), Diff::Deleted(_)) => {
+                            off = self.patch((idx, change1), off);
+                        }
+                        (Diff::Changed(v1), Diff::Changed(v2)) if v1 == v2 => {
+                            off = self.patch((idx, Diff::Changed(v1)), off);
+                        }
+                        (
+                            change1 @ (Diff::Deleted(_) | Diff::Changed(_) | Diff::Nested(_)),
+                            change2 @ (Diff::Deleted(_) | Diff::Changed(_) | Diff::Nested(_))
+                        ) => {
+                            conflicts.push(Conflict::Basic(idx, change1, change2));
+                        }
+                        (change1, change2) => {
+                            off = self.patch((idx, change1), off);
+                            off = self.patch((idx, change2), off);
+                        }
+                    }
+                    (e1, e2) = (it1.next(), it2.next());
+                } else if diff1.0 < diff2.0 {
+                    off = self.patch(diff1, off);
+                    (e1, e2) = (it1.next(), Some(diff2));
+                } else {
+                    off = self.patch(diff2, off);
+                    (e1, e2) = (Some(diff1), it2.next());
+                }
+            }
+        }}
+    }
+}
+
+impl BfpList {
+    pub fn diffs_to_dict<'py>(&self, changes: Vec<IDiff<ParseableType>>, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+        let di = PyDict::new(py);
+        let inner = self.inner();
+        for (idx, change) in changes {
+            PyDictMethods::set_item(
+                &di,
+                idx,
+                change.to_pyobj(inner.data.get(idx), py)?
+            )?;
+        }
+        Ok(di)
+    }
+
+    pub fn conflicts_to_dict<'py>(&self, conflicts: Vec<Conflict<ParseableType>>, py: Python<'py>) -> PyResult<Bound<'py, PyDict>> {
+        let di = PyDict::new(py);
+        let mut inner = self.inner_mut();
+        for conflict in conflicts {
+            let idx = conflict.idx();
+            PyDictMethods::set_item(
+                &di,
+                idx,
+                conflict.to_pyobj(inner.data.get_mut(idx), py)?
+            )?;
+        }
+        Ok(di)
     }
 }

@@ -7,11 +7,17 @@ use crate::retrievers::retriever_ref::RetrieverRef;
 
 #[pyclass(module = "bfp_rs")]
 #[derive(Debug, Clone)]
-pub struct ManagerInfo {
+pub struct RefInfo {
     refs: Arc<RwLock<Vec<RetrieverRef>>>,
 }
 
-impl ManagerInfo {
+impl Default for RefInfo {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl RefInfo {
     pub fn new() -> Self {
         Self {
             refs: Arc::new(RwLock::new(Vec::new())),

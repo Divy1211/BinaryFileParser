@@ -18,7 +18,7 @@ use crate::types::serial::struct_deserializer::StructDeserializer;
 
 pub struct TypeDeserializer<'a, 'b>(pub &'a BfpType, pub &'b mut Context);
 
-impl<'de, 'a, 'b> DeserializeSeed<'de> for TypeDeserializer<'a, 'b> {
+impl<'de> DeserializeSeed<'de> for TypeDeserializer<'_, '_> {
     type Value = ParseableType;
 
     fn deserialize<D>(self, deserializer: D) -> Result<Self::Value, D::Error>

@@ -15,7 +15,7 @@ use crate::types::version::Version;
 
 pub struct StructDeserializer<'a, 'b>(pub &'a Struct, pub &'b mut Context);
 
-impl<'de, 'a, 'b> DeserializeSeed<'de> for StructDeserializer<'a, 'b> {
+impl<'de> DeserializeSeed<'de> for StructDeserializer<'_, '_> {
     type Value = BaseStruct;
 
     fn deserialize<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
@@ -26,7 +26,7 @@ impl<'de, 'a, 'b> DeserializeSeed<'de> for StructDeserializer<'a, 'b> {
     }
 }
 
-impl<'de, 'a, 'b> Visitor<'de> for StructDeserializer<'a, 'b> {
+impl<'de> Visitor<'de> for StructDeserializer<'_, '_> {
     type Value = BaseStruct;
 
     fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -50,7 +50,7 @@ impl<'de, 'a, 'b> Visitor<'de> for StructDeserializer<'a, 'b> {
         let Some(ver) = values.get("ver") else {
             return Err(Error::custom("Invalid Object: Version not found"));
         };
-        let ver = Version::deserialize(ver).map_err(|e| Error::custom(e))?;
+        let ver = Version::deserialize(ver).map_err(Error::custom)?;
         
         for (i, retriever) in retrievers.iter().enumerate() {
             if !retriever.supported(&ver) {
@@ -98,7 +98,7 @@ impl<'de, 'a, 'b> Visitor<'de> for StructDeserializer<'a, 'b> {
                     ParseableType::Array(ls)
                 }
             }));
-            retriever.call_on_reads(&retrievers, &mut data, &mut repeats, &ver, ctx).map_err(|e| {
+            retriever.call_on_reads(retrievers, &mut data, &mut repeats, &ver, ctx).map_err(|e| {
                 Error::custom(e)
             })?;
         }

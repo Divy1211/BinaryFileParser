@@ -12,7 +12,7 @@ use crate::types::serial::type_deserializer::TypeDeserializer;
 
 pub struct StackedArraySeed<'a, 'b, 'c>(pub TypeDeserializer<'a, 'b>, pub &'c StackedArray);
 
-impl<'de, 'a, 'b, 'c> Visitor<'de> for StackedArraySeed<'a, 'b, 'c> {
+impl<'de> Visitor<'de> for StackedArraySeed<'_, '_, '_> {
     type Value = BfpList;
 
     fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {

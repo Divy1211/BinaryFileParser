@@ -51,7 +51,7 @@ impl RetrieverCombiner {
         Err(VersionError::new_err(format!(
             "{} is not supported in struct version {}",
             slf.borrow().name,
-            instance.downcast::<BaseStruct>()?.borrow().inner().ver
+            instance.cast::<BaseStruct>()?.borrow().inner().ver
         )))
     }
 
@@ -74,7 +74,7 @@ impl RetrieverCombiner {
         Err(VersionError::new_err(format!(
             "{} is not supported in struct version {}",
             slf.borrow().name,
-            instance.downcast::<BaseStruct>()?.borrow().inner().ver
+            instance.cast::<BaseStruct>()?.borrow().inner().ver
         )))
     }
 
@@ -83,10 +83,10 @@ impl RetrieverCombiner {
         this.name = name.to_string();
 
         this.target = this.tuple.bind(slf.py()).into_iter().map(|val| {
-            val.downcast::<Retriever>()
+            val.cast::<Retriever>()
                 .map(|r| r.borrow().name.clone())
-                .or_else(|_err| val.downcast::<RetrieverRef>().map(|r| r.borrow().name.clone()))
-                .or_else(|_err| val.downcast::<RetrieverCombiner>().map(|r| r.borrow().name.clone()))
+                .or_else(|_err| val.cast::<RetrieverRef>().map(|r| r.borrow().name.clone()))
+                .or_else(|_err| val.cast::<RetrieverCombiner>().map(|r| r.borrow().name.clone()))
                 .map_err(|_err| {
                     PyValueError::new_err("Combiner targets must be retrievers")
                 })

@@ -65,7 +65,7 @@ impl StackedAttrArray {
                 ls
             },
             Err(_) => {
-                let ls = ls.downcast::<PyList>()?.iter()
+                let ls = ls.cast::<PyList>()?.iter()
                     .map(|value| self.data_type.to_parseable(&value))
                     .collect::<PyResult<Vec<_>>>()?;
                 BfpList::new(ls, *self.data_type.clone())
@@ -134,13 +134,13 @@ impl StackedAttrArray {
         
         for retriever in retrievers.iter() {
             if !retriever.supported(ver) {
-                for i in 0..len {
-                    data_lss[i].push(None);
+                for ls in data_lss.iter_mut().take(len) {
+                    ls.push(None);
                 }
                 continue;
             }
-            for i in 0..len {
-                data_lss[i].push(Some(retriever.from_stream_ctx(stream, ver, ctx)?));
+            for ls in data_lss.iter_mut().take(len) {
+                ls.push(Some(retriever.from_stream_ctx(stream, ver, ctx)?));
             }
         }
         
@@ -160,7 +160,7 @@ impl StackedAttrArray {
         let inner = value.inner();
         
         self.len_type.to_bytes_in(&inner.data.len(), buffer)?;
-        if inner.data.len() == 0 {
+        if inner.data.is_empty() {
             return Ok(());
         }
 
@@ -213,28 +213,28 @@ impl StackedAttrArray {
     #[pyo3(name = "to_bytes")]
     fn to_bytes_py<'py>(slf: PyRef<'py, Self>, value: &Bound<PyAny>) -> PyResult<Bound<'py, PyBytes>> {
         let bytes = slf.to_bytes(&slf.get_bfp_ls(value)?)?;
-        Ok(PyBytes::new_bound(slf.py(), &bytes))
+        Ok(PyBytes::new(slf.py(), &bytes))
     }
 
     #[pyo3(name = "from_stream", signature = (stream, ver = Version::new(vec![0,])))]
     fn from_stream_py<'py>(slf: PyRef<'py, Self>, stream: &mut ByteStream, ver: Version) -> PyResult<Bound<'py, PyAny>> {
         let value: ParseableType = slf.from_stream(stream, &ver)?.into();
-        Ok(value.to_bound(slf.py()))
+        value.to_bound(slf.py())
     }
 
     #[pyo3(name = "from_file")]
     fn from_file_py<'py>(slf: PyRef<'py, Self>, filepath: &str) -> PyResult<Bound<'py, PyAny>> {
         let value: ParseableType = slf.from_file(filepath)?.into();
-        Ok(value.to_bound(slf.py()))
+        value.to_bound(slf.py())
     }
     #[pyo3(name = "from_bytes", signature = (bytes, ver = Version::new(vec![0,])))]
     fn from_bytes_py<'py>(slf: PyRef<'py, Self>, bytes: &[u8], ver: Version) -> PyResult<Bound<'py, PyAny>> {
         let value: ParseableType = slf.from_bytes(bytes, &ver)?.into();
-        Ok(value.to_bound(slf.py()))
+        value.to_bound(slf.py())
     }
     #[pyo3(name = "to_file")]
     fn to_file_py(slf: PyRef<Self>, filepath: &str, value: &Bound<PyAny>) -> PyResult<()> {
-        Ok(slf.to_file(filepath, &slf.get_bfp_ls(value)?)?)
+        slf.to_file(filepath, &slf.get_bfp_ls(value)?)
     }
     
     #[classmethod]

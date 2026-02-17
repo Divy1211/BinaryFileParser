@@ -30,9 +30,9 @@ pub struct StructRaw {
     
     pub is_compressed: bool,
     
-    pub get_ver: Option<PyObject>,
-    pub compress: Option<PyObject>,
-    pub decompress: Option<PyObject>,
+    pub get_ver: Option<Py<PyAny>>,
+    pub compress: Option<Py<PyAny>>,
+    pub decompress: Option<Py<PyAny>>,
 }
 
 #[pyclass(module = "bfp_rs", eq)]
@@ -70,14 +70,14 @@ impl Struct {
         self.raw.py_type.bind(py)
     }
     
-    pub fn get_ver<'a>(&self, stream: &mut ByteStream, ver: &'a Version) -> PyResult<Version> {
+    pub fn get_ver(&self, stream: &mut ByteStream, ver: &Version) -> PyResult<Version> {
         let Some(fn_) = &self.raw.get_ver else {
             return Ok(ver.clone())
         };
         
-        Python::with_gil(|py| {
-            let ver = fn_.call_bound(py, (stream.clone(), ver.clone()), None)?;
-            ver.extract::<Version>(py)
+        Python::attach(|py| {
+            let ver = fn_.call(py, (stream.clone(), ver.clone()), None)?;
+            ver.extract::<Version>(py).map_err(PyErr::from)
         })
     }
 
@@ -88,8 +88,8 @@ impl Struct {
             ))
         };
 
-        Python::with_gil(|py| {
-            let bytes = fn_.call_bound(py, (PyBytes::new_bound(py, bytes),), None)?;
+        Python::attach(|py| {
+            let bytes = fn_.call(py, (PyBytes::new(py, bytes),), None)?;
             Ok(ByteStream::from_bytes(bytes.extract::<&[u8]>(py)?))
         })
     }
@@ -101,8 +101,8 @@ impl Struct {
             ))
         };
 
-        Python::with_gil(|py| {
-            let py_bytes = fn_.call_bound(py, (PyBytes::new_bound(py, &bytes[idx..]),), None)?;
+        Python::attach(|py| {
+            let py_bytes = fn_.call(py, (PyBytes::new(py, &bytes[idx..]),), None)?;
             bytes.truncate(idx);
             bytes.extend_from_slice(py_bytes.extract::<&[u8]>(py)?);
             Ok(())
@@ -151,7 +151,7 @@ impl Struct {
                 RetState::NoneValue | RetState::NoneList => { ParseableType::None }
                 RetState::Value => {
                     retriever.from_stream_ctx(stream, &ver, ctx)
-                        .map_err(|e| { Python::with_gil(|py| {
+                        .map_err(|e| { Python::attach(|py| {
                             let err = ParsingError::new_err(format!("Error occurred while reading '{}'", retriever.name));
                             err.set_cause(py, Some(e));
                             err
@@ -163,7 +163,7 @@ impl Struct {
                         ctx.idxes.push(i as usize);
                         ls.push(
                             retriever.from_stream_ctx(stream, &ver, ctx)
-                                .map_err(|e| { Python::with_gil(|py| {
+                                .map_err(|e| { Python::attach(|py| {
                                     let err = ParsingError::new_err(format!("Error occurred while reading '{}'", retriever.name));
                                     err.set_cause(py, Some(e));
                                     err
@@ -175,7 +175,7 @@ impl Struct {
                 }
             }));
 
-            retriever.call_on_reads(&retrievers, &mut data, &mut repeats, &ver, ctx)?;
+            retriever.call_on_reads(retrievers, &mut data, &mut repeats, &ver, ctx)?;
 
             if let Some(progress) = progress.as_ref() {
                 progress.set_message("");
@@ -219,7 +219,7 @@ impl Struct {
 
             let (data, repeats, ver) = inner.split();
             
-            retriever.call_on_writes(&retrievers, data, repeats, ver)?;
+            retriever.call_on_writes(retrievers, data, repeats, ver)?;
 
             let value = inner.data[retriever.idx].as_ref().expect("supported check done above");
 
@@ -263,4 +263,3 @@ impl Parseable for Struct {
         self.to_bytes_(value, None, buffer)
     }
 }
-

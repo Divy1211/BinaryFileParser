@@ -110,7 +110,7 @@ class IfBuilder:
         """
 
 
-def if_(target: Retriever | int | Get) -> IfBuilder:
+def if_(*target: Retriever) -> IfBuilder:
     """
     Select this value for a comparison
 
@@ -123,7 +123,7 @@ def if_(target: Retriever | int | Get) -> IfBuilder:
     """
 
 
-def if_not(target: Retriever | int | Get) -> IfBuilder:
+def if_not(*target: Retriever) -> IfBuilder:
     """
     Select this value for a comparison with the result inverted
 
@@ -160,7 +160,7 @@ def if_not_key(key: str) -> IfBuilder:
     """
 
 
-def if_len(target: Retriever | int | Get) -> IfBuilder:
+def if_len(*target: Retriever) -> IfBuilder:
     """
     Select this value and use its length for a comparison
 

@@ -116,25 +116,25 @@ impl StrArray {
     #[pyo3(name = "to_bytes")]
     fn to_bytes_py<'py>(slf: PyRef<'py, Self>, value: &Bound<PyAny>) -> PyResult<Bound<'py, PyBytes>> {
         let bytes = slf.to_bytes(&slf.get_bfp_ls(value)?)?;
-        Ok(PyBytes::new_bound(slf.py(), &bytes))
+        Ok(PyBytes::new(slf.py(), &bytes))
     }
 
     #[pyo3(name = "from_stream", signature = (stream, ver = Version::new(vec![0,])))]
     fn from_stream_py(slf: PyRef<Self>, stream: &mut ByteStream, ver: Version) -> PyResult<<Self as Parseable>::Type> {
-        Ok(slf.from_stream(stream, &ver)?)
+        slf.from_stream(stream, &ver)
     }
 
     #[pyo3(name = "from_file")]
     fn from_file_py(slf: PyRef<Self>, filepath: &str) -> PyResult<<Self as Parseable>::Type> {
-        Ok(slf.from_file(filepath)?)
+        slf.from_file(filepath)
     }
     #[pyo3(name = "from_bytes", signature = (bytes, ver = Version::new(vec![0,])))]
     fn from_bytes_py(slf: PyRef<Self>, bytes: &[u8], ver: Version) -> PyResult<<Self as Parseable>::Type> {
-        Ok(slf.from_bytes(bytes, &ver)?)
+        slf.from_bytes(bytes, &ver)
     }
     #[pyo3(name = "to_file")]
     fn to_file_py(slf: PyRef<Self>, filepath: &str, value: &Bound<PyAny>) -> PyResult<()> {
-        Ok(slf.to_file(filepath, &slf.get_bfp_ls(value)?)?)
+        slf.to_file(filepath, &slf.get_bfp_ls(value)?)
     }
 
     pub fn __getitem__(&self, len_or_encodings: &Bound<PyAny>) -> PyResult<BfpType> {
@@ -154,7 +154,7 @@ impl StrArray {
                 enc2: None
             }));
         }
-        let Ok(tup) = len_or_encodings.downcast::<PyTuple>() else {
+        let Ok(tup) = len_or_encodings.cast::<PyTuple>() else {
             return Err(PyTypeError::new_err("Only encodings may be specified as arguments to string types"))
         };
         if tup.len() != 2 {

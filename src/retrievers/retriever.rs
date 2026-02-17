@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use pyo3::prelude::*;
 use pyo3::types::PyType;
-use pyo3::{pyclass, PyObject};
+use pyo3::{pyclass};
 use pyo3::exceptions::{PyTypeError, PyValueError};
 use crate::combinators::combinator::Combinator;
 use crate::combinators::combinator_type::CombinatorType;
@@ -28,26 +28,35 @@ pub enum RetState {
 #[pyclass(module = "bfp_rs")]
 #[derive(Debug, Clone)]
 pub struct Retriever {
+    #[pyo3(get)]
     pub idx: usize,
-    
+
+    #[pyo3(get)]
     pub data_type: BfpType,
 
+    #[pyo3(get)]
     min_ver: Version,
+
+    #[pyo3(get)]
     max_ver: Version,
 
+    #[pyo3(get)]
     pub repeat: isize,
+
+    #[pyo3(get)]
     pub remaining_compressed: bool,
 
+    #[pyo3(get)]
     pub name: String,
     
     on_read: Option<Arc<Vec<CombinatorType>>>,
     on_write: Option<Arc<Vec<CombinatorType>>>,
-    
-    default: Option<Arc<PyObject>>,
-    default_factory: Option<Arc<PyObject>>,
 
-    tmp_on_read: Option<Arc<PyObject>>,
-    tmp_on_write: Option<Arc<PyObject>>,
+    default: Option<Arc<Py<PyAny>>>,
+    default_factory: Option<Arc<Py<PyAny>>>,
+
+    tmp_on_read: Option<Arc<Py<PyAny>>>,
+    tmp_on_write: Option<Arc<Py<PyAny>>>,
 }
 
 #[pymethods]
@@ -62,30 +71,25 @@ impl Retriever {
         remaining_compressed = false,
         on_read = None, on_write = None
     ))]
+    #[allow(clippy::too_many_arguments)]
     fn new(
         data_type: &Bound<PyAny>,
 
         min_ver: Version,
         max_ver: Version,
 
-        default: Option<PyObject>,
-        default_factory: Option<PyObject>,
+        default: Option<Py<PyAny>>,
+        default_factory: Option<Py<PyAny>>,
 
         repeat: isize,
         remaining_compressed: bool,
 
-        on_read: Option<PyObject>,
-        on_write: Option<PyObject>,
+        on_read: Option<Py<PyAny>>,
+        on_write: Option<Py<PyAny>>,
     ) -> PyResult<Self> {
-        let tmp_on_read = match on_read {
-            None => { None }
-            Some(obj) => { Some(Arc::new(obj)) }
-        };
+        let tmp_on_read = on_read.map(Arc::new);
 
-        let tmp_on_write = match on_write {
-            None => { None }
-            Some(obj) => { Some(Arc::new(obj)) }
-        };
+        let tmp_on_write = on_write.map(Arc::new);
         
         if repeat < -2 {
             return Err(PyValueError::new_err("Repeat values cannot be less than -2"));
@@ -129,7 +133,7 @@ impl Retriever {
             return Ok(slf.into_any())
         }
         let slf = slf.borrow();
-        let instance = instance.downcast::<BaseStruct>()?.borrow();
+        let instance = instance.cast::<BaseStruct>()?.borrow();
         let inner = instance.inner();
         if !slf.supported(&inner.ver) {
             return Err(VersionError::new_err(format!(
@@ -137,10 +141,8 @@ impl Retriever {
             )))
         }
 
-        Ok(
-            inner.data[slf.idx].clone().expect("Attempting to access uninitialised data in struct")
-                .to_bound(slf.py())
-        )
+        inner.data[slf.idx].clone().expect("Attempting to access uninitialised data in struct")
+            .to_bound(slf.py())
     }
 
     fn __set__(
@@ -183,7 +185,7 @@ impl Retriever {
                         "List length mismatch for '{}' which is a retriever of fixed repeat. Expected: {repeat}, Actual: {len}", slf.name
                     )))
                 }
-                let value = value.iter()?
+                let value = value.try_iter()?
                     .map(|v| {
                         slf.data_type.to_parseable(&v.expect("obtained from python"))
                     }).collect::<PyResult<Vec<_>>>()?;
@@ -224,9 +226,9 @@ impl Retriever {
 
         if let Some(default_factory) = self.default_factory.as_ref() {
             let first_default = default_factory
-                .call_bound(py, (ver.clone(),) , None)
+                .call(py, (ver.clone(),) , None)
                 .or_else(|_err| {
-                    default_factory.call_bound(py, (ver.clone(), ctx.clone()) , None)
+                    default_factory.call(py, (ver.clone(), ctx.clone()) , None)
                 })?
                 .into_bound(py);
             if state == RetState::Value {
@@ -253,9 +255,9 @@ impl Retriever {
 
             for _ in 1..repeat {
                 let default = default_factory
-                    .call_bound(py, (ver.clone(),), None)
+                    .call(py, (ver.clone(),), None)
                     .or_else(|_err| {
-                        default_factory.call_bound(py, (ver.clone(), ctx.clone()) , None)
+                        default_factory.call(py, (ver.clone(), ctx.clone()) , None)
                     })?
                     .into_bound(py);
                 ls.push(self.data_type.to_parseable(&default)?);
@@ -269,28 +271,22 @@ impl Retriever {
     }
 
     pub fn construct_fns(&mut self, py: Python) -> PyResult<()> {
-        match &self.tmp_on_read {
-            Some(obj) => {
-                self.on_read = Some(Arc::new(obj.call0(py)?.extract::<Vec<CombinatorType>>(py)?));
-                self.tmp_on_read = None;
-            }
-            _ => {}
+        if let Some(obj) = &self.tmp_on_read {
+            self.on_read = Some(Arc::new(obj.call0(py)?.extract::<Vec<CombinatorType>>(py)?));
+            self.tmp_on_read = None;
         };
 
-        match &self.tmp_on_write {
-            Some(obj) => {
-                let on_write = obj.call0(py)?.extract::<Vec<CombinatorType>>(py)?;
-                for combinator in on_write.iter() {
-                    if combinator.uses_keys() {
-                        return Err(PyTypeError::new_err(
-                            "Using context keys during writing is not supported."
-                        ))
-                    }
+        if let Some(obj) = &self.tmp_on_write {
+            let on_write = obj.call0(py)?.extract::<Vec<CombinatorType>>(py)?;
+            for combinator in on_write.iter() {
+                if combinator.uses_keys() {
+                    return Err(PyTypeError::new_err(
+                        "Using context keys during writing is not supported."
+                    ))
                 }
-                self.on_write = Some(Arc::new(on_write));
-                self.tmp_on_write = None;
             }
-            _ => {}
+            self.on_write = Some(Arc::new(on_write));
+            self.tmp_on_write = None;
         };
         
         Ok(())
@@ -348,7 +344,7 @@ impl Retriever {
     }
 
     #[cfg_attr(feature = "inline_always", inline(always))]
-    pub fn state(&self, repeats: &Vec<Option<isize>>) -> RetState {
+    pub fn state(&self, repeats: &[Option<isize>]) -> RetState {
         match repeats[self.idx] {
             Some(-2) => RetState::NoneList,
             Some(-1) => RetState::NoneValue,
@@ -364,7 +360,7 @@ impl Retriever {
         }
     }
     #[cfg_attr(feature = "inline_always", inline(always))]
-    pub fn repeat(&self, repeats: &Vec<Option<isize>>) -> isize {
+    pub fn repeat(&self, repeats: &[Option<isize>]) -> isize {
         match repeats[self.idx] {
             Some(val) => { val }
             None => { self.repeat }

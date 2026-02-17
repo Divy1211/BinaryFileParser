@@ -88,7 +88,7 @@ impl BfpType {
         Ok(match value.extract::<BfpType>() {
             Ok(type_) => type_,
             Err(_) => {
-                let cls = value.downcast::<PyType>()?;
+                let cls = value.cast::<PyType>()?;
                 if !cls.is_subclass_of::<BaseStruct>()? {
                     return Err(PyTypeError::new_err(
                         "Cannot create a BfpType from a class that does not subclass BaseStruct"
@@ -100,10 +100,7 @@ impl BfpType {
     }
     
     pub fn is_ord(&self) -> bool {
-        match self {
-            BfpType::Struct(_) => false,
-            _ => true,
-        }
+        !matches!(self, BfpType::Struct(_))
     }
 
     pub fn is_bool(&self) -> bool {
@@ -277,22 +274,22 @@ impl BfpType {
                     return Err(PyTypeError::new_err(
                         format!(
                             "'{}' object cannot be interpreted as a '{}'",
-                            value.get_type().fully_qualified_name()?.to_string(),
-                            py_type.fully_qualified_name()?.to_string()
+                            value.get_type().fully_qualified_name()?,
+                            py_type.fully_qualified_name()?
                         )
                     ))
                 }
-                
-                ParseableType::Struct { val: value.extract::<BaseStruct>()?, struct_: struct_.clone() }
+                let val = value.extract::<BaseStruct>()?;
+                let inner = val.inner();
+                let _ = inner.obj.set(value.clone().unbind());
+                drop(inner);
+                ParseableType::Struct { val, struct_: struct_.clone() }
             }
         })
     }
 
     pub fn is_option(&self) -> bool {
-        match self {
-            BfpType::Option(_) => true,
-            _ => false,
-        }
+        matches!(self, BfpType::Option(_))
     }
 }
 
@@ -339,7 +336,7 @@ impl Parseable for BfpType {
             
             BfpType::Struct(struct_)          => ParseableType::Struct {
                 val: struct_.from_stream_ctx(stream, ver, ctx)?,
-                struct_: struct_.clone()
+                struct_: struct_.clone(),
             },
         })
     }
@@ -395,25 +392,25 @@ impl BfpType {
     #[pyo3(name = "to_bytes")]
     fn to_bytes_py<'py>(slf: PyRef<'py, Self>, value: &Bound<'py, PyAny>) -> PyResult<Bound<'py, PyBytes>> {
         let bytes = slf.to_bytes(&slf.to_parseable(value)?)?;
-        Ok(PyBytes::new_bound(slf.py(), &bytes))
+        Ok(PyBytes::new(slf.py(), &bytes))
     }
 
     #[pyo3(name = "from_stream", signature = (stream, ver = Version::new(vec![0,])))]
     fn from_stream_py<'py>(slf: PyRef<'py, Self>, stream: &mut ByteStream, ver: Version) -> PyResult<Bound<'py, PyAny>> {
-        Ok(slf.from_stream(stream, &ver)?.to_bound(slf.py()))
+        slf.from_stream(stream, &ver)?.to_bound(slf.py())
     }
 
     #[pyo3(name = "from_file")]
     fn from_file_py<'py>(slf: PyRef<'py, Self>, filepath: &str) -> PyResult<Bound<'py, PyAny>> {
-        Ok(slf.from_file(filepath)?.to_bound(slf.py()))
+        slf.from_file(filepath)?.to_bound(slf.py())
     }
     #[pyo3(name = "from_bytes", signature = (bytes, ver = Version::new(vec![0,])))]
     fn from_bytes_py<'py>(slf: PyRef<'py, Self>, bytes: &[u8], ver: Version) -> PyResult<Bound<'py, PyAny>> {
-        Ok(slf.from_bytes(bytes, &ver)?.to_bound(slf.py()))
+        slf.from_bytes(bytes, &ver)?.to_bound(slf.py())
     }
     #[pyo3(name = "to_file")]
     fn to_file_py(slf: PyRef<Self>, filepath: &str, value: &Bound<PyAny>) -> PyResult<()> {
-        Ok(slf.to_file(filepath, &slf.to_parseable(value)?)?)
+        slf.to_file(filepath, &slf.to_parseable(value)?)
     }
 }
 

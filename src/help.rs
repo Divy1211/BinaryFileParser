@@ -27,9 +27,9 @@ impl BorrowMutGuard {
 
     pub fn __exit__(
         slf: PyRefMut<Self>,
-        _exc_type: PyObject,
-        _exc_value: PyObject,
-        _traceback: PyObject,
+        _exc_type: Py<PyAny>,
+        _exc_value: Py<PyAny>,
+        _traceback: Py<PyAny>,
     ) -> PyResult<bool> {
         let mut inner = slf.ls.inner_mut();
         inner.immutable = slf.old_state;

@@ -40,9 +40,6 @@ impl ByteStream {
     }
 
     pub fn get(&mut self, n: usize) -> PyResult<&[u8]> {
-        if n <= 0 {
-            return Ok(&[]);
-        }
         let len = self.bytes.len();
         if len < self.progress + n {
             return Err(ParsingError::new_err(format!(
@@ -56,9 +53,6 @@ impl ByteStream {
     }
 
     pub fn peek(&self, n: usize) -> PyResult<&[u8]> {
-        if n <= 0 {
-            return Ok(&[]);
-        }
         let len = self.bytes.len();
         if len < self.progress + n {
             return Err(ParsingError::new_err(format!(
@@ -86,7 +80,7 @@ impl ByteStream {
     #[classmethod]
     #[pyo3(name = "from_file")]
     fn from_file_py(_cls: &Bound<PyType>, filepath: &str) -> PyResult<Self> {
-        Ok(ByteStream::from_file(filepath)?)
+        ByteStream::from_file(filepath)
     }
 
     #[classmethod]
@@ -96,30 +90,30 @@ impl ByteStream {
     }
 
     #[pyo3(name = "get")]
-    fn get_py<'py>(slf: Bound<'py, Self>, n: usize) -> PyResult<Bound<'py, PyBytes>> {
+    fn get_py(slf: Bound<'_, Self>, n: usize) -> PyResult<Bound<'_, PyBytes>> {
         let mut slf = slf.borrow_mut();
         let py = slf.py();
         let bytes = slf.get(n)?;
-        Ok(PyBytes::new_bound(py, &bytes))
+        Ok(PyBytes::new(py, bytes))
     }
 
     #[pyo3(name = "peek")]
-    fn peek_py<'py>(slf: Bound<'py, Self>, n: usize) -> PyResult<Bound<'py, PyBytes>> {
+    fn peek_py(slf: Bound<'_, Self>, n: usize) -> PyResult<Bound<'_, PyBytes>> {
         let slf = slf.borrow();
         let py = slf.py();
         let bytes = slf.peek(n)?;
-        Ok(PyBytes::new_bound(py, &bytes))
+        Ok(PyBytes::new(py, bytes))
     }
 
     #[pyo3(name = "remaining")]
-    fn remaining_py<'py>(slf: Bound<'py, Self>) -> PyResult<Bound<'py, PyBytes>> {
+    fn remaining_py(slf: Bound<'_, Self>) -> PyResult<Bound<'_, PyBytes>> {
         let mut slf = slf.borrow_mut();
         let py = slf.py();
-        Ok(PyBytes::new_bound(py, slf.remaining()))
+        Ok(PyBytes::new(py, slf.remaining()))
     }
 
     #[pyo3(name = "is_empty")]
-    fn is_empty_py<'py>(slf: Bound<'py, Self>) -> bool {
+    fn is_empty_py(slf: Bound<'_, Self>) -> bool {
         let slf = slf.borrow();
         slf.is_empty()
     }

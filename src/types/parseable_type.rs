@@ -1,14 +1,20 @@
 use std::cmp::Ordering;
+use std::hash::{Hash, Hasher};
 
-use pyo3::{Bound, IntoPy, PyAny, Python};
+use pyo3::{Bound, IntoPyObjectExt, PyAny, PyResult, Python};
 use pyo3::types::PyBytes;
 use serde::{Serialize, Serializer};
+
 use crate::{impl_from_for_parseable_type, impl_try_into_for_parseable_type};
 use crate::types::base_struct::BaseStruct;
 use crate::types::bfp_list::BfpList;
 use crate::types::bfp_type::BfpType;
+use crate::types::diff::diff::{Diff, Diffable, IDiff};
+use crate::types::diff::merge::{Conflict, Mergeable};
 use crate::types::r#struct::Struct;
 use crate::types::serial::struct_serializer::StructSerializer;
+use crate::types::diff::struct_diffable::StructDiffable;
+use crate::types::diff::struct_mergeable::StructMergeable;
 
 // todo: change to structural enum
 #[derive(Debug, Clone)]
@@ -43,6 +49,10 @@ pub enum ParseableType {
 }
 
 impl ParseableType {
+    pub fn is_none(&self) -> bool {
+        matches!(self, ParseableType::None)
+    }
+    
     pub fn is_ls_of(&self, bfp_type: &BfpType) -> bool {
         match self {
             ParseableType::Array(val) => {
@@ -54,40 +64,52 @@ impl ParseableType {
     }
     
     /// converts ParseableTypes back to python values
-    pub fn to_bound(self, py: Python) -> Bound<'_, PyAny> {
+    pub fn to_bound(self, py: Python) -> PyResult<Bound<'_, PyAny>> {
         match self {
-            ParseableType::None                         => py.None().into_bound(py),
-            ParseableType::UInt8(val)                   => val.into_py(py).into_bound(py),
-            ParseableType::UInt16(val)                  => val.into_py(py).into_bound(py),
-            ParseableType::UInt32(val)                  => val.into_py(py).into_bound(py),
-            ParseableType::UInt64(val)                  => val.into_py(py).into_bound(py),
-            ParseableType::UInt128(val)                 => val.into_py(py).into_bound(py),
+            ParseableType::None                         => Ok(py.None().into_bound(py)),
+            ParseableType::UInt8(val)                   => Ok(val.into_bound_py_any(py)?),
+            ParseableType::UInt16(val)                  => Ok(val.into_bound_py_any(py)?),
+            ParseableType::UInt32(val)                  => Ok(val.into_bound_py_any(py)?),
+            ParseableType::UInt64(val)                  => Ok(val.into_bound_py_any(py)?),
+            ParseableType::UInt128(val)                 => Ok(val.into_bound_py_any(py)?),
 
-            ParseableType::Int8(val)                    => val.into_py(py).into_bound(py),
-            ParseableType::Int16(val)                   => val.into_py(py).into_bound(py),
-            ParseableType::Int32(val)                   => val.into_py(py).into_bound(py),
-            ParseableType::Int64(val)                   => val.into_py(py).into_bound(py),
-            ParseableType::Int128(val)                  => val.into_py(py).into_bound(py),
+            ParseableType::Int8(val)                    => Ok(val.into_bound_py_any(py)?),
+            ParseableType::Int16(val)                   => Ok(val.into_bound_py_any(py)?),
+            ParseableType::Int32(val)                   => Ok(val.into_bound_py_any(py)?),
+            ParseableType::Int64(val)                   => Ok(val.into_bound_py_any(py)?),
+            ParseableType::Int128(val)                  => Ok(val.into_bound_py_any(py)?),
 
-            ParseableType::Float32(val)                 => val.into_py(py).into_bound(py),
-            ParseableType::Float64(val)                 => val.into_py(py).into_bound(py),
+            ParseableType::Float32(val)                 => Ok(val.into_bound_py_any(py)?),
+            ParseableType::Float64(val)                 => Ok(val.into_bound_py_any(py)?),
 
-            ParseableType::Bool(val)                    => val.into_py(py).into_bound(py),
+            ParseableType::Bool(val)                    => Ok(val.into_bound_py_any(py)?),
 
-            ParseableType::Str(val)                     => val.into_py(py).into_bound(py),
+            ParseableType::Str(val)                     => Ok(val.into_bound_py_any(py)?),
 
-            ParseableType::Array(val)                   => val.into_py(py).into_bound(py),
+            ParseableType::Array(val)                   => Ok(val.into_bound_py_any(py)?),
 
-            ParseableType::Bytes(val)                   => PyBytes::new_bound(py, &val).into_any(),
+            ParseableType::Bytes(val)                   => Ok(PyBytes::new(py, &val).into_any()),
 
             ParseableType::Option(val)                  => { 
                 match val {
-                    None      => py.None().into_bound(py),
+                    None      => Ok(py.None().into_bound(py)),
                     Some(val) => val.to_bound(py),
                 }
             },
 
-            ParseableType::Struct { val, struct_ }      => BaseStruct::with_cls(val, struct_.py_type(py)),
+            ParseableType::Struct { val, struct_ }      => {
+                let inner = val.inner();
+                match inner.obj.get() {
+                    None => {
+                        let obj = BaseStruct::with_cls(val.clone(), struct_.py_type(py))?;
+                        inner.obj.set(obj.clone().unbind()).expect("infallible");
+                        Ok(obj)
+                    }
+                    Some(obj) => {
+                        Ok(obj.bind(py).clone())
+                    }
+                }
+            },
         }
     }
     
@@ -142,11 +164,11 @@ impl PartialOrd for ParseableType {
 
         match (self, other) { // todo fix
             (ParseableType::None,          ParseableType::None)          => Some(Ordering::Equal),
-            (ParseableType::Bool(val1),    ParseableType::Bool(val2))    => val1.partial_cmp(&val2),
-            (ParseableType::Str(val1),     ParseableType::Str(val2))     => val1.partial_cmp(&val2),
-            (ParseableType::Array(val1),   ParseableType::Array(val2))   => val1.partial_cmp(&val2),
-            (ParseableType::Bytes(val1),   ParseableType::Bytes(val2))   => val1.partial_cmp(&val2),
-            (ParseableType::Option(val1),  ParseableType::Option(val2))  => val1.partial_cmp(&val2),
+            (ParseableType::Bool(val1),    ParseableType::Bool(val2))    => val1.partial_cmp(val2),
+            (ParseableType::Str(val1),     ParseableType::Str(val2))     => val1.partial_cmp(val2),
+            (ParseableType::Array(val1),   ParseableType::Array(val2))   => val1.partial_cmp(val2),
+            (ParseableType::Bytes(val1),   ParseableType::Bytes(val2))   => val1.partial_cmp(val2),
+            (ParseableType::Option(val1),  ParseableType::Option(val2))  => val1.partial_cmp(val2),
             (ParseableType::Struct { .. }, ParseableType::Struct { .. }) => None,
             _                                                            => None
         }
@@ -243,9 +265,151 @@ impl Serialize for ParseableType {
 
             ParseableType::Option(opt) => opt.serialize(serializer),
 
-            ParseableType::Struct { val, struct_ } => {
+            ParseableType::Struct { val, struct_, .. } => {
                 StructSerializer(struct_, val).serialize(serializer)
             }
+        }
+    }
+}
+
+impl Hash for ParseableType {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        std::mem::discriminant(self).hash(state);
+
+        match self {
+            ParseableType::None => {}
+            ParseableType::UInt8(v) => v.hash(state),
+            ParseableType::UInt16(v) => v.hash(state),
+            ParseableType::UInt32(v) => v.hash(state),
+            ParseableType::UInt64(v) => v.hash(state),
+            ParseableType::UInt128(v) => v.hash(state),
+
+            ParseableType::Int8(v) => v.hash(state),
+            ParseableType::Int16(v) => v.hash(state),
+            ParseableType::Int32(v) => v.hash(state),
+            ParseableType::Int64(v) => v.hash(state),
+            ParseableType::Int128(v) => v.hash(state),
+
+            ParseableType::Float32(v) => {
+                v.to_bits().hash(state);
+            }
+            ParseableType::Float64(v) => {
+                v.to_bits().hash(state);
+            }
+
+            ParseableType::Bool(v) => v.hash(state),
+            ParseableType::Str(s) => s.hash(state),
+            ParseableType::Array(arr) => arr.hash(state),
+            ParseableType::Bytes(bytes) => bytes.hash(state),
+            ParseableType::Option(opt) => opt.hash(state),
+            ParseableType::Struct { val, .. } => {
+                val.hash(state);
+            }
+        }
+    }
+}
+
+
+impl Diffable<ParseableType> for ParseableType {
+    fn diff(&self, other: &ParseableType) -> Diff<ParseableType> {
+        match (self, other) {
+            (ParseableType::None, ParseableType::None) => Diff::None,
+            (ParseableType::None, _)                   => Diff::Changed(other.clone()),
+            (_, ParseableType::None)                   => Diff::Changed(other.clone()),
+            
+            (ParseableType::UInt8(v1),     ParseableType::UInt8(v2))   => if v1 == v2 { Diff::None } else { Diff::Changed(other.clone()) },
+            (ParseableType::UInt16(v1),    ParseableType::UInt16(v2))  => if v1 == v2 { Diff::None } else { Diff::Changed(other.clone()) },
+            (ParseableType::UInt32(v1),    ParseableType::UInt32(v2))  => if v1 == v2 { Diff::None } else { Diff::Changed(other.clone()) },
+            (ParseableType::UInt64(v1),    ParseableType::UInt64(v2))  => if v1 == v2 { Diff::None } else { Diff::Changed(other.clone()) },
+            (ParseableType::UInt128(v1),   ParseableType::UInt128(v2)) => if v1 == v2 { Diff::None } else { Diff::Changed(other.clone()) },
+
+            (ParseableType::Int8(v1),      ParseableType::Int8(v2))    => if v1 == v2 { Diff::None } else { Diff::Changed(other.clone()) },
+            (ParseableType::Int16(v1),     ParseableType::Int16(v2))   => if v1 == v2 { Diff::None } else { Diff::Changed(other.clone()) },
+            (ParseableType::Int32(v1),     ParseableType::Int32(v2))   => if v1 == v2 { Diff::None } else { Diff::Changed(other.clone()) },
+            (ParseableType::Int64(v1),     ParseableType::Int64(v2))   => if v1 == v2 { Diff::None } else { Diff::Changed(other.clone()) },
+            (ParseableType::Int128(v1),    ParseableType::Int128(v2))  => if v1 == v2 { Diff::None } else { Diff::Changed(other.clone()) },
+
+            (ParseableType::Float32(v1),   ParseableType::Float32(v2)) => if v1 == v2 { Diff::None } else { Diff::Changed(other.clone()) },
+            (ParseableType::Float64(v1),   ParseableType::Float64(v2)) => if v1 == v2 { Diff::None } else { Diff::Changed(other.clone()) },
+
+            (ParseableType::Bool(v1),      ParseableType::Bool(v2))    => if v1 == v2 { Diff::None } else { Diff::Changed(other.clone()) },
+
+            (ParseableType::Str(v1),       ParseableType::Str(v2))     => if v1 == v2 { Diff::None } else { Diff::Changed(other.clone()) },
+
+            (ParseableType::Array(arr1),   ParseableType::Array(arr2)) => {
+                arr1.diff(arr2)
+            },
+
+            // this is a bytestring, no recursive diff needed
+            (ParseableType::Bytes(bytes1), ParseableType::Bytes(bytes2)) => if bytes1 == bytes2 { Diff::None } else { Diff::Changed(other.clone()) },
+
+            (ParseableType::Option(opt1), ParseableType::Option(opt2)) => {
+                match (opt1, opt2) {
+                    (None, None) => Diff::None,
+                    (Some(v1), Some(v2)) if v1 == v2 => Diff::None,
+                    (Some(v1), Some(v2)) => v1.diff(v2),
+                    _ => Diff::Changed(other.clone()),
+                }
+            },
+
+            (ParseableType::Struct { val: val1, struct_: struct1, .. }, ParseableType::Struct { val: val2, struct_: struct2, .. }) => {
+                StructDiffable(struct1, val1).diff(&StructDiffable(struct2, val2))
+            }
+            _ => unreachable!("BFP Internal Error: unhandled types or diffing two different types"),
+        }
+    }
+}
+
+impl Mergeable<ParseableType> for ParseableType {
+    fn patch(&mut self, change: IDiff<ParseableType>, off: isize) -> isize {
+        match self {
+            ParseableType::Array(ls) => {
+                ls.patch(change, off)
+            }
+            ParseableType::Option(val) => {
+                match val.as_mut() {
+                    None => {
+                        *val = change.1.value().map(Box::new);
+                        off
+                    }
+                    Some(val) => {
+                        val.patch(change, off)
+                    }
+                }
+            }
+            ParseableType::Struct { val, struct_ } => {
+                StructMergeable(struct_, val).patch(change, isize::MIN);
+                off
+            }
+            _ => { unreachable!("BFP Internal Error: patch called on trivial ParseableType") }
+        }
+    }
+
+    fn merge(&mut self, _slf: &Self, _other: &Self) -> Vec<Conflict<ParseableType>> {
+        unreachable!("BFP Internal Error: merge called on ParseableType")
+    }
+}
+
+impl ParseableType {
+    pub fn merge_rec(
+        &mut self,
+        changes1: Vec<IDiff<ParseableType>>,
+        changes2: Vec<IDiff<ParseableType>>,
+        conflicts: &mut Vec<Conflict<ParseableType>>,
+    ) {
+        match self {
+            ParseableType::Array(ls) => {
+                ls.merge_rec(changes1, changes2, conflicts);
+            }
+            ParseableType::Option(val) => {
+                if let Some(val) = val.as_mut() {
+                    val.merge_rec(changes1, changes2, conflicts)
+                }
+            }
+            ParseableType::Struct { val, struct_ } => {
+                StructMergeable(struct_, val).merge_rec(changes1, changes2, conflicts);
+            }
+            _ => { unreachable!("BFP Internal Error: merge_rec called on trivial ParseableType") }
         }
     }
 }

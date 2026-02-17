@@ -1,27 +1,33 @@
-from bfp_rs import ret, BaseStruct, Manager, Retriever, RetrieverRef, Context
-from bfp_rs.types.le import u8
+from enum import Enum, IntEnum
+
+from bfp_rs import ret, BaseStruct, RefStruct, Retriever, RetrieverRef, Context, Version
+from bfp_rs.combinators import get_attr, get
+from bfp_rs.types.le import u8, Str
 
 
-class Mre(BaseStruct):
-    tiles: list[int] = Retriever(u8, default = 1, repeat = 10)
+class Test(BaseStruct):
+    offset: int     = Retriever(u8, default = 1)
+    nums: list[int] = Retriever(u8, default = 1, repeat = 10)
+
+    def __reconstruct__(self):
+        print(f"called! {id(self)}")
 
 
-class MreManager(Manager):
-    _struct: Mre
+class TestEnum(IntEnum):
+    A = 1
+    B = 2
 
-    val = RetrieverRef(ret(Mre.tiles))
+class RefTest(RefStruct):
+    _struct: Test
+    val = RetrieverRef(ret(Test.offset), enum = TestEnum)
+
+    def __new__(cls, struct: Test, index: int):
+        self = super().__new__(cls, struct)
+        self.index = index
+        return self
 
 
-# mre = Mre.from_bytes(b'\x00\x00\x00\x00\x00\x00\x00\x09\x08\x00')
-mre = Mre()
-
-print(f"Pre direct update:   {mre.tiles}")
-mre.tiles = list(range(10, 0, -1))
-print(f"Post direct update:  {mre.tiles}")
-
-print('Initialising manager...')
-manager = MreManager(mre)
-
-print(f"Pre manager update:  {manager.val}")
-manager.val = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]
-print(f"Post manager update:  {manager.val}")
+test = Test.from_bytes(b"\x02"+bytes(range(10)))
+ref = RefTest(test, -1)
+# ref.val = 4
+print(ref.val)

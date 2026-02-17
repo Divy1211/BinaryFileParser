@@ -218,7 +218,7 @@ pub fn set_data(
         )))
     }
     
-    let state = target_ret.state(&repeats);
+    let state = target_ret.state(repeats);
     
     if state == RetState::List || state == RetState::NoneList {
         if !val.is_ls_of(&target_ret.data_type) {

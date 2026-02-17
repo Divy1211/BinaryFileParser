@@ -71,7 +71,7 @@ impl SetRepeatBuilder {
         let target = target.extract()?;
         if target < -2 {
             return Err(PyValueError::new_err(format!(
-                "SetRepeatBy: Attempting to set repeat of '{}' to '{}', which is less than -2",
+                "SetRepeatTo: Attempting to set repeat of '{}' to '{}', which is less than -2",
                 self.target_name, target
             )));
         }
