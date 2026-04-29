@@ -20,7 +20,7 @@ def trigger_display_orders_repeat():
 
 class TriggerData(BaseStruct):
     # @formatter:off
-    version: float                     = Retriever(f64,                                                default = 3.6)
+    version: float                     = Retriever(f64,                                                default = 4.9)
     objectives_state: int              = Retriever(i8,                        min_ver = Version(1, 5), default = 0)
     triggers: list[Trigger]            = Retriever(Array32[Trigger],                                   default_factory = lambda _: [],             on_read = trigger_display_orders_repeat)
     trigger_display_orders: list[int]  = Retriever(u32,                       min_ver = Version(1, 4), default = 0,                    repeat = 0)
