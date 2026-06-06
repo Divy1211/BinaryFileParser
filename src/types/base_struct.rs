@@ -135,7 +135,17 @@ impl BaseStruct {
         let mut builder = match cls.getattr(intern!(cls.py(), "__struct_builder__")) {
             Err(_) => make_builder()?,
             Ok(builder) if builder.is_none() => make_builder()?,
-            Ok(builder) => builder.cast_into::<StructBuilder>()?,
+            Ok(builder) => {
+                let builder = builder.cast_into::<StructBuilder>()?;
+                let builder_ref = builder.borrow();
+                if builder_ref.final_ {
+                    let mut new_builder = builder_ref.clone();
+                    new_builder.final_ = false;
+                    Bound::new(cls.py(), new_builder)?
+                } else {
+                    builder
+                }
+            },
         }.borrow_mut();
         let idx = builder.add_ret(retriever)?;
         retriever.borrow_mut().idx = idx;
@@ -160,7 +170,17 @@ impl BaseStruct {
         let mut struct_ = match cls.getattr(intern!(cls.py(), "__struct_builder__")) {
             Err(_) => make_builder()?,
             Ok(builder) if builder.is_none() => make_builder()?,
-            Ok(builder) => builder.cast_into::<StructBuilder>()?,
+            Ok(builder) => {
+                let builder = builder.cast_into::<StructBuilder>()?;
+                let builder_ref = builder.borrow();
+                if builder_ref.final_ {
+                    let mut new_builder = builder_ref.clone();
+                    new_builder.final_ = false;
+                    Bound::new(cls.py(), new_builder)?
+                } else {
+                    builder
+                }
+            },
         }.borrow_mut();
         struct_.add_comb(retriever)
     }
@@ -183,7 +203,17 @@ impl BaseStruct {
         let mut struct_ = match cls.getattr(intern!(cls.py(), "__struct_builder__")) {
             Err(_) => make_builder()?,
             Ok(builder) if builder.is_none() => make_builder()?,
-            Ok(builder) => builder.cast_into::<StructBuilder>()?,
+            Ok(builder) => {
+                let builder = builder.cast_into::<StructBuilder>()?;
+                let builder_ref = builder.borrow();
+                if builder_ref.final_ {
+                    let mut new_builder = builder_ref.clone();
+                    new_builder.final_ = false;
+                    Bound::new(cls.py(), new_builder)?
+                } else {
+                    builder
+                }
+            },
         }.borrow_mut();
         struct_.add_ref(retriever)
     }
@@ -334,14 +364,19 @@ impl BaseStruct {
     #[classmethod]
     #[pyo3(signature = (**_kwargs))]
     pub fn __init_subclass__<'py>(cls: &Bound<'py, PyType>, _kwargs: Option<&Bound<'_, PyDict>>) -> PyResult<()> {
-        StructBuilder::get_struct(cls)?;
+        let Ok(builder) = cls.getattr(intern!(cls.py(), "__struct_builder__")) else {
+            // we've subclassed an empty base class
+            return Ok(());
+        };
+        let mut builder: PyRefMut<StructBuilder> = builder.cast_into::<StructBuilder>()?.borrow_mut();
+        builder.final_ = true;
         Ok(())
     }
 
-    #[classmethod]
-    pub fn from_base<'py>(cls: &Bound<'py, PyType>, val: BaseStruct) -> PyResult<Bound<'py, PyAny>> {
-        Self::with_cls(val, cls)
-    }
+    // #[classmethod]
+    // pub fn from_base<'py>(cls: &Bound<'py, PyType>, val: BaseStruct) -> PyResult<Bound<'py, PyAny>> {
+    //     Self::with_cls(val, cls)
+    // }
     
     #[classmethod]
     #[pyo3(signature = (stream, ver = Version::new(vec![0,])))]

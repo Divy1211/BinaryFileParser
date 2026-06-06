@@ -16,6 +16,7 @@ pub struct StructBuilder {
     pub retrievers: Vec<Retriever>,
     pub combiners: Vec<RetrieverCombiner>,
     pub refs: Vec<RetrieverRef>,
+    pub final_: bool,
 }
 
 impl Default for StructBuilder {
@@ -30,6 +31,7 @@ impl StructBuilder {
             retrievers: struct_.retrievers().into(),
             combiners: struct_.combiners().into(),
             refs: struct_.refs().into(),
+            final_: false,
         }
     }
     
@@ -38,6 +40,7 @@ impl StructBuilder {
             retrievers: Vec::new(),
             combiners: Vec::new(),
             refs: Vec::new(),
+            final_: false,
         }
     }
 
