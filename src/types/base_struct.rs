@@ -368,6 +368,10 @@ impl BaseStruct {
             // we've subclassed an empty base class
             return Ok(());
         };
+        if builder.is_none() {
+            // already finalized
+            return Ok(());
+        }
         let mut builder: PyRefMut<StructBuilder> = builder.cast_into::<StructBuilder>()?.borrow_mut();
         builder.final_ = true;
         Ok(())

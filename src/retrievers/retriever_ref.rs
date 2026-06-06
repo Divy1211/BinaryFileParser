@@ -198,7 +198,7 @@ impl RetrieverRef {
             current = item;
         }
 
-        let Ok(()) = (match target.last().unwrap() {
+        match target.last().unwrap() {
             Ref::Attr(name) => current.setattr(name.as_str(), value),
             Ref::Item(idx) => current.set_item(*idx, value),
             Ref::Get(get) => {
@@ -207,14 +207,16 @@ impl RetrieverRef {
                 };
                 current.set_item(get.eval_ref(ref_struct, instance.get().expect("Get is never first"))?, value)
             },
-        }) else {
-            return Err(VersionError::new_err(format!(
-                "{} is not supported in struct version {}",
-                slf.borrow().name,
-                ver
-            )))
-        };
-        Ok(())
+        }.map_err(|err| {
+            if err.is_instance_of::<VersionError>(current.py()) {
+                return VersionError::new_err(format!(
+                    "{} is not supported in struct version {}",
+                    slf.borrow().name,
+                    ver
+                ))
+            }
+            err
+        })
     }
     
     fn __set_name__(slf: Bound<Self>, owner: &Bound<PyType>, name: &str) -> PyResult<()> {

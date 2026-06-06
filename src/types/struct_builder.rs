@@ -65,6 +65,7 @@ impl StructBuilder {
     pub fn get_struct(cls: &Bound<PyType>) -> PyResult<Struct> {
         let Ok(builder) = cls.getattr(intern!(cls.py(), "__struct_builder__")) else {
             // For a retriever-less class
+            // todo: setattr this
             return Ok(Struct::from_raw( StructRaw {
                 retrievers: vec![],
                 combiners: vec![],
