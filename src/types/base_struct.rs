@@ -27,6 +27,7 @@ use crate::types::diff::struct_diffable::StructDiffable;
 use crate::types::diff::struct_mergeable::StructMergeable;
 use crate::types::parseable::Parseable;
 use crate::types::parseable_type::ParseableType;
+use crate::types::r#struct::Struct;
 use crate::types::serial::struct_deserializer::StructDeserializer;
 use crate::types::serial::struct_serializer::StructSerializer;
 use crate::types::struct_builder::StructBuilder;
@@ -115,39 +116,74 @@ impl BaseStruct {
                 "Cannot create retrievers in classes that do not subclass BaseStruct"
             ))
         }
-        let mut struct_ = match cls.getattr(intern!(cls.py(), "__struct_builder__")) {
-            Ok(struct_) => struct_.cast_into::<StructBuilder>()?,
-            Err(_) => {
-                let struct_ = Bound::new(cls.py(), StructBuilder::new())?;
-                cls.setattr("__struct_builder__", &struct_)?;
-                struct_
-            },
+
+        let make_builder = || -> PyResult<_> {
+            // if we've just subclassed a BaseStruct derivative, clone all the parent's retrievers
+            let struct_ = cls.getattr(intern!(cls.py(), "__struct__"));
+            let builder = if let Ok(struct_) = struct_ {
+                let struct_ = struct_.cast_into::<Struct>()?.borrow();
+                StructBuilder::from_struct(&struct_)
+            } else {
+                StructBuilder::new()
+            };
+
+            let builder = Bound::new(cls.py(), builder)?;
+            cls.setattr("__struct_builder__", &builder)?;
+            Ok(builder)
+        };
+
+        let mut builder = match cls.getattr(intern!(cls.py(), "__struct_builder__")) {
+            Err(_) => make_builder()?,
+            Ok(builder) if builder.is_none() => make_builder()?,
+            Ok(builder) => builder.cast_into::<StructBuilder>()?,
         }.borrow_mut();
-        let idx = struct_.add_ret(retriever)?;
+        let idx = builder.add_ret(retriever)?;
         retriever.borrow_mut().idx = idx;
         Ok(())
     }
     
     pub fn add_comb(cls: &Bound<PyType>, retriever: &Bound<RetrieverCombiner>) -> PyResult<()> {
-        let mut struct_ = match cls.getattr(intern!(cls.py(), "__struct_builder__")) {
-            Ok(struct_) => struct_.cast_into::<StructBuilder>()?,
-            Err(_) => {
+        let make_builder = || {
+            // if we've just subclassed a BaseStruct derivative, clone all the parent's retrievers
+            let struct_ = cls.getattr(intern!(cls.py(), "__struct__"));
+            let Ok(struct_) = struct_ else {
                 return Err(PyTypeError::new_err(
                     "Cannot create combiners in classes that do not subclass BaseStruct. Note that the first retriever in a BaseStruct cannot be a ref or a combiner"
                 ))
-            },
+            };
+            let struct_ = struct_.cast_into::<Struct>()?.borrow();
+            let builder = Bound::new(cls.py(), StructBuilder::from_struct(&struct_))?;
+            cls.setattr("__struct_builder__", &builder)?;
+            Ok(builder)
+        };
+
+        let mut struct_ = match cls.getattr(intern!(cls.py(), "__struct_builder__")) {
+            Err(_) => make_builder()?,
+            Ok(builder) if builder.is_none() => make_builder()?,
+            Ok(builder) => builder.cast_into::<StructBuilder>()?,
         }.borrow_mut();
         struct_.add_comb(retriever)
     }
     
     pub fn add_ref(cls: &Bound<PyType>, retriever: &Bound<RetrieverRef>) -> PyResult<()> {
-        let mut struct_ = match cls.getattr(intern!(cls.py(), "__struct_builder__")) {
-            Ok(struct_) => struct_.cast_into::<StructBuilder>()?,
-            Err(_) => {
+        let make_builder = || {
+            // if we've just subclassed a BaseStruct derivative, clone all the parent's retrievers
+            let struct_ = cls.getattr(intern!(cls.py(), "__struct__"));
+            let Ok(struct_) = struct_ else {
                 return Err(PyTypeError::new_err(
                     "Cannot create refs in classes that do not subclass BaseStruct or RefStruct. Note that the first retriever in a BaseStruct cannot be a ref or a combiner"
                 ))
-            },
+            };
+            let struct_ = struct_.cast_into::<Struct>()?.borrow();
+            let builder = Bound::new(cls.py(), StructBuilder::from_struct(&struct_))?;
+            cls.setattr("__struct_builder__", &builder)?;
+            Ok(builder)
+        };
+
+        let mut struct_ = match cls.getattr(intern!(cls.py(), "__struct_builder__")) {
+            Err(_) => make_builder()?,
+            Ok(builder) if builder.is_none() => make_builder()?,
+            Ok(builder) => builder.cast_into::<StructBuilder>()?,
         }.borrow_mut();
         struct_.add_ref(retriever)
     }
@@ -293,6 +329,13 @@ impl BaseStruct {
             ret.call_on_reads(retrievers, &mut data, &mut repeats, &ver, &mut ctx)?;
         }
         Ok(BaseStruct::new(ver, data, repeats))
+    }
+
+    #[classmethod]
+    #[pyo3(signature = (**_kwargs))]
+    pub fn __init_subclass__<'py>(cls: &Bound<'py, PyType>, _kwargs: Option<&Bound<'_, PyDict>>) -> PyResult<()> {
+        StructBuilder::get_struct(cls)?;
+        Ok(())
     }
 
     #[classmethod]

@@ -61,6 +61,12 @@ impl Struct {
     pub fn retrievers(&self) -> &[Retriever] {
         &self.raw.retrievers
     }
+    pub fn combiners(&self) -> &[RetrieverCombiner] {
+        &self.raw.combiners
+    }
+    pub fn refs(&self) -> &[RetrieverRef] {
+        &self.raw.refs
+    }
     
     pub fn fully_qualified_name(&self) -> String {
         self.raw.fully_qualified_name.clone()

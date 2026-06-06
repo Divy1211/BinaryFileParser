@@ -13,9 +13,9 @@ use crate::types::r#struct::{Struct, StructRaw};
 #[pyclass(module = "bfp_rs")]
 #[derive(Debug, Clone)]
 pub struct StructBuilder {
-    retrievers: Vec<Retriever>,
-    combiners: Vec<RetrieverCombiner>,
-    refs: Vec<RetrieverRef>,
+    pub retrievers: Vec<Retriever>,
+    pub combiners: Vec<RetrieverCombiner>,
+    pub refs: Vec<RetrieverRef>,
 }
 
 impl Default for StructBuilder {
@@ -25,6 +25,14 @@ impl Default for StructBuilder {
 }
 
 impl StructBuilder {
+    pub fn from_struct(struct_: &Struct) -> Self {
+        Self {
+            retrievers: struct_.retrievers().into(),
+            combiners: struct_.combiners().into(),
+            refs: struct_.refs().into(),
+        }
+    }
+    
     pub fn new() -> Self {
         Self {
             retrievers: Vec::new(),

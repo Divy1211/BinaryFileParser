@@ -270,7 +270,7 @@ impl BfpType {
             
             BfpType::Struct(struct_) => {
                 let py_type = struct_.py_type(value.py());
-                if !value.is_exact_instance(py_type) {
+                if !value.is_instance(py_type)? {
                     return Err(PyTypeError::new_err(
                         format!(
                             "'{}' object cannot be interpreted as a '{}'",
