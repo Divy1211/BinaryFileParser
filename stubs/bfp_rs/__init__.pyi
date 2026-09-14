@@ -5,6 +5,7 @@ from .types import *
 
 __all__ = [
     "ByteStream",
+    "BfpList",
     "BaseStruct",
     "Context",
 
