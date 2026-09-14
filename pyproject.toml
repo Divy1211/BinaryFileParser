@@ -12,6 +12,11 @@ classifiers = [
 ]
 dynamic = ["version"]
 
+[project.optional-dependencies]
+test = [
+    "pytest"
+]
+
 [tool.maturin]
 features = ["pyo3/extension-module", "inline_always"]
 python-source = "stubs"
