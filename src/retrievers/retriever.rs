@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::sync::{Arc};
 
 use pyo3::prelude::*;
 use pyo3::types::PyType;
@@ -8,7 +8,7 @@ use crate::combinators::combinator::Combinator;
 use crate::combinators::combinator_type::CombinatorType;
 use crate::errors::default_attribute_error::DefaultAttributeError;
 use crate::errors::version_error::VersionError;
-use crate::types::base_struct::BaseStruct;
+use crate::types::base_struct::{BaseStruct};
 use crate::types::bfp_list::BfpList;
 use crate::types::bfp_type::BfpType;
 use crate::types::byte_stream::ByteStream;
@@ -162,36 +162,7 @@ impl Retriever {
             )))
         }
 
-        inner.data[slf.idx] = Some(match slf.state(&inner.repeats) {
-            RetState::Value | RetState::NoneValue if value.is_none() => {
-                inner.repeats[slf.idx] = Some(-1);
-                ParseableType::None
-            }
-            RetState::Value | RetState::NoneValue => {
-                inner.repeats[slf.idx] = None;
-                slf.data_type.to_parseable(&value)?
-            }
-            RetState::List | RetState::NoneList if value.is_none() => {
-                inner.repeats[slf.idx] = Some(-2);
-                ParseableType::None
-            }
-            RetState::List | RetState::NoneList => {
-                let repeat = slf.repeat(&inner.repeats);
-                let len = value.len()? as isize;
-                if repeat == -2 {
-                    inner.repeats[slf.idx] = Some(len);
-                } else if inner.repeats[slf.idx].is_none() && repeat != len {
-                    return Err(PyValueError::new_err(format!(
-                        "List length mismatch for '{}' which is a retriever of fixed repeat. Expected: {repeat}, Actual: {len}", slf.name
-                    )))
-                }
-                let value = value.try_iter()?
-                    .map(|v| {
-                        slf.data_type.to_parseable(&v.expect("obtained from python"))
-                    }).collect::<PyResult<Vec<_>>>()?;
-                ParseableType::Array(BfpList::new(value, slf.data_type.clone()))
-            }
-        });
+        inner.data[slf.idx] = Some(slf.from_value(&mut inner.repeats, value)?);
         Ok(())
     }
 
@@ -205,6 +176,40 @@ impl Retriever {
 }
 
 impl Retriever {
+    pub fn from_value(&self, repeats: &mut Vec<Option<isize>>, value: Bound<PyAny>) -> PyResult<ParseableType> {
+        Ok(match self.state(repeats) {
+            RetState::Value | RetState::NoneValue if value.is_none() => {
+                repeats[self.idx] = Some(-1);
+                ParseableType::None
+            }
+            RetState::Value | RetState::NoneValue => {
+                repeats[self.idx] = None;
+                self.data_type.to_parseable(&value)?
+            }
+            RetState::List | RetState::NoneList if value.is_none() => {
+                repeats[self.idx] = Some(-2);
+                ParseableType::None
+            }
+            RetState::List | RetState::NoneList => {
+                let repeat = self.repeat(repeats);
+                let len = value.len()? as isize;
+
+                if repeat == -2 {
+                    repeats[self.idx] = Some(len);
+                } else if repeats[self.idx].is_none() && repeat != len {
+                    return Err(PyValueError::new_err(format!(
+                        "List length mismatch for '{}' which is a retriever of fixed repeat. Expected: {repeat}, Actual: {len}", self.name
+                    )))
+                }
+                let value = value.try_iter()?
+                    .map(|v| {
+                        self.data_type.to_parseable(&v.expect("obtained from python"))
+                    }).collect::<PyResult<Vec<_>>>()?;
+                ParseableType::Array(BfpList::new(value, self.data_type.clone()))
+            }
+        })
+    }
+
     pub fn from_default(&self, ver: &Version, repeats: &mut Vec<Option<isize>>, ctx: &ContextPtr, py: Python) -> PyResult<ParseableType> {
         let state = self.state(repeats);
         if state == RetState::NoneValue || state == RetState::NoneList {

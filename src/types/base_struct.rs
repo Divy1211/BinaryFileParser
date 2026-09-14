@@ -337,7 +337,7 @@ impl BaseStruct {
             }
             let mut init = retriever_inits
                 .and_then(|di| di.get_item(&ret.name).unwrap_or(None))
-                .map(|obj| ret.data_type.to_parseable(&obj))
+                .map(|obj| ret.from_value(&mut repeats, obj))
                 .transpose()?;
             
             if init.is_none() {
@@ -480,7 +480,7 @@ impl BaseStruct {
         let writer = BufWriter::new(file);
 
         serde_json::to_writer(writer, &serializer)
-            .map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))
+            .map_err(|e| PyValueError::new_err(e.to_string()))
     }
 
     #[classmethod]
@@ -494,7 +494,7 @@ impl BaseStruct {
 
         let mut de = Deserializer::from_reader(reader);
 
-        let val = deserializer.deserialize(&mut de).map_err(|e| pyo3::exceptions::PyValueError::new_err(e.to_string()))?;
+        let val = deserializer.deserialize(&mut de).map_err(|e| PyValueError::new_err(e.to_string()))?;
         BaseStruct::with_cls(val, cls)
     }
 
